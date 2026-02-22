@@ -18,7 +18,8 @@ WHERE `guid` = @OGUID + 6
   AND `id` = 620463;
 
 -- Ensure missing portal templates exist (cloned from 620463 baseline template).
-INSERT IGNORE INTO `gameobject_template`
+-- NOTE: Use LEFT JOIN filter so re-runs don't generate duplicate-key warnings.
+INSERT INTO `gameobject_template`
 (`entry`, `type`, `displayId`, `name`, `IconName`, `castBarCaption`, `unk1`, `size`,
  `Data0`, `Data1`, `Data2`, `Data3`, `Data4`, `Data5`, `Data6`, `Data7`, `Data8`, `Data9`,
  `Data10`, `Data11`, `Data12`, `Data13`, `Data14`, `Data15`, `Data16`, `Data17`, `Data18`,
@@ -50,20 +51,31 @@ JOIN (
   UNION ALL SELECT 620477, 'Portal to Azsuna'
   UNION ALL SELECT 620479, 'Portal to Stormshield, Ashran'
 ) ids
-WHERE base.`entry` = 620463;
+LEFT JOIN `gameobject_template` existing ON existing.`entry` = ids.`entry`
+WHERE base.`entry` = 620463
+  AND existing.`entry` IS NULL;
 
 -- Ensure Founder's Point template exists with expected spell/display.
-INSERT IGNORE INTO `gameobject_template`
+-- NOTE: Clone from baseline columns to avoid manual column-count mismatch.
+INSERT INTO `gameobject_template`
 (`entry`, `type`, `displayId`, `name`, `IconName`, `castBarCaption`, `unk1`, `size`,
  `Data0`, `Data1`, `Data2`, `Data3`, `Data4`, `Data5`, `Data6`, `Data7`, `Data8`, `Data9`,
  `Data10`, `Data11`, `Data12`, `Data13`, `Data14`, `Data15`, `Data16`, `Data17`, `Data18`,
  `Data19`, `Data20`, `Data21`, `Data22`, `Data23`, `Data24`, `Data25`, `Data26`, `Data27`,
  `Data28`, `Data29`, `Data30`, `Data31`, `Data32`, `Data33`, `Data34`,
  `RequiredLevel`, `ContentTuningId`, `VerifiedBuild`)
-VALUES
-(543407, 22, 117089, 'Portal to Founder\'s Point', '', '', '', 1.299999952316284179,
- 1235595, 0, 0, 1, 0, 23503, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
- 0, 0, 65299);
+SELECT
+  543407, base.`type`, 117089, 'Portal to Founder\'s Point',
+  base.`IconName`, base.`castBarCaption`, base.`unk1`, 1.299999952316284179,
+  base.`Data0`, base.`Data1`, base.`Data2`, base.`Data3`, base.`Data4`, base.`Data5`, base.`Data6`, base.`Data7`, base.`Data8`, base.`Data9`,
+  base.`Data10`, base.`Data11`, base.`Data12`, base.`Data13`, base.`Data14`, base.`Data15`, base.`Data16`, base.`Data17`, base.`Data18`,
+  base.`Data19`, base.`Data20`, base.`Data21`, base.`Data22`, base.`Data23`, base.`Data24`, base.`Data25`, base.`Data26`, base.`Data27`,
+  base.`Data28`, base.`Data29`, base.`Data30`, base.`Data31`, base.`Data32`, base.`Data33`, base.`Data34`,
+  0, 0, 65299
+FROM `gameobject_template` base
+LEFT JOIN `gameobject_template` existing ON existing.`entry` = 543407
+WHERE base.`entry` = 620463
+  AND existing.`entry` IS NULL;
 
 UPDATE `gameobject_template`
 SET
