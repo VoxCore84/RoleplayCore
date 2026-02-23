@@ -28,10 +28,10 @@ SET @linked_trigger_col := NULL;
 SET @linked_effect_col := NULL;
 SET @group_col := NULL;
 
-DROP TEMPORARY TABLE IF EXISTS tmp_bad_spells;
-CREATE TEMPORARY TABLE tmp_bad_spells (
+CREATE TEMPORARY TABLE IF NOT EXISTS tmp_bad_spells (
   spellId BIGINT PRIMARY KEY
 ) ENGINE=Memory;
+TRUNCATE TABLE tmp_bad_spells;
 
 INSERT IGNORE INTO tmp_bad_spells (spellId) VALUES
 (2380),(17629),(42735),(62380),(67016),(67017),(67018),
@@ -39,22 +39,22 @@ INSERT IGNORE INTO tmp_bad_spells (spellId) VALUES
 (41637),(42965),(47960),(54501),(59907),(63230),(73015),(77767),(191840),(396719),
 (20895);
 
-DROP TEMPORARY TABLE IF EXISTS tmp_bad_linked_pairs;
-CREATE TEMPORARY TABLE tmp_bad_linked_pairs (
+CREATE TEMPORARY TABLE IF NOT EXISTS tmp_bad_linked_pairs (
   triggerId BIGINT NOT NULL,
   effectId BIGINT NOT NULL,
   PRIMARY KEY (triggerId, effectId)
 ) ENGINE=Memory;
+TRUNCATE TABLE tmp_bad_linked_pairs;
 
 INSERT IGNORE INTO tmp_bad_linked_pairs (triggerId, effectId) VALUES
 (92237,92237),
 (364343,364343),
 (383762,383762);
 
-DROP TEMPORARY TABLE IF EXISTS tmp_bad_group_ids;
-CREATE TEMPORARY TABLE tmp_bad_group_ids (
+CREATE TEMPORARY TABLE IF NOT EXISTS tmp_bad_group_ids (
   groupId BIGINT PRIMARY KEY
 ) ENGINE=Memory;
+TRUNCATE TABLE tmp_bad_group_ids;
 
 INSERT IGNORE INTO tmp_bad_group_ids (groupId) VALUES (2500);
 
@@ -230,9 +230,9 @@ SET @sql := IF(@can_spell_linked_spell = 1,
   CONCAT(
     'INSERT IGNORE INTO `spell_linked_spell_bak_genre3a` ',
     'SELECT s.* FROM `spell_linked_spell` s ',
+    'LEFT JOIN tmp_bad_spells b ON (b.spellId = s.`', @linked_trigger_col, '` OR b.spellId = s.`', @linked_effect_col, '`) ',
     'LEFT JOIN tmp_bad_linked_pairs p ON s.`', @linked_trigger_col, '` = p.triggerId AND s.`', @linked_effect_col, '` = p.effectId ',
-    'WHERE s.`', @linked_trigger_col, '` IN (SELECT spellId FROM tmp_bad_spells) ',
-    '   OR s.`', @linked_effect_col, '` IN (SELECT spellId FROM tmp_bad_spells) ',
+    'WHERE b.spellId IS NOT NULL ',
     '   OR p.triggerId IS NOT NULL'
   ),
   'SELECT ''SKIP: spell_linked_spell backup rows skipped'' AS note'
@@ -242,9 +242,9 @@ PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 SET @sql := IF(@can_spell_linked_spell = 1,
   CONCAT(
     'DELETE s FROM `spell_linked_spell` s ',
+    'LEFT JOIN tmp_bad_spells b ON (b.spellId = s.`', @linked_trigger_col, '` OR b.spellId = s.`', @linked_effect_col, '`) ',
     'LEFT JOIN tmp_bad_linked_pairs p ON s.`', @linked_trigger_col, '` = p.triggerId AND s.`', @linked_effect_col, '` = p.effectId ',
-    'WHERE s.`', @linked_trigger_col, '` IN (SELECT spellId FROM tmp_bad_spells) ',
-    '   OR s.`', @linked_effect_col, '` IN (SELECT spellId FROM tmp_bad_spells) ',
+    'WHERE b.spellId IS NOT NULL ',
     '   OR p.triggerId IS NOT NULL'
   ),
   'SELECT ''SKIP: spell_linked_spell delete skipped'' AS note'
@@ -340,7 +340,8 @@ PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 SET @sql := IF(@can_spell_linked_spell = 1,
   CONCAT(
     'SELECT COUNT(*) AS remaining_bad_spell_refs_spell_linked_spell ',
-    'FROM `spell_linked_spell` WHERE `', @linked_trigger_col, '` IN (SELECT spellId FROM tmp_bad_spells) OR `', @linked_effect_col, '` IN (SELECT spellId FROM tmp_bad_spells)'
+    'FROM `spell_linked_spell` s ',
+    'INNER JOIN tmp_bad_spells b ON (b.spellId = s.`', @linked_trigger_col, '` OR b.spellId = s.`', @linked_effect_col, '`)'
   ),
   'SELECT ''SKIP: verification spell_linked_spell unavailable'' AS note'
 );
