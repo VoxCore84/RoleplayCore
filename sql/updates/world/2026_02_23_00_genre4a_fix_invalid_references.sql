@@ -27,6 +27,8 @@ SET @ver_ct_invalid_sound := 0;
 SET @ver_ct_invalid_emote := 0;
 SET @ver_ct_invalid_textrange := 0;
 
+SET @hotfixes_schema := 'hotfixes';
+
 /* A) gossip_menu -> npc_text */
 SET @has_gossip_menu := (
     SELECT COUNT(*) FROM information_schema.tables
@@ -193,15 +195,27 @@ SET @sql := IF(
 PREPARE stmt FROM @sql; EXECUTE stmt; SET @rows_gossip_menu_option := @rows_gossip_menu_option + ROW_COUNT(); DEALLOCATE PREPARE stmt;
 
 /* C) npc_text BroadcastTextID* */
-SET @has_broadcast_text := (
-    SELECT COUNT(*) FROM information_schema.tables
-    WHERE table_schema = DATABASE() AND table_name = 'broadcast_text'
+SET @broadcast_text_schema := (
+    SELECT t.table_schema
+    FROM information_schema.tables t
+    WHERE t.table_name = 'broadcast_text'
+      AND t.table_schema IN (DATABASE(), @hotfixes_schema)
+    ORDER BY FIELD(t.table_schema, DATABASE(), @hotfixes_schema)
+    LIMIT 1
+);
+
+SET @has_broadcast_text := IF(@broadcast_text_schema IS NULL, 0, 1);
+
+SET @broadcast_text_ref := IF(
+    @broadcast_text_schema IS NULL,
+    NULL,
+    CONCAT('`', @broadcast_text_schema, '`.`broadcast_text`')
 );
 
 SET @bt_pk_col := (
     SELECT c.column_name
     FROM information_schema.columns c
-    WHERE c.table_schema = DATABASE() AND c.table_name = 'broadcast_text'
+    WHERE c.table_schema = @broadcast_text_schema AND c.table_name = 'broadcast_text'
       AND LOWER(c.column_name) IN ('id')
     ORDER BY FIELD(LOWER(c.column_name),'id')
     LIMIT 1
@@ -217,7 +231,7 @@ SET @npc_bt_cols_count := (
 SET @npc_invalid_cond := (
     SELECT GROUP_CONCAT(
         CONCAT(
-            '(nt.`', c.column_name, '` <> 0 AND NOT EXISTS (SELECT 1 FROM `broadcast_text` bt WHERE bt.`', @bt_pk_col, '` = nt.`', c.column_name, '`))'
+            '(nt.`', c.column_name, '` <> 0 AND NOT EXISTS (SELECT 1 FROM ', @broadcast_text_ref, ' bt WHERE bt.`', @bt_pk_col, '` = nt.`', c.column_name, '`))'
         )
         ORDER BY c.ordinal_position SEPARATOR ' OR '
     )
@@ -229,7 +243,7 @@ SET @npc_invalid_cond := (
 SET @npc_set_expr := (
     SELECT GROUP_CONCAT(
         CONCAT(
-            'nt.`', c.column_name, '` = IF(nt.`', c.column_name, '` <> 0 AND NOT EXISTS (SELECT 1 FROM `broadcast_text` bt WHERE bt.`', @bt_pk_col, '` = nt.`', c.column_name, '`), 0, nt.`', c.column_name, '`)'
+            'nt.`', c.column_name, '` = IF(nt.`', c.column_name, '` <> 0 AND NOT EXISTS (SELECT 1 FROM ', @broadcast_text_ref, ' bt WHERE bt.`', @bt_pk_col, '` = nt.`', c.column_name, '`), 0, nt.`', c.column_name, '`)'
         )
         ORDER BY c.ordinal_position SEPARATOR ', '
     )
@@ -241,7 +255,7 @@ SET @npc_set_expr := (
 SET @npc_invalid_sum_expr := (
     SELECT GROUP_CONCAT(
         CONCAT(
-            '(nt.`', c.column_name, '` <> 0 AND NOT EXISTS (SELECT 1 FROM `broadcast_text` bt WHERE bt.`', @bt_pk_col, '` = nt.`', c.column_name, '`))'
+            '(nt.`', c.column_name, '` <> 0 AND NOT EXISTS (SELECT 1 FROM ', @broadcast_text_ref, ' bt WHERE bt.`', @bt_pk_col, '` = nt.`', c.column_name, '`))'
         )
         ORDER BY c.ordinal_position SEPARATOR ' + '
     )
@@ -330,33 +344,60 @@ SET @ct_textrangemax_col := (
     LIMIT 1
 );
 
+SET @sound_schema := (
+    SELECT t.table_schema
+    FROM information_schema.tables t
+    WHERE t.table_name IN ('sound_entries','soundkit','sound_kit')
+      AND t.table_schema IN (DATABASE(), @hotfixes_schema)
+    ORDER BY FIELD(t.table_schema, DATABASE(), @hotfixes_schema), FIELD(t.table_name,'sound_entries','soundkit','sound_kit')
+    LIMIT 1
+);
+
 SET @sound_table := (
     SELECT t.table_name
     FROM information_schema.tables t
-    WHERE t.table_schema = DATABASE()
-      AND t.table_name IN ('sound_entries','soundkit','sound_kit')
+    WHERE t.table_name IN ('sound_entries','soundkit','sound_kit')
+      AND t.table_schema = @sound_schema
     ORDER BY FIELD(t.table_name,'sound_entries','soundkit','sound_kit')
     LIMIT 1
+);
+
+SET @sound_ref := IF(
+    @sound_schema IS NULL OR @sound_table IS NULL,
+    NULL,
+    CONCAT('`', @sound_schema, '`.`', @sound_table, '`')
 );
 
 SET @sound_id_col := (
     SELECT c.column_name
     FROM information_schema.columns c
-    WHERE c.table_schema = DATABASE() AND c.table_name = @sound_table
+    WHERE c.table_schema = @sound_schema AND c.table_name = @sound_table
       AND LOWER(c.column_name) IN ('id')
     ORDER BY FIELD(LOWER(c.column_name),'id')
     LIMIT 1
 );
 
-SET @has_emotes := (
-    SELECT COUNT(*) FROM information_schema.tables
-    WHERE table_schema = DATABASE() AND table_name = 'emotes'
+SET @emotes_schema := (
+    SELECT t.table_schema
+    FROM information_schema.tables t
+    WHERE t.table_name = 'emotes'
+      AND t.table_schema IN (DATABASE(), @hotfixes_schema)
+    ORDER BY FIELD(t.table_schema, DATABASE(), @hotfixes_schema)
+    LIMIT 1
+);
+
+SET @has_emotes := IF(@emotes_schema IS NULL, 0, 1);
+
+SET @emotes_ref := IF(
+    @emotes_schema IS NULL,
+    NULL,
+    CONCAT('`', @emotes_schema, '`.`emotes`')
 );
 
 SET @emote_id_col := (
     SELECT c.column_name
     FROM information_schema.columns c
-    WHERE c.table_schema = DATABASE() AND c.table_name = 'emotes'
+    WHERE c.table_schema = @emotes_schema AND c.table_name = 'emotes'
       AND LOWER(c.column_name) IN ('id')
     ORDER BY FIELD(LOWER(c.column_name),'id')
     LIMIT 1
@@ -374,7 +415,7 @@ SET @sql := IF(
     CONCAT(
         'INSERT IGNORE INTO `creature_text_backup_genre4a` ',
         'SELECT ct.* FROM `creature_text` ct WHERE ct.`', @ct_bt_col, '` <> 0 ',
-        'AND NOT EXISTS (SELECT 1 FROM `broadcast_text` bt WHERE bt.`', @bt_pk_col, '` = ct.`', @ct_bt_col, '` )'
+        'AND NOT EXISTS (SELECT 1 FROM ', @broadcast_text_ref, ' bt WHERE bt.`', @bt_pk_col, '` = ct.`', @ct_bt_col, '` )'
     ),
     'SELECT ''SKIP: creature_text BroadcastText backup skipped (missing dependency).'' AS note'
 );
@@ -385,7 +426,7 @@ SET @sql := IF(
     CONCAT(
         'UPDATE `creature_text` ct SET ct.`', @ct_bt_col, '` = 0 ',
         'WHERE ct.`', @ct_bt_col, '` <> 0 ',
-        'AND NOT EXISTS (SELECT 1 FROM `broadcast_text` bt WHERE bt.`', @bt_pk_col, '` = ct.`', @ct_bt_col, '` )'
+        'AND NOT EXISTS (SELECT 1 FROM ', @broadcast_text_ref, ' bt WHERE bt.`', @bt_pk_col, '` = ct.`', @ct_bt_col, '` )'
     ),
     'SELECT ''SKIP: creature_text BroadcastText update skipped (missing dependency).'' AS note'
 );
@@ -396,7 +437,7 @@ SET @sql := IF(
     CONCAT(
         'INSERT IGNORE INTO `creature_text_backup_genre4a` ',
         'SELECT ct.* FROM `creature_text` ct WHERE ct.`', @ct_sound_col, '` <> 0 ',
-        'AND NOT EXISTS (SELECT 1 FROM `', @sound_table, '` s WHERE s.`', @sound_id_col, '` = ct.`', @ct_sound_col, '` )'
+        'AND NOT EXISTS (SELECT 1 FROM ', @sound_ref, ' s WHERE s.`', @sound_id_col, '` = ct.`', @ct_sound_col, '` )'
     ),
     'SELECT ''SKIP: creature_text Sound backup skipped (missing dependency).'' AS note'
 );
@@ -407,7 +448,7 @@ SET @sql := IF(
     CONCAT(
         'UPDATE `creature_text` ct SET ct.`', @ct_sound_col, '` = 0 ',
         'WHERE ct.`', @ct_sound_col, '` <> 0 ',
-        'AND NOT EXISTS (SELECT 1 FROM `', @sound_table, '` s WHERE s.`', @sound_id_col, '` = ct.`', @ct_sound_col, '` )'
+        'AND NOT EXISTS (SELECT 1 FROM ', @sound_ref, ' s WHERE s.`', @sound_id_col, '` = ct.`', @ct_sound_col, '` )'
     ),
     'SELECT ''SKIP: creature_text Sound update skipped (missing dependency).'' AS note'
 );
@@ -418,7 +459,7 @@ SET @sql := IF(
     CONCAT(
         'INSERT IGNORE INTO `creature_text_backup_genre4a` ',
         'SELECT ct.* FROM `creature_text` ct WHERE ct.`', @ct_emote_col, '` <> 0 ',
-        'AND NOT EXISTS (SELECT 1 FROM `emotes` e WHERE e.`', @emote_id_col, '` = ct.`', @ct_emote_col, '` )'
+        'AND NOT EXISTS (SELECT 1 FROM ', @emotes_ref, ' e WHERE e.`', @emote_id_col, '` = ct.`', @ct_emote_col, '` )'
     ),
     'SELECT ''SKIP: creature_text Emote backup skipped (missing dependency).'' AS note'
 );
@@ -429,7 +470,7 @@ SET @sql := IF(
     CONCAT(
         'UPDATE `creature_text` ct SET ct.`', @ct_emote_col, '` = 0 ',
         'WHERE ct.`', @ct_emote_col, '` <> 0 ',
-        'AND NOT EXISTS (SELECT 1 FROM `emotes` e WHERE e.`', @emote_id_col, '` = ct.`', @ct_emote_col, '` )'
+        'AND NOT EXISTS (SELECT 1 FROM ', @emotes_ref, ' e WHERE e.`', @emote_id_col, '` = ct.`', @ct_emote_col, '` )'
     ),
     'SELECT ''SKIP: creature_text Emote update skipped (missing dependency).'' AS note'
 );
@@ -527,7 +568,7 @@ SET @sql := IF(
     CONCAT(
         'SELECT COUNT(*) INTO @ver_ct_invalid_broadcast FROM `creature_text` ct ',
         'WHERE ct.`', @ct_bt_col, '` <> 0 ',
-        'AND NOT EXISTS (SELECT 1 FROM `broadcast_text` bt WHERE bt.`', @bt_pk_col, '` = ct.`', @ct_bt_col, '` )'
+        'AND NOT EXISTS (SELECT 1 FROM ', @broadcast_text_ref, ' bt WHERE bt.`', @bt_pk_col, '` = ct.`', @ct_bt_col, '` )'
     ),
     'SELECT 0 INTO @ver_ct_invalid_broadcast'
 );
@@ -538,7 +579,7 @@ SET @sql := IF(
     CONCAT(
         'SELECT COUNT(*) INTO @ver_ct_invalid_sound FROM `creature_text` ct ',
         'WHERE ct.`', @ct_sound_col, '` <> 0 ',
-        'AND NOT EXISTS (SELECT 1 FROM `', @sound_table, '` s WHERE s.`', @sound_id_col, '` = ct.`', @ct_sound_col, '` )'
+        'AND NOT EXISTS (SELECT 1 FROM ', @sound_ref, ' s WHERE s.`', @sound_id_col, '` = ct.`', @ct_sound_col, '` )'
     ),
     'SELECT 0 INTO @ver_ct_invalid_sound'
 );
@@ -549,7 +590,7 @@ SET @sql := IF(
     CONCAT(
         'SELECT COUNT(*) INTO @ver_ct_invalid_emote FROM `creature_text` ct ',
         'WHERE ct.`', @ct_emote_col, '` <> 0 ',
-        'AND NOT EXISTS (SELECT 1 FROM `emotes` e WHERE e.`', @emote_id_col, '` = ct.`', @ct_emote_col, '` )'
+        'AND NOT EXISTS (SELECT 1 FROM ', @emotes_ref, ' e WHERE e.`', @emote_id_col, '` = ct.`', @ct_emote_col, '` )'
     ),
     'SELECT 0 INTO @ver_ct_invalid_emote'
 );
