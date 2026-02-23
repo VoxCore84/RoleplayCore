@@ -1,5 +1,6 @@
 USE `world`;
 SELECT DATABASE() AS current_database;
+SELECT 'NOTE: Execute this raw .sql file only (not git diff output with @@ / +/- lines).' AS execution_note;
 
 SET @OLD_SQL_SAFE_UPDATES := @@SQL_SAFE_UPDATES;
 SET @OLD_FOREIGN_KEY_CHECKS := @@FOREIGN_KEY_CHECKS;
