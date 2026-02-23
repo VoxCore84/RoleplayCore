@@ -1,6 +1,8 @@
 USE `world`;
 SELECT DATABASE() AS current_database;
-SELECT 'NOTE: Execute this raw .sql file only (not git diff output with @@ / +/- lines).' AS execution_note;
+SELECT 'NOTE: HeidiSQL must execute the raw .sql file only.' AS execution_note;
+SELECT 'DO NOT run code-review logs or git patches (`diff --git`, `@@`, or +/- prefixed lines).' AS execution_note_2;
+SELECT 'If you see duplicated WHERE clauses or duplicate CONCAT fragments, stop and reload the original file.' AS execution_note_3;
 
 SET @OLD_SQL_SAFE_UPDATES := @@SQL_SAFE_UPDATES;
 SET @OLD_FOREIGN_KEY_CHECKS := @@FOREIGN_KEY_CHECKS;
