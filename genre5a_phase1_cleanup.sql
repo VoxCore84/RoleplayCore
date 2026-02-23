@@ -151,12 +151,6 @@ SET @can_gameobject_addon_cleanup := (
     AND @gameobject_guid_col IS NOT NULL
 );
 
-START TRANSACTION;
-SET SQL_SAFE_UPDATES = 0;
-SET FOREIGN_KEY_CHECKS = 0;
-SET UNIQUE_CHECKS = 0;
-SET AUTOCOMMIT = 0;
-
 SET @sql := IF(
     @can_creature_cleanup,
     'CREATE TABLE IF NOT EXISTS `creature_backup_genre5a` LIKE `creature`',
@@ -165,6 +159,47 @@ SET @sql := IF(
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @can_gameobject_cleanup,
+    'CREATE TABLE IF NOT EXISTS `gameobject_backup_genre5a` LIKE `gameobject`',
+    "SELECT 'SKIP: gameobject cleanup unavailable (missing table/column in gameobject or gameobject_template).' AS note"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_creature_addon = 1,
+    IF(
+        @can_creature_addon_cleanup,
+        'CREATE TABLE IF NOT EXISTS `creature_addon_backup_genre5a` LIKE `creature_addon`',
+        "SELECT 'SKIP: creature_addon cleanup unavailable (missing creature table/guid or creature_addon guid).' AS note"
+    ),
+    "SELECT 'SKIP: creature_addon table not found.' AS note"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+SET @sql := IF(
+    @has_gameobject_addon = 1,
+    IF(
+        @can_gameobject_addon_cleanup,
+        'CREATE TABLE IF NOT EXISTS `gameobject_addon_backup_genre5a` LIKE `gameobject_addon`',
+        "SELECT 'SKIP: gameobject_addon cleanup unavailable (missing gameobject table/guid or gameobject_addon guid).' AS note"
+    ),
+    "SELECT 'SKIP: gameobject_addon table not found.' AS note"
+);
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
+
+START TRANSACTION;
+SET SQL_SAFE_UPDATES = 0;
+SET FOREIGN_KEY_CHECKS = 0;
+SET UNIQUE_CHECKS = 0;
+SET AUTOCOMMIT = 0;
 
 SET @sql := IF(
     @can_creature_cleanup,
@@ -196,15 +231,6 @@ DEALLOCATE PREPARE stmt;
 
 SET @sql := IF(
     @can_gameobject_cleanup,
-    'CREATE TABLE IF NOT EXISTS `gameobject_backup_genre5a` LIKE `gameobject`',
-    "SELECT 'SKIP: gameobject cleanup unavailable (missing table/column in gameobject or gameobject_template).' AS note"
-);
-PREPARE stmt FROM @sql;
-EXECUTE stmt;
-DEALLOCATE PREPARE stmt;
-
-SET @sql := IF(
-    @can_gameobject_cleanup,
     CONCAT(
         'INSERT IGNORE INTO `gameobject_backup_genre5a` ',
         'SELECT g.* FROM `gameobject` g ',
@@ -229,19 +255,6 @@ SET @sql := IF(
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 SET @deleted_gameobject := IF(@can_gameobject_cleanup, ROW_COUNT(), 0);
-DEALLOCATE PREPARE stmt;
-
-SET @sql := IF(
-    @has_creature_addon = 1,
-    IF(
-        @can_creature_addon_cleanup,
-        'CREATE TABLE IF NOT EXISTS `creature_addon_backup_genre5a` LIKE `creature_addon`',
-        "SELECT 'SKIP: creature_addon cleanup unavailable (missing creature table/guid or creature_addon guid).' AS note"
-    ),
-    "SELECT 'SKIP: creature_addon table not found.' AS note"
-);
-PREPARE stmt FROM @sql;
-EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
 SET @sql := IF(
@@ -270,19 +283,6 @@ SET @sql := IF(
 PREPARE stmt FROM @sql;
 EXECUTE stmt;
 SET @deleted_creature_addon := IF(@can_creature_addon_cleanup, ROW_COUNT(), 0);
-DEALLOCATE PREPARE stmt;
-
-SET @sql := IF(
-    @has_gameobject_addon = 1,
-    IF(
-        @can_gameobject_addon_cleanup,
-        'CREATE TABLE IF NOT EXISTS `gameobject_addon_backup_genre5a` LIKE `gameobject_addon`',
-        "SELECT 'SKIP: gameobject_addon cleanup unavailable (missing gameobject table/guid or gameobject_addon guid).' AS note"
-    ),
-    "SELECT 'SKIP: gameobject_addon table not found.' AS note"
-);
-PREPARE stmt FROM @sql;
-EXECUTE stmt;
 DEALLOCATE PREPARE stmt;
 
 SET @sql := IF(
