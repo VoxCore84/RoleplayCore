@@ -29,6 +29,12 @@ SET @ver_ct_invalid_textrange := 0;
 
 SET @hotfixes_schema := 'hotfixes';
 
+/*
+   This migration mutates world tables, so it runs in `world`.
+   Reference lookups (broadcast_text/emotes/sound_*) prefer `hotfixes` when present,
+   and fall back to the current DB for merged/single-schema installs.
+*/
+
 /* A) gossip_menu -> npc_text */
 SET @has_gossip_menu := (
     SELECT COUNT(*) FROM information_schema.tables
@@ -200,7 +206,7 @@ SET @broadcast_text_schema := (
     FROM information_schema.tables t
     WHERE t.table_name = 'broadcast_text'
       AND t.table_schema IN (DATABASE(), @hotfixes_schema)
-    ORDER BY FIELD(t.table_schema, DATABASE(), @hotfixes_schema)
+    ORDER BY FIELD(t.table_schema, @hotfixes_schema, DATABASE())
     LIMIT 1
 );
 
@@ -349,7 +355,7 @@ SET @sound_schema := (
     FROM information_schema.tables t
     WHERE t.table_name IN ('sound_entries','soundkit','sound_kit')
       AND t.table_schema IN (DATABASE(), @hotfixes_schema)
-    ORDER BY FIELD(t.table_schema, DATABASE(), @hotfixes_schema), FIELD(t.table_name,'sound_entries','soundkit','sound_kit')
+    ORDER BY FIELD(t.table_schema, @hotfixes_schema, DATABASE()), FIELD(t.table_name,'sound_entries','soundkit','sound_kit')
     LIMIT 1
 );
 
@@ -382,7 +388,7 @@ SET @emotes_schema := (
     FROM information_schema.tables t
     WHERE t.table_name = 'emotes'
       AND t.table_schema IN (DATABASE(), @hotfixes_schema)
-    ORDER BY FIELD(t.table_schema, DATABASE(), @hotfixes_schema)
+    ORDER BY FIELD(t.table_schema, @hotfixes_schema, DATABASE())
     LIMIT 1
 );
 
