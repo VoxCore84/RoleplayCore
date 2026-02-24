@@ -17,9 +17,54 @@
 
 #include "TransmogrificationPackets.h"
 #include "PacketOperators.h"
+#include "Util.h"
+#include <algorithm>
 
 namespace WorldPackets::Transmogrification
 {
+
+namespace
+{
+void CapturePayloadDebugInfo(WorldPacket const& packet, size_t& payloadSize, std::string& payloadPreviewHex)
+{
+    payloadSize = packet.size();
+    size_t previewSize = std::min<size_t>(packet.size(), 128);
+    payloadPreviewHex = ByteArrayToHexStr(packet.data(), previewSize);
+}
+
+void ReadTransmogOutfitAsEquipmentSetData(WorldPacket& worldPacket, EquipmentSetInfo::EquipmentSetData& set)
+{
+    worldPacket >> As<int32>(set.Type);
+    worldPacket >> set.Guid;
+    worldPacket >> set.SetID;
+    worldPacket >> set.IgnoreMask;
+
+    for (uint8 i = 0; i < EQUIPMENT_SET_SLOTS; ++i)
+    {
+        worldPacket >> set.Pieces[i];
+        worldPacket >> set.Appearances[i];
+    }
+
+    worldPacket >> set.Enchants[0];
+    worldPacket >> set.Enchants[1];
+
+    worldPacket >> set.SecondaryShoulderApparanceID;
+    worldPacket >> set.SecondaryShoulderSlot;
+    worldPacket >> set.SecondaryWeaponAppearanceID;
+    worldPacket >> set.SecondaryWeaponSlot;
+
+    worldPacket >> OptionalInit(set.AssignedSpecIndex);
+    worldPacket >> SizedString::BitsSize<8>(set.SetName);
+    worldPacket >> SizedString::BitsSize<9>(set.SetIcon);
+
+    if (set.AssignedSpecIndex)
+        worldPacket >> *set.AssignedSpecIndex;
+
+    worldPacket >> SizedString::Data(set.SetName);
+    worldPacket >> SizedString::Data(set.SetIcon);
+}
+}
+
 ByteBuffer& operator>>(ByteBuffer& data, TransmogrifyItem& transmogItem)
 {
     data >> transmogItem.ItemModifiedAppearanceID;
@@ -38,6 +83,89 @@ void TransmogrifyItems::Read()
         _worldPacket >> item;
 
     _worldPacket >> Bits<1>(CurrentSpecOnly);
+}
+
+
+void TransmogOutfitNew::Read()
+{
+    CapturePayloadDebugInfo(_worldPacket, PayloadSize, PayloadPreviewHex);
+
+    try
+    {
+        ReadTransmogOutfitAsEquipmentSetData(_worldPacket, Set);
+    }
+    catch (ByteBufferException const& ex)
+    {
+        ParseSuccess = false;
+        ParseError = ex.what();
+        _worldPacket.rfinish();
+    }
+}
+
+void TransmogOutfitUpdateInfo::Read()
+{
+    CapturePayloadDebugInfo(_worldPacket, PayloadSize, PayloadPreviewHex);
+
+    try
+    {
+        ReadTransmogOutfitAsEquipmentSetData(_worldPacket, Set);
+    }
+    catch (ByteBufferException const& ex)
+    {
+        ParseSuccess = false;
+        ParseError = ex.what();
+        _worldPacket.rfinish();
+    }
+}
+
+void TransmogOutfitUpdateSlots::Read()
+{
+    CapturePayloadDebugInfo(_worldPacket, PayloadSize, PayloadPreviewHex);
+
+    try
+    {
+        ReadTransmogOutfitAsEquipmentSetData(_worldPacket, Set);
+    }
+    catch (ByteBufferException const& ex)
+    {
+        ParseSuccess = false;
+        ParseError = ex.what();
+        _worldPacket.rfinish();
+    }
+}
+
+void TransmogOutfitUpdateSituations::Read()
+{
+    CapturePayloadDebugInfo(_worldPacket, PayloadSize, PayloadPreviewHex);
+
+    try
+    {
+        _worldPacket >> Guid;
+        _worldPacket >> SetID;
+
+        if (_worldPacket.rpos() < _worldPacket.size())
+        {
+            uint32 count = _worldPacket.read<uint32>();
+            uint32 maxCountByPayload = uint32((_worldPacket.size() - _worldPacket.rpos()) / (sizeof(uint32) * 4));
+            count = std::min(count, maxCountByPayload);
+            Situations.reserve(count);
+            for (uint32 i = 0; i < count; ++i)
+            {
+                TransmogOutfitSituationEntry entry;
+                _worldPacket >> entry.SituationID;
+                _worldPacket >> entry.SpecID;
+                _worldPacket >> entry.LoadoutID;
+                _worldPacket >> entry.EquipmentSetID;
+                Situations.push_back(entry);
+            }
+        }
+    }
+    catch (ByteBufferException const& ex)
+    {
+        ParseSuccess = false;
+        ParseError = ex.what();
+        _worldPacket.rfinish();
+    }
 }
 
 WorldPacket const* AccountTransmogUpdate::Write()
