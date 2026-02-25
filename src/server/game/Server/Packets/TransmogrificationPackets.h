@@ -76,6 +76,7 @@ namespace WorldPackets
             void Read() override;
 
             EquipmentSetInfo::EquipmentSetData Set;
+            ObjectGuid PlayerGuid;
             bool ParseSuccess = true;
             std::string ParseError;
             std::string DiagnosticReadTrace;
@@ -106,6 +107,7 @@ namespace WorldPackets
             void Read() override;
 
             EquipmentSetInfo::EquipmentSetData Set;
+            ObjectGuid PlayerGuid;
             std::vector<TransmogOutfitSlotEntry> Slots;
             bool ParseSuccess = true;
             std::string ParseError;
@@ -121,7 +123,7 @@ namespace WorldPackets
 
             void Read() override;
 
-            uint64 Guid = 0;
+            ObjectGuid PlayerGuid;
             uint32 SetID = 0;
             std::vector<TransmogOutfitSituationEntry> Situations;
             bool ParseSuccess = true;

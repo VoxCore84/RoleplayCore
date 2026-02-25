@@ -105,7 +105,7 @@ void TransmogOutfitNew::Read()
 
     try
     {
-        _worldPacket >> Set.Guid;
+        _worldPacket >> PlayerGuid;
 
         std::span<uint8 const> payload(_worldPacket.data(), _worldPacket.size());
         uint8 b8 = payload.size() > 8 ? payload[8] : 0;
@@ -124,12 +124,12 @@ void TransmogOutfitNew::Read()
         _worldPacket.FlushBits();
         Set.SetName = _worldPacket.ReadString(nameLength, false);
 
-        TC_LOG_ERROR("network", "CMSG_TRANSMOG_OUTFIT_NEW diag: guid={} raw[8..13]=[{}, {}, {}, {}, {}, {}] as(u16+u32)=[{}, {}] as(u32+u16)=[{}, {}] nameLen={} name='{}' payloadSize={} payloadHex={}",
-            Set.Guid, b8, b9, b10, b11, b12, b13, u16_8, u32_10, u32_8, u16_12, nameLength, Set.SetName, PayloadSize, PayloadPreviewHex);
+        TC_LOG_ERROR("network", "CMSG_TRANSMOG_OUTFIT_NEW diag: playerGuid={} raw[8..13]=[{}, {}, {}, {}, {}, {}] as(u16+u32)=[{}, {}] as(u32+u16)=[{}, {}] nameLen={} name='{}' payloadSize={} payloadHex={}",
+            PlayerGuid.ToString(), b8, b9, b10, b11, b12, b13, u16_8, u32_10, u32_8, u16_12, nameLength, Set.SetName, PayloadSize, PayloadPreviewHex);
 
         ParseError = "structured diagnostic parser active: NEW middle fields unresolved";
         std::ostringstream trace;
-        trace << "guid=" << Set.Guid << " name='" << Set.SetName << "'";
+        trace << "playerGuid=" << PlayerGuid.ToString() << " name='" << Set.SetName << "'";
         DiagnosticReadTrace = trace.str();
     }
     catch (std::exception const& ex)
@@ -160,7 +160,7 @@ void TransmogOutfitUpdateSlots::Read()
 
         uint32 slotCount = 0;
         _worldPacket >> slotCount;
-        _worldPacket >> Set.Guid;
+        _worldPacket >> PlayerGuid;
 
         Slots.resize(slotCount);
 
@@ -205,7 +205,7 @@ void TransmogOutfitUpdateSituations::Read()
     try
     {
         _worldPacket >> SetID;
-        _worldPacket >> Guid;
+        _worldPacket >> PlayerGuid;
 
         uint32 count = 0;
         _worldPacket >> count;

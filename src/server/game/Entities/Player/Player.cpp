@@ -28572,6 +28572,20 @@ EquipmentSetInfo::EquipmentSetData const* Player::GetEquipmentSetData(uint64 id)
     return &itr->second.Data;
 }
 
+EquipmentSetInfo::EquipmentSetData const* Player::GetTransmogOutfitBySetID(uint32 setID) const
+{
+    for (EquipmentSetContainer::value_type const& outfit : _equipmentSets)
+    {
+        if (outfit.second.State == EQUIPMENT_SET_DELETED)
+            continue;
+
+        if (outfit.second.Data.Type == EquipmentSetInfo::TRANSMOG && outfit.second.Data.SetID == setID)
+            return &outfit.second.Data;
+    }
+
+    return nullptr;
+}
+
 void Player::DeleteEquipmentSet(uint64 id)
 {
     for (EquipmentSetContainer::iterator itr = _equipmentSets.begin(); itr != _equipmentSets.end();)
