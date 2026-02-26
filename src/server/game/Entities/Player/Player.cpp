@@ -18090,11 +18090,18 @@ void Player::_SyncTransmogOutfitsToActivePlayerData()
                 imaID = (mapping.equipSlot < EQUIPMENT_SLOT_END && equipmentSet->Appearances[mapping.equipSlot] > 0)
                     ? uint32(equipmentSet->Appearances[mapping.equipSlot]) : 0;
 
+            // Look up the real AppearanceDisplayType from DB2 (matches SetVisibleItemSlot logic)
+            uint8 displayType = 0;
+            if (imaID)
+                if (ItemModifiedAppearanceEntry const* modAppear = sItemModifiedAppearanceStore.LookupEntry(imaID))
+                    if (ItemAppearanceEntry const* appear = sItemAppearanceStore.LookupEntry(modAppear->ItemAppearanceID))
+                        displayType = uint8(appear->DisplayType);
+
             auto slotSetter = AddDynamicUpdateFieldValue(outfitSetter.ModifyValue(&UF::TransmogOutfitData::Slots));
             slotSetter.ModifyValue(&UF::TransmogOutfitSlotData::Slot).SetValue(mapping.transmogSlot);
             slotSetter.ModifyValue(&UF::TransmogOutfitSlotData::SlotOption).SetValue(uint8(0));
             slotSetter.ModifyValue(&UF::TransmogOutfitSlotData::ItemModifiedAppearanceID).SetValue(imaID);
-            slotSetter.ModifyValue(&UF::TransmogOutfitSlotData::AppearanceDisplayType).SetValue(imaID > 0 ? uint8(1) : uint8(0));
+            slotSetter.ModifyValue(&UF::TransmogOutfitSlotData::AppearanceDisplayType).SetValue(displayType);
             slotSetter.ModifyValue(&UF::TransmogOutfitSlotData::Flags).SetValue(uint32(0));
 
             uint32 enchant = 0;
