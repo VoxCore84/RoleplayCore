@@ -16,6 +16,14 @@ INSERT IGNORE INTO `creature_template` (`entry`, `name`, `subname`, `ScriptName`
 (500004, 'Companion Mage',      'Caster DPS', 'CompanionAI', 35, 0, 0, 2000),
 (500005, 'Companion Priest',    'Healer',     'CompanionAI', 35, 0, 0, 2000);
 
+-- Display models (required for creatures to be visible)
+INSERT IGNORE INTO `creature_template_model` (`CreatureID`, `Idx`, `CreatureDisplayID`, `DisplayScale`, `Probability`) VALUES
+(500001, 0, 3258,  1, 1),   -- Warrior: Stormwind Guard
+(500002, 0, 34761, 1, 1),   -- Rogue: SI:7 Agent
+(500003, 0, 55028, 1, 1),   -- Hunter: Stormwind Mage (placeholder)
+(500004, 0, 64084, 1, 1),   -- Mage: Stormwind Mage
+(500005, 0, 18452, 1, 1);   -- Priest: Stormwind Mage (older model)
+
 -- Difficulty entries for scaling (DifficultyID 0 = normal)
 INSERT IGNORE INTO `creature_template_difficulty` (`Entry`, `DifficultyID`, `HealthModifier`, `DamageModifier`) VALUES
 (500001, 0, 5.0, 1.0),
