@@ -452,6 +452,12 @@ void TransmogOutfitUpdateSlots::Read()
                 curRpos, ByteArrayToHexStr(std::span(_worldPacket.data() + curRpos, dumpSize)));
         }
 
+        // Multi-iteration packets (slotCount > 15) contain situation variants.
+        // Only the FIRST 15 entries (iteration 0) represent the base outfit.
+        // Subsequent iterations are alternate "situations" with different/shuffled IMAIDs
+        // and must NOT be mixed into the base Appearances array.
+        uint32 baseSlotCount = std::min(slotCount, uint32(15));
+
         for (uint32 i = 0; i < slotCount; ++i)
         {
             TransmogOutfitSlotEntry& slot = Slots[i];
@@ -459,17 +465,24 @@ void TransmogOutfitUpdateSlots::Read()
             // Read 16 raw bytes per entry
             _worldPacket.read(slot.RawBytes, 16);
 
-            // Wire format: [u8:0x00][u32:AppearanceID LE][u8:Flags][9 bytes:reserved][u8:SlotIndex]
+            // Wire format: [u8:0x00][u32:AppearanceID LE][u8:DisplayType][9 bytes:reserved][u8:SlotIndex]
             slot.AppearanceID = ReadLE<uint32>(std::span<uint8 const>(slot.RawBytes, 16), 1);
             slot.Flags = slot.RawBytes[5];
             slot.SlotIndex = slot.RawBytes[15];
+
+            // Only process the first 15 entries for the base outfit
+            if (i >= baseSlotCount)
+            {
+                TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: appear={} flags={} transmogSlot={} (situation data, skipped)",
+                    i, slot.AppearanceID, slot.Flags, slot.SlotIndex);
+                continue;
+            }
 
             uint8 transmogSlot = slot.SlotIndex;
             uint8 equipSlot = TransmogOutfitSlotToEquipSlot(transmogSlot);
             if (equipSlot == TRANSMOG_SECONDARY_SHOULDER_SLOT)
             {
-                // Only accept the first non-zero value (multi-iteration packets repeat slots)
-                if (slot.AppearanceID && !Set.SecondaryShoulderApparanceID)
+                if (slot.AppearanceID)
                 {
                     Set.SecondaryShoulderApparanceID = int32(slot.AppearanceID);
                     Set.SecondaryShoulderSlot = 2;
@@ -477,8 +490,7 @@ void TransmogOutfitUpdateSlots::Read()
             }
             else if (equipSlot < EQUIPMENT_SLOT_END)
             {
-                // First non-zero IMAID wins — protects against multi-iteration clobbering
-                if (slot.AppearanceID && !Set.Appearances[equipSlot])
+                if (slot.AppearanceID)
                 {
                     // For weapon slots, the client duplicates armor IMAIDs at tSlots 13/14/15
                     // when no weapon transmog is selected. Validate via DB2 DisplayType.
@@ -497,15 +509,13 @@ void TransmogOutfitUpdateSlots::Read()
                 }
             }
 
-            // Log ALL entries in the first iteration (first 15) to diagnose slot mapping
-            if (i < 15)
-                TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: appear={} flags={} transmogSlot={} equipSlot={}",
-                    i, slot.AppearanceID, slot.Flags, transmogSlot, equipSlot);
+            TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: appear={} flags={} transmogSlot={} equipSlot={}",
+                i, slot.AppearanceID, slot.Flags, transmogSlot, equipSlot);
         }
 
         if (slotCount > 15)
-            TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS multi-iteration: {} entries = {} iterations of 15",
-                slotCount, slotCount / 15);
+            TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS: {} total entries, using first 15 as base outfit, {} situation entries skipped",
+                slotCount, slotCount - 15);
 
         for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
             if (!Set.Appearances[slot])

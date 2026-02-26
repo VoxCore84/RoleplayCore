@@ -573,19 +573,46 @@ void WorldSession::HandleTransmogOutfitUpdateSlots(WorldPackets::Transmogrificat
 
     EquipmentSetInfo::EquipmentSetData updatedSet = *existingSet;
     updatedSet.SetID = transmogOutfitUpdateSlots.Set.SetID;
-    updatedSet.IgnoreMask = transmogOutfitUpdateSlots.Set.IgnoreMask;
-    updatedSet.Appearances = transmogOutfitUpdateSlots.Set.Appearances;
-    updatedSet.SecondaryShoulderApparanceID = transmogOutfitUpdateSlots.Set.SecondaryShoulderApparanceID;
-    updatedSet.SecondaryShoulderSlot = transmogOutfitUpdateSlots.Set.SecondaryShoulderSlot;
+
+    // Check if the parsed appearance data has ANY non-zero IMAIDs.
+    // Multi-iteration packets (30+ slots) send situation variants where iteration 0
+    // is often all-zeros. If the base outfit data is empty, preserve existing appearances.
+    bool hasAnyAppearance = false;
+    for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
+    {
+        if (transmogOutfitUpdateSlots.Set.Appearances[slot])
+        {
+            hasAnyAppearance = true;
+            break;
+        }
+    }
+    if (!hasAnyAppearance && transmogOutfitUpdateSlots.Set.SecondaryShoulderApparanceID)
+        hasAnyAppearance = true;
+
+    if (hasAnyAppearance)
+    {
+        updatedSet.IgnoreMask = transmogOutfitUpdateSlots.Set.IgnoreMask;
+        updatedSet.Appearances = transmogOutfitUpdateSlots.Set.Appearances;
+        updatedSet.SecondaryShoulderApparanceID = transmogOutfitUpdateSlots.Set.SecondaryShoulderApparanceID;
+        updatedSet.SecondaryShoulderSlot = transmogOutfitUpdateSlots.Set.SecondaryShoulderSlot;
+    }
+    else
+    {
+        TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS [{}]: parsed appearances all-zero (slotCount={}), preserving existing outfit data",
+            GetPlayerInfo(), transmogOutfitUpdateSlots.Slots.size());
+    }
 
     if (!ValidateTransmogOutfitSet(this, updatedSet))
         return;
 
     GetPlayer()->SetEquipmentSet(updatedSet);
 
-    // Apply the outfit appearances to equipped items (charges gold)
-    if (!ApplyTransmogOutfitToPlayer(GetPlayer(), updatedSet))
-        return;
+    // Only apply appearances to equipped items when we have real outfit data
+    if (hasAnyAppearance)
+    {
+        if (!ApplyTransmogOutfitToPlayer(GetPlayer(), updatedSet))
+            return;
+    }
 
     WorldPackets::Transmogrification::TransmogOutfitSlotsUpdated response;
     response.SetID = updatedSet.SetID;
