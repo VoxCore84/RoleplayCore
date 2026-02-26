@@ -16,14 +16,14 @@ public:
     {
         static ChatCommandTable compCommandTable =
         {
-            { "roster",   rbac::RBAC_PERM_COMMAND_COMP, false, &HandleCompRoster,  "" },
-            { "set",      rbac::RBAC_PERM_COMMAND_COMP, false, &HandleCompSet,     "" },
-            { "clear",    rbac::RBAC_PERM_COMMAND_COMP, false, &HandleCompClear,   "" },
-            { "summon",   rbac::RBAC_PERM_COMMAND_COMP, false, &HandleCompSummon,  "" },
-            { "dismiss",  rbac::RBAC_PERM_COMMAND_COMP, false, &HandleCompDismiss, "" },
-            { "mode",     rbac::RBAC_PERM_COMMAND_COMP, false, &HandleCompMode,    "" },
-            { "follow",   rbac::RBAC_PERM_COMMAND_COMP, false, &HandleCompFollow,  "" },
-            { "status",   rbac::RBAC_PERM_COMMAND_COMP, false, &HandleCompStatus,  "" },
+            { "roster",   HandleCompRoster,  rbac::RBAC_PERM_COMMAND_COMP, Console::No },
+            { "set",      HandleCompSet,     rbac::RBAC_PERM_COMMAND_COMP, Console::No },
+            { "clear",    HandleCompClear,   rbac::RBAC_PERM_COMMAND_COMP, Console::No },
+            { "summon",   HandleCompSummon,  rbac::RBAC_PERM_COMMAND_COMP, Console::No },
+            { "dismiss",  HandleCompDismiss, rbac::RBAC_PERM_COMMAND_COMP, Console::No },
+            { "mode",     HandleCompMode,    rbac::RBAC_PERM_COMMAND_COMP, Console::No },
+            { "follow",   HandleCompFollow,  rbac::RBAC_PERM_COMMAND_COMP, Console::No },
+            { "status",   HandleCompStatus,  rbac::RBAC_PERM_COMMAND_COMP, Console::No },
         };
 
         static ChatCommandTable commandTable =
