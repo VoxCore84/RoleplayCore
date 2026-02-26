@@ -26,6 +26,9 @@ void AddSC_CustomDisplayCommands();
 void AddSC_CustomEffectHandler();
 void AddSC_CustomEffectCommands();
 void AddSC_toy_spell_scripts();
+void AddSC_CompanionAI();
+void AddSC_CompanionCommands();
+void AddSC_CompanionScripts();
 
 // The name of this function should match:
 // void Add${NameOfDirectory}Scripts()
@@ -40,4 +43,7 @@ void AddCustomScripts()
     AddSC_CustomDisplayCommands();
     AddSC_CustomEffectHandler();
     AddSC_CustomEffectCommands();
+    AddSC_CompanionAI();
+    AddSC_CompanionCommands();
+    AddSC_CompanionScripts();
 }

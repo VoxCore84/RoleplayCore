@@ -822,6 +822,7 @@ enum RBACPermissions
     RBAC_PERM_COMMAND_NPC_SET_AURA                          = 3006,
 
     RBAC_PERM_COMMAND_OUTFIT                                = 3007,
+    RBAC_PERM_COMMAND_COMP                                  = 3008,
     RBAC_PERM_MAX
 };
 
