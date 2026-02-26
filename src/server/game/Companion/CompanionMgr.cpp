@@ -401,18 +401,18 @@ Companion::FormationOffset CompanionMgr::GetFormationOffset(Companion::Role role
 
     switch (role)
     {
-        case Companion::ROLE_TANK:   baseDist = 1.5f; baseAngle = 0.0f; break;
-        case Companion::ROLE_MELEE:  baseDist = 2.0f; baseAngle = 0.0f; break;
-        case Companion::ROLE_RANGED: baseDist = 3.5f; baseAngle = -0.3f; break;
-        case Companion::ROLE_CASTER: baseDist = 3.5f; baseAngle =  0.3f; break;
-        case Companion::ROLE_HEALER: baseDist = 4.0f; baseAngle = 0.0f; break;
+        case Companion::ROLE_TANK:   baseDist = 1.5f; baseAngle = 0.0f;  break;
+        case Companion::ROLE_MELEE:  baseDist = 2.0f; baseAngle = 0.0f;  break;
+        case Companion::ROLE_RANGED: baseDist = 3.5f; baseAngle = -0.6f; break;
+        case Companion::ROLE_CASTER: baseDist = 3.5f; baseAngle =  0.6f; break;
+        case Companion::ROLE_HEALER: baseDist = 4.0f; baseAngle = 0.0f;  break;
         default: break;
     }
 
     // Spread multiple companions of the same role
     if (totalInRole > 1)
     {
-        float spread = 0.6f; // radians
+        float spread = 0.8f; // radians
         float offset = spread * (float(slotIndex) - float(totalInRole - 1) / 2.0f);
         baseAngle += offset;
     }
