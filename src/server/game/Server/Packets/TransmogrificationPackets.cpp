@@ -31,9 +31,11 @@ namespace
 {
 void CapturePayloadDebugInfo(WorldPacket const& packet, size_t& payloadSize, std::string& payloadPreviewHex)
 {
-    payloadSize = packet.size();
-    size_t previewSize = std::min<size_t>(packet.size(), 128);
-    payloadPreviewHex = ByteArrayToHexStr(std::span(packet.data(), previewSize));
+    // Capture readable payload starting from current rpos (past the opcode bytes)
+    size_t readable = packet.size() - packet.rpos();
+    payloadSize = readable;
+    size_t previewSize = std::min<size_t>(readable, 128);
+    payloadPreviewHex = ByteArrayToHexStr(std::span(packet.data() + packet.rpos(), previewSize));
 }
 
 template <typename T>
@@ -335,14 +337,27 @@ void TransmogOutfitUpdateSlots::Read()
         TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS diag: setId={} slotCount={} npc={} rposAfterGuid={} bytesBeforeSlots={}",
             Set.SetID, slotCount, Npc.ToString(), rposAfterGuid, bytesBeforeSlots);
 
-        for (TransmogOutfitSlotEntry& slot : Slots)
+        // Log hex dump of first 48 bytes at slot read position for diagnostics
         {
-            _worldPacket >> slot.AppearanceID;
-            _worldPacket >> slot.RawSlotField;
-            _worldPacket >> slot.Reserved1;
-            _worldPacket >> slot.Reserved2;
+            std::size_t curRpos = _worldPacket.rpos();
+            std::size_t dumpSize = std::min<std::size_t>(48, _worldPacket.size() - curRpos);
+            TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS slot data at rpos={}: {}",
+                curRpos, ByteArrayToHexStr(std::span(_worldPacket.data() + curRpos, dumpSize)));
+        }
 
-            uint8 transmogSlot = slot.GetSlotIndex();
+        for (uint32 i = 0; i < slotCount; ++i)
+        {
+            TransmogOutfitSlotEntry& slot = Slots[i];
+
+            // Read 16 raw bytes per entry
+            _worldPacket.read(slot.RawBytes, 16);
+
+            // Wire format: [u8:0x00][u32:AppearanceID LE][u8:Flags][9 bytes:reserved][u8:SlotIndex]
+            slot.AppearanceID = ReadLE<uint32>(std::span<uint8 const>(slot.RawBytes, 16), 1);
+            slot.Flags = slot.RawBytes[5];
+            slot.SlotIndex = slot.RawBytes[15];
+
+            uint8 transmogSlot = slot.SlotIndex;
             uint8 equipSlot = TransmogOutfitSlotToEquipSlot(transmogSlot);
             if (equipSlot == TRANSMOG_SECONDARY_SHOULDER_SLOT)
             {
@@ -352,8 +367,9 @@ void TransmogOutfitUpdateSlots::Read()
             else if (equipSlot < EQUIPMENT_SLOT_END)
                 Set.Appearances[equipSlot] = int32(slot.AppearanceID);
 
-            TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS slot entry: appearance={} rawSlotField=0x{:X} transmogSlot={} equipSlot={} reserved1={} reserved2={}",
-                slot.AppearanceID, slot.RawSlotField, transmogSlot, equipSlot, slot.Reserved1, slot.Reserved2);
+            if (i < 3)
+                TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: raw={} appear={} flags={} transmogSlot={} equipSlot={}",
+                    i, ByteArrayToHexStr(std::span<uint8 const>(slot.RawBytes, 16)), slot.AppearanceID, slot.Flags, transmogSlot, equipSlot);
         }
 
         for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)

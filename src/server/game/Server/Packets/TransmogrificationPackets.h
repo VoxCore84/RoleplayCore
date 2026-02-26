@@ -64,12 +64,12 @@ namespace WorldPackets
 
         struct TransmogOutfitSlotEntry
         {
+            // Wire format is 16 bytes per entry:
+            //   [u8:0x00][u32:AppearanceID][u8:Flags][9 bytes reserved][u8:SlotIndex]
             uint32 AppearanceID = 0;
-            uint32 RawSlotField = 0;
-            uint32 Reserved1 = 0;
-            uint32 Reserved2 = 0;
-
-            uint8 GetSlotIndex() const { return uint8(RawSlotField >> 24); }
+            uint8 Flags = 0;
+            uint8 SlotIndex = 0;
+            uint8 RawBytes[16] = {};
         };
 
         class TransmogOutfitNew final : public ClientPacket
