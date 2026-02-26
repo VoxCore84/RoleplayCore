@@ -393,8 +393,18 @@ void TransmogOutfitUpdateSlots::Read()
             return;
         }
 
-        // UPDATE_SLOTS has optional trailing alignment bytes between packed guid and slot entries.
+        // Extra bytes between packed guid and slot entries
         std::size_t bytesBeforeSlots = bytesRemainingAfterGuid - expectedSlotBytes;
+
+        // Dump the skipped bytes for diagnostics
+        if (bytesBeforeSlots > 0)
+        {
+            std::size_t dumpPos = _worldPacket.rpos();
+            std::size_t dumpLen = std::min<std::size_t>(bytesBeforeSlots, 32);
+            TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS skipping {} bytes at rpos={}: {}",
+                bytesBeforeSlots, dumpPos, ByteArrayToHexStr(std::span(_worldPacket.data() + dumpPos, dumpLen)));
+        }
+
         for (std::size_t i = 0; i < bytesBeforeSlots; ++i)
             _worldPacket.read_skip<uint8>();
 
@@ -403,8 +413,8 @@ void TransmogOutfitUpdateSlots::Read()
         Set.Type = EquipmentSetInfo::TRANSMOG;
         Set.IgnoreMask = 0;
 
-        TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS diag: setId={} slotCount={} npc={} rposAfterGuid={} bytesBeforeSlots={}",
-            Set.SetID, slotCount, Npc.ToString(), rposAfterGuid, bytesBeforeSlots);
+        TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS diag: setId={} slotCount={} packetSize={} npc={} rposAfterGuid={} bytesBeforeSlots={}",
+            Set.SetID, slotCount, _worldPacket.size(), Npc.ToString(), rposAfterGuid, bytesBeforeSlots);
 
         // Log hex dump of first 48 bytes at slot read position for diagnostics
         {
@@ -446,22 +456,24 @@ void TransmogOutfitUpdateSlots::Read()
                     Set.Appearances[equipSlot] = int32(slot.AppearanceID);
             }
 
-            if (i < 3 || (slotCount > 15 && i % 15 < 3))
-                TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: raw={} appear={} flags={} transmogSlot={} equipSlot={} accepted={}",
-                    i, ByteArrayToHexStr(std::span<uint8 const>(slot.RawBytes, 16)), slot.AppearanceID, slot.Flags, transmogSlot, equipSlot,
-                    (equipSlot == TRANSMOG_SECONDARY_SHOULDER_SLOT) ? (slot.AppearanceID && Set.SecondaryShoulderApparanceID == int32(slot.AppearanceID))
-                    : (equipSlot < EQUIPMENT_SLOT_END && Set.Appearances[equipSlot] == int32(slot.AppearanceID)));
+            // Log ALL entries in the first iteration (first 15) to diagnose slot mapping
+            if (i < 15)
+                TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: appear={} flags={} transmogSlot={} equipSlot={}",
+                    i, slot.AppearanceID, slot.Flags, transmogSlot, equipSlot);
         }
 
         if (slotCount > 15)
-            TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS multi-iteration: {} entries = {} iterations of 15. "
-                "Final weapons: MH={} OH={} Ranged={}",
-                slotCount, slotCount / 15, Set.Appearances[EQUIPMENT_SLOT_MAINHAND],
-                Set.Appearances[EQUIPMENT_SLOT_OFFHAND], Set.Appearances[EQUIPMENT_SLOT_RANGED]);
+            TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS multi-iteration: {} entries = {} iterations of 15",
+                slotCount, slotCount / 15);
 
         for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
             if (!Set.Appearances[slot])
                 Set.IgnoreMask |= (1u << slot);
+
+        // Log final appearances array for all non-zero slots
+        for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
+            if (Set.Appearances[slot])
+                TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS final: equipSlot={} IMAID={}", slot, Set.Appearances[slot]);
 
         ParseSuccess = true;
         ParseError.clear();
