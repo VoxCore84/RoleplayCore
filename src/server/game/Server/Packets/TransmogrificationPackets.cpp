@@ -133,45 +133,79 @@ void TransmogOutfitNew::Read()
             return;
         }
 
-        // NEW middle format: [type:u8][flags:u8][icon:u32], then [nameLen:u8][padding:u8][name bytes]
+        // NEW middle format: [type:u8][flags:u8][icon:u32][...slot data (16 bytes each)...][nameLen:u8][pad:u8][name bytes]
         MiddleType = remaining[0];
         MiddleFlags = remaining[1];
         IconFileDataID = ReadLE<uint32>(remaining, 2);
 
-        std::size_t asciiStart = remaining.size();
-        while (asciiStart > 0)
+        // Fixed header is 6 bytes: type(1) + flags(1) + icon(4)
+        // After the fixed header and any slot data, we have: [nameLen:u8][pad:u8][name:nameLen bytes]
+        // Work backward from the end using the length byte to find the name
+        // The nameLen byte is at (remaining.size() - nameLen - 2), pad is at (remaining.size() - nameLen - 1)
+
+        // First, use the length-byte approach: scan for the nameLen/pad pair
+        // The name ends at the very end of the payload. The byte at offset (end - nameLen - 2) should equal nameLen.
+        // We try the length-byte method first, then fall back to ASCII scan for diagnostics.
+
+        std::size_t nameLength = 0;
+        std::size_t nameStart = 0;
+        bool usedLengthByte = false;
+
+        // Try length-byte parsing: iterate possible name lengths (1..127)
+        // The nameLen byte is at (remaining.size() - candidateLen - 2), pad byte at (remaining.size() - candidateLen - 1)
+        for (std::size_t candidateLen = 1; candidateLen <= 127 && candidateLen + 2 <= remaining.size(); ++candidateLen)
         {
-            uint8 b = remaining[asciiStart - 1];
-            if (b < 0x20 || b > 0x7E)
+            std::size_t lenByteOffset = remaining.size() - candidateLen - 2;
+            if (lenByteOffset < 6) // must be after the 6-byte fixed header
                 break;
-            --asciiStart;
+            if (remaining[lenByteOffset] == candidateLen && remaining[lenByteOffset + 1] == 0x00)
+            {
+                // Validate that the space between fixed header and lenByte is a multiple of 16 (slot data)
+                std::size_t slotRegion = lenByteOffset - 6;
+                if (slotRegion % 16 == 0)
+                {
+                    nameLength = candidateLen;
+                    nameStart = lenByteOffset + 2;
+                    usedLengthByte = true;
+                    break;
+                }
+            }
         }
 
-        std::size_t nameLength = remaining.size() - asciiStart;
-        if (nameLength == 0 || asciiStart < 2)
+        if (!usedLengthByte)
         {
-            ParseError = "missing trailing outfit name or name trailer";
-            DiagnosticReadTrace = BuildDiagnosticReadTrace("CMSG_TRANSMOG_OUTFIT_NEW", _worldPacket);
-            return;
+            // Fallback: backward ASCII scan (original method)
+            std::size_t asciiStart = remaining.size();
+            while (asciiStart > 0)
+            {
+                uint8 b = remaining[asciiStart - 1];
+                if (b < 0x20 || b > 0x7E)
+                    break;
+                --asciiStart;
+            }
+
+            nameLength = remaining.size() - asciiStart;
+            if (nameLength == 0 || asciiStart < 2)
+            {
+                ParseError = "missing trailing outfit name or name trailer";
+                DiagnosticReadTrace = BuildDiagnosticReadTrace("CMSG_TRANSMOG_OUTFIT_NEW", _worldPacket);
+                return;
+            }
+
+            uint8 nameLengthByte = remaining[asciiStart - 2];
+            if (nameLengthByte != nameLength)
+            {
+                ParseError = Trinity::StringFormat("name length mismatch (lenByte={} trailingAsciiLen={})", nameLengthByte, nameLength);
+                DiagnosticReadTrace = BuildDiagnosticReadTrace("CMSG_TRANSMOG_OUTFIT_NEW", _worldPacket);
+                return;
+            }
+
+            nameStart = asciiStart;
+            TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_NEW: used ASCII fallback for name parsing (non-ASCII name or wire format changed?)");
         }
 
-        uint8 nameLengthByte = remaining[asciiStart - 2];
-        if (nameLengthByte != nameLength)
-        {
-            ParseError = Trinity::StringFormat("name length mismatch (lenByte={} trailingAsciiLen={})", nameLengthByte, nameLength);
-            DiagnosticReadTrace = BuildDiagnosticReadTrace("CMSG_TRANSMOG_OUTFIT_NEW", _worldPacket);
-            return;
-        }
-
-        std::size_t middleLength = asciiStart - 2;
-        if (middleLength < 6)
-        {
-            ParseError = Trinity::StringFormat("unexpected middle size for OUTFIT_NEW (got={} expected>=6)", middleLength);
-            DiagnosticReadTrace = BuildDiagnosticReadTrace("CMSG_TRANSMOG_OUTFIT_NEW", _worldPacket);
-            return;
-        }
-
-        std::size_t extraBytes = middleLength - 6;
+        std::size_t slotDataEnd = nameStart - 2; // offset of nameLen byte
+        std::size_t extraBytes = slotDataEnd - 6;
         if (extraBytes > 0 && extraBytes % 16 != 0)
             TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_NEW: {} extra middle bytes (not multiple of 16), ignoring", extraBytes);
         else if (extraBytes > 0)
@@ -199,13 +233,13 @@ void TransmogOutfitNew::Read()
             if (!Set.Appearances[slot])
                 Set.IgnoreMask |= (1u << slot);
 
-        Set.SetName.assign(reinterpret_cast<char const*>(remaining.data() + asciiStart), nameLength);
+        Set.SetName.assign(reinterpret_cast<char const*>(remaining.data() + nameStart), nameLength);
         Set.SetIcon = std::to_string(IconFileDataID);
         ParseSuccess = true;
         ParseError.clear();
 
-        DiagnosticReadTrace = Trinity::StringFormat("npc={} rposAfterGuid={} middleType={} middleFlags={} iconFileDataId={} name='{}'",
-            Npc.ToString(), rposAfterGuid, MiddleType, MiddleFlags, IconFileDataID, Set.SetName);
+        DiagnosticReadTrace = Trinity::StringFormat("npc={} rposAfterGuid={} middleType={} middleFlags={} iconFileDataId={} name='{}' usedLengthByte={}",
+            Npc.ToString(), rposAfterGuid, MiddleType, MiddleFlags, IconFileDataID, Set.SetName, usedLengthByte);
 
         TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_NEW diag: {}", DiagnosticReadTrace);
     }
@@ -240,51 +274,75 @@ void TransmogOutfitUpdateInfo::Read()
             return;
         }
 
-        // UPDATE_INFO middle format: [type:u8][icon:u32], then [nameLen:u8][padding:u8][name bytes]
+        // UPDATE_INFO format: [type:u8][icon:u32][nameLen:u8][pad:u8][name:nameLen bytes]
+        // Fixed header = 5 bytes (type + icon)
         MiddleType = remaining[0];
         MiddleFlags = 0;
         IconFileDataID = ReadLE<uint32>(remaining, 1);
 
-        std::size_t asciiStart = remaining.size();
-        while (asciiStart > 0)
+        std::size_t nameLength = 0;
+        std::size_t nameStart = 0;
+        bool usedLengthByte = false;
+
+        // Length-byte parsing: nameLen at offset 5, pad at offset 6, name starts at offset 7
+        if (remaining.size() >= 7)
         {
-            uint8 b = remaining[asciiStart - 1];
-            if (b < 0x20 || b > 0x7E)
-                break;
-            --asciiStart;
+            uint8 candidateLen = remaining[5];
+            if (candidateLen > 0 && remaining[6] == 0x00 && 7 + candidateLen == remaining.size())
+            {
+                nameLength = candidateLen;
+                nameStart = 7;
+                usedLengthByte = true;
+            }
         }
 
-        std::size_t nameLength = remaining.size() - asciiStart;
-        if (nameLength == 0 || asciiStart < 2)
+        if (!usedLengthByte)
         {
-            ParseError = "missing trailing outfit name or name trailer";
-            DiagnosticReadTrace = BuildDiagnosticReadTrace("CMSG_TRANSMOG_OUTFIT_UPDATE_INFO", _worldPacket);
-            return;
+            // Fallback: backward ASCII scan
+            std::size_t asciiStart = remaining.size();
+            while (asciiStart > 0)
+            {
+                uint8 b = remaining[asciiStart - 1];
+                if (b < 0x20 || b > 0x7E)
+                    break;
+                --asciiStart;
+            }
+
+            nameLength = remaining.size() - asciiStart;
+            if (nameLength == 0 || asciiStart < 2)
+            {
+                ParseError = "missing trailing outfit name or name trailer";
+                DiagnosticReadTrace = BuildDiagnosticReadTrace("CMSG_TRANSMOG_OUTFIT_UPDATE_INFO", _worldPacket);
+                return;
+            }
+
+            uint8 nameLengthByte = remaining[asciiStart - 2];
+            if (nameLengthByte != nameLength)
+            {
+                ParseError = Trinity::StringFormat("name length mismatch (lenByte={} trailingAsciiLen={})", nameLengthByte, nameLength);
+                DiagnosticReadTrace = BuildDiagnosticReadTrace("CMSG_TRANSMOG_OUTFIT_UPDATE_INFO", _worldPacket);
+                return;
+            }
+
+            std::size_t middleLength = asciiStart - 2;
+            if (middleLength != 5)
+            {
+                ParseError = Trinity::StringFormat("unexpected middle size for UPDATE_INFO (got={} expected=5)", middleLength);
+                DiagnosticReadTrace = BuildDiagnosticReadTrace("CMSG_TRANSMOG_OUTFIT_UPDATE_INFO", _worldPacket);
+                return;
+            }
+
+            nameStart = asciiStart;
+            TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_INFO: used ASCII fallback for name parsing");
         }
 
-        uint8 nameLengthByte = remaining[asciiStart - 2];
-        if (nameLengthByte != nameLength)
-        {
-            ParseError = Trinity::StringFormat("name length mismatch (lenByte={} trailingAsciiLen={})", nameLengthByte, nameLength);
-            DiagnosticReadTrace = BuildDiagnosticReadTrace("CMSG_TRANSMOG_OUTFIT_UPDATE_INFO", _worldPacket);
-            return;
-        }
-
-        std::size_t middleLength = asciiStart - 2;
-        if (middleLength != 5)
-        {
-            ParseError = Trinity::StringFormat("unexpected middle size for UPDATE_INFO (got={} expected=5)", middleLength);
-            DiagnosticReadTrace = BuildDiagnosticReadTrace("CMSG_TRANSMOG_OUTFIT_UPDATE_INFO", _worldPacket);
-            return;
-        }
-
-        Set.SetName.assign(reinterpret_cast<char const*>(remaining.data() + asciiStart), nameLength);
+        Set.SetName.assign(reinterpret_cast<char const*>(remaining.data() + nameStart), nameLength);
         Set.SetIcon = std::to_string(IconFileDataID);
         ParseSuccess = true;
         ParseError.clear();
 
-        DiagnosticReadTrace = Trinity::StringFormat("setId={} npc={} rposAfterGuid={} middleType={} iconFileDataId={} name='{}'",
-            Set.SetID, Npc.ToString(), rposAfterGuid, MiddleType, IconFileDataID, Set.SetName);
+        DiagnosticReadTrace = Trinity::StringFormat("setId={} npc={} rposAfterGuid={} middleType={} iconFileDataId={} name='{}' usedLengthByte={}",
+            Set.SetID, Npc.ToString(), rposAfterGuid, MiddleType, IconFileDataID, Set.SetName, usedLengthByte);
 
         TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_INFO diag: {}", DiagnosticReadTrace);
     }

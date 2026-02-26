@@ -615,7 +615,7 @@ void WorldSession::HandleTransmogOutfitUpdateSituations(WorldPackets::Transmogri
         return;
     }
 
-    TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SITUATIONS [{}]: setId={} situations={} (stored as no-op; TODO implement situation persistence)",
+    TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SITUATIONS [{}]: setId={} situations={}",
         GetPlayerInfo(), transmogOutfitUpdateSituations.SetID, transmogOutfitUpdateSituations.Situations.size());
 
     for (WorldPackets::Transmogrification::TransmogOutfitSituationEntry const& situation : transmogOutfitUpdateSituations.Situations)
@@ -624,9 +624,24 @@ void WorldSession::HandleTransmogOutfitUpdateSituations(WorldPackets::Transmogri
             situation.SituationID, situation.SpecID, situation.LoadoutID, situation.EquipmentSetID);
     }
 
+    // Build updated set data with new situations
+    EquipmentSetInfo::EquipmentSetData updatedSet = *existingSet;
+    updatedSet.Situations.clear();
+    for (WorldPackets::Transmogrification::TransmogOutfitSituationEntry const& entry : transmogOutfitUpdateSituations.Situations)
+    {
+        TransmogSituationData sit;
+        sit.SituationID = entry.SituationID;
+        sit.SpecID = entry.SpecID;
+        sit.LoadoutID = entry.LoadoutID;
+        sit.EquipmentSetID = entry.EquipmentSetID;
+        updatedSet.Situations.push_back(sit);
+    }
+
+    GetPlayer()->SetEquipmentSet(updatedSet);
+
     WorldPackets::Transmogrification::TransmogOutfitSituationsUpdated response;
     response.SetID = transmogOutfitUpdateSituations.SetID;
-    response.Guid = existingSet->Guid;
+    response.Guid = updatedSet.Guid;
     TC_LOG_DEBUG("network.opcode.transmog", "SMSG_TRANSMOG_OUTFIT_SITUATIONS_UPDATED [{}]: setId={} guid={}", GetPlayerInfo(), response.SetID, response.Guid);
     SendPacket(response.Write());
 }

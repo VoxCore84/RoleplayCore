@@ -4573,11 +4573,9 @@ Corpse* Player::CreateCorpse()
         if (m_items[i])
         {
             uint32 itemDisplayId = m_items[i]->GetDisplayId(this);
-            uint32 itemInventoryType;
-            if (ItemEntry const* itemEntry = sItemStore.LookupEntry(m_items[i]->GetVisibleEntry(this)))
-                itemInventoryType = itemEntry->InventoryType;
-            else
-                itemInventoryType = m_items[i]->GetTemplate()->GetInventoryType();
+            // Always use base item's InventoryType for skeleton attachment, not the
+            // transmog source — transmog visual comes from GetDisplayId() already.
+            uint32 itemInventoryType = m_items[i]->GetTemplate()->GetInventoryType();
 
             corpse->SetItem(i, itemDisplayId | (itemInventoryType << 24));
         }
@@ -12157,11 +12155,16 @@ void Player::SetVisibleItemSlot(uint8 slot, Item* pItem)
                 if (ItemAppearanceEntry const* appear = sItemAppearanceStore.LookupEntry(modAppear->ItemAppearanceID))
                     displayType = uint8(appear->DisplayType);
 
-        int32 visibleItemID = pItem->GetVisibleEntry(this);
         int32 secondaryIMA = pItem->GetVisibleSecondaryModifiedAppearanceId(this);
         uint16 appearModID = pItem->GetVisibleAppearanceModId(this);
         uint16 itemVisual = pItem->GetVisibleItemVisual(this);
         uint32 modifiedAppearID = pItem->GetVisibleModifiedAppearanceId(this);
+
+        // When transmog is active, ItemID must be the BASE equipped item (for skeleton
+        // attachment points), not the transmog source. The transmog visual comes from
+        // ItemModifiedAppearanceID. When HasTransmog is set, the client uses IMAID for
+        // the visual model and ItemID for the bone/slot attachment.
+        int32 visibleItemID = transmogAppearance ? int32(pItem->GetEntry()) : pItem->GetVisibleEntry(this);
 
         TC_LOG_DEBUG("entities.player.items",
             "SetVisibleItemSlot: Player={} Slot={} BaseEntry={} VisItemID={} IMAID={} AppearModID={} DisplayType={} HasTmog={} HasIllusion={} ItemVisual={} SecondaryIMA={}",
@@ -17992,6 +17995,31 @@ void Player::_LoadTransmogOutfits(PreparedQueryResult result)
     } while (result->NextRow());
 }
 
+void Player::_LoadTransmogOutfitSituations(PreparedQueryResult result)
+{
+    //             0        1            2       3          4
+    //SELECT setguid, situationID, specID, loadoutID, equipmentSetID FROM character_transmog_outfit_situations WHERE guid = ?
+    if (!result)
+        return;
+
+    do
+    {
+        Field* fields = result->Fetch();
+        uint64 setGuid = fields[0].GetUInt64();
+
+        auto itr = _equipmentSets.find(setGuid);
+        if (itr == _equipmentSets.end() || itr->second.Data.Type != EquipmentSetInfo::TRANSMOG)
+            continue;
+
+        TransmogSituationData situation;
+        situation.SituationID = fields[1].GetUInt32();
+        situation.SpecID = fields[2].GetUInt32();
+        situation.LoadoutID = fields[3].GetUInt32();
+        situation.EquipmentSetID = fields[4].GetUInt32();
+        itr->second.Data.Situations.push_back(situation);
+    } while (result->NextRow());
+}
+
 void Player::_SyncTransmogOutfitsToActivePlayerData()
 {
     auto activePlayerData = m_values.ModifyValue(&Player::m_activePlayerData);
@@ -18011,13 +18039,24 @@ void Player::_SyncTransmogOutfitsToActivePlayerData()
         SetUpdateFieldValue(outfitSetter.ModifyValue(&UF::TransmogOutfitData::Flags), uint32(0));
 
         auto outfitInfoSetter = outfitSetter.ModifyValue(&UF::TransmogOutfitData::OutfitInfo);
-        SetUpdateFieldValue(outfitInfoSetter.ModifyValue(&UF::TransmogOutfitDataInfo::SituationsEnabled), false);
+        bool hasSituations = equipmentSet && !equipmentSet->Situations.empty();
+        SetUpdateFieldValue(outfitInfoSetter.ModifyValue(&UF::TransmogOutfitDataInfo::SituationsEnabled), hasSituations);
         SetUpdateFieldValue(outfitInfoSetter.ModifyValue(&UF::TransmogOutfitDataInfo::SetType), uint8(1));
         SetUpdateFieldValue(outfitInfoSetter.ModifyValue(&UF::TransmogOutfitDataInfo::Name), equipmentSet ? equipmentSet->SetName : std::string());
         SetUpdateFieldValue(outfitInfoSetter.ModifyValue(&UF::TransmogOutfitDataInfo::Icon), equipmentSet ? uint32(std::atoi(equipmentSet->SetIcon.c_str())) : uint32(0));
 
         if (!equipmentSet)
             return;
+
+        // Sync situations
+        for (TransmogSituationData const& sit : equipmentSet->Situations)
+        {
+            auto sitSetter = AddDynamicUpdateFieldValue(outfitSetter.ModifyValue(&UF::TransmogOutfitData::Situations));
+            sitSetter.ModifyValue(&UF::TransmogOutfitSituationInfo::SituationID).SetValue(sit.SituationID);
+            sitSetter.ModifyValue(&UF::TransmogOutfitSituationInfo::SpecID).SetValue(sit.SpecID);
+            sitSetter.ModifyValue(&UF::TransmogOutfitSituationInfo::LoadoutID).SetValue(sit.LoadoutID);
+            sitSetter.ModifyValue(&UF::TransmogOutfitSituationInfo::EquipmentSetID).SetValue(sit.EquipmentSetID);
+        }
 
         // Map server EQUIPMENT_SLOT indices to client TransmogOutfitSlot indices (0-14)
         struct TransmogSlotMapping { int8 transmogSlot; uint8 equipSlot; };
@@ -19063,6 +19102,7 @@ bool Player::LoadFromDB(ObjectGuid guid, CharacterDatabaseQueryHolder const& hol
 
     _LoadEquipmentSets(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_EQUIPMENT_SETS));
     _LoadTransmogOutfits(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_TRANSMOG_OUTFITS));
+    _LoadTransmogOutfitSituations(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_TRANSMOG_OUTFIT_SITUATIONS));
     _SyncTransmogOutfitsToActivePlayerData();
 
     _LoadCUFProfiles(holder.GetPreparedResult(PLAYER_LOGIN_QUERY_LOAD_CUF_PROFILES));
@@ -20828,7 +20868,7 @@ void Player::SaveToDB(LoginDatabaseTransaction loginTransaction, CharacterDataba
                     ss << '0';
 
                 ss << ' '
-                    << uint32(sItemStore.AssertEntry(item->GetVisibleEntry(this))->SubclassID) << ' '
+                    << uint32(sItemStore.AssertEntry(item->GetEntry())->SubclassID) << ' '
                     << uint32(item->GetVisibleSecondaryModifiedAppearanceId(this)) << ' ';
             }
             else
@@ -20987,7 +21027,7 @@ void Player::SaveToDB(LoginDatabaseTransaction loginTransaction, CharacterDataba
                     ss << '0';
 
                 ss << ' '
-                    << uint32(sItemStore.AssertEntry(item->GetVisibleEntry(this))->SubclassID) << ' '
+                    << uint32(sItemStore.AssertEntry(item->GetEntry())->SubclassID) << ' '
                     << uint32(item->GetVisibleSecondaryModifiedAppearanceId(this)) << ' ';
             }
             else
@@ -28552,6 +28592,23 @@ void Player::_SaveEquipmentSets(CharacterDatabaseTransaction trans)
                     stmt->setUInt64(j++, GetGUID().GetCounter());
                     stmt->setUInt64(j++, eqSet.Data.Guid);
                     stmt->setUInt32(j, eqSet.Data.SetID);
+
+                    // Re-save situations
+                    CharacterDatabasePreparedStatement* delStmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_TRANSMOG_OUTFIT_SITUATIONS);
+                    delStmt->setUInt64(0, GetGUID().GetCounter());
+                    delStmt->setUInt64(1, eqSet.Data.Guid);
+                    trans->Append(delStmt);
+                    for (TransmogSituationData const& sit : eqSet.Data.Situations)
+                    {
+                        CharacterDatabasePreparedStatement* insStmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_TRANSMOG_OUTFIT_SITUATION);
+                        insStmt->setUInt64(0, GetGUID().GetCounter());
+                        insStmt->setUInt64(1, eqSet.Data.Guid);
+                        insStmt->setUInt32(2, sit.SituationID);
+                        insStmt->setUInt32(3, sit.SpecID);
+                        insStmt->setUInt32(4, sit.LoadoutID);
+                        insStmt->setUInt32(5, sit.EquipmentSetID);
+                        trans->Append(insStmt);
+                    }
                 }
                 trans->Append(stmt);
                 eqSet.State = EQUIPMENT_SET_UNCHANGED;
@@ -28586,6 +28643,19 @@ void Player::_SaveEquipmentSets(CharacterDatabaseTransaction trans)
                         stmt->setInt32(j++, eqSet.Data.Appearances[i]);
                     for (std::size_t i = 0; i < eqSet.Data.Enchants.size(); ++i)
                         stmt->setInt32(j++, eqSet.Data.Enchants[i]);
+
+                    // Save situations for new outfit
+                    for (TransmogSituationData const& sit : eqSet.Data.Situations)
+                    {
+                        CharacterDatabasePreparedStatement* insStmt = CharacterDatabase.GetPreparedStatement(CHAR_INS_TRANSMOG_OUTFIT_SITUATION);
+                        insStmt->setUInt64(0, GetGUID().GetCounter());
+                        insStmt->setUInt64(1, eqSet.Data.Guid);
+                        insStmt->setUInt32(2, sit.SituationID);
+                        insStmt->setUInt32(3, sit.SpecID);
+                        insStmt->setUInt32(4, sit.LoadoutID);
+                        insStmt->setUInt32(5, sit.EquipmentSetID);
+                        trans->Append(insStmt);
+                    }
                 }
                 trans->Append(stmt);
                 eqSet.State = EQUIPMENT_SET_UNCHANGED;
@@ -28596,7 +28666,14 @@ void Player::_SaveEquipmentSets(CharacterDatabaseTransaction trans)
                 if (eqSet.Data.Type == EquipmentSetInfo::EQUIPMENT)
                     stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_EQUIP_SET);
                 else
+                {
                     stmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_TRANSMOG_OUTFIT);
+                    // Also delete situations
+                    CharacterDatabasePreparedStatement* delSitStmt = CharacterDatabase.GetPreparedStatement(CHAR_DEL_TRANSMOG_OUTFIT_SITUATIONS);
+                    delSitStmt->setUInt64(0, GetGUID().GetCounter());
+                    delSitStmt->setUInt64(1, eqSet.Data.Guid);
+                    trans->Append(delSitStmt);
+                }
                 stmt->setUInt64(0, eqSet.Data.Guid);
                 trans->Append(stmt);
                 itr = _equipmentSets.erase(itr);
