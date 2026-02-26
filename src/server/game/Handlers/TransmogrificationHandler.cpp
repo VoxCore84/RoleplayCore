@@ -61,7 +61,8 @@ uint32 FindNextAvailableTransmogSetID(Player const* player)
 
 bool ValidateTransmogOutfitSet(WorldSession* session, EquipmentSetInfo::EquipmentSetData& set)
 {
-    if (set.SetID >= MAX_EQUIPMENT_SET_INDEX)
+    // Client treats SetID=0 as "no outfit" in TransmogOutfitMetadata.TransmogOutfitID
+    if (set.SetID == 0 || set.SetID >= MAX_EQUIPMENT_SET_INDEX)
     {
         TC_LOG_ERROR("network.opcode.transmog", "Transmog outfit rejected [{}]: invalid SetID {}", session->GetPlayerInfo(), set.SetID);
         return false;
@@ -592,10 +593,41 @@ void WorldSession::HandleTransmogOutfitUpdateSlots(WorldPackets::Transmogrificat
 
     if (hasAnyAppearance)
     {
-        updatedSet.IgnoreMask = transmogOutfitUpdateSlots.Set.IgnoreMask;
-        updatedSet.Appearances = transmogOutfitUpdateSlots.Set.Appearances;
-        updatedSet.SecondaryShoulderApparanceID = transmogOutfitUpdateSlots.Set.SecondaryShoulderApparanceID;
-        updatedSet.SecondaryShoulderSlot = transmogOutfitUpdateSlots.Set.SecondaryShoulderSlot;
+        // Per-slot merge: only overwrite slots that the outfit packet explicitly provides.
+        // The 12.x client sends HEAD with appear=0 in outfit packets (HEAD is applied separately
+        // via CMSG_TRANSMOGRIFY_ITEMS). Similarly, weapon slots (MH/OH/RANGED) send armor
+        // duplicates that get rejected by IsWeaponAppearance(), so those slots arrive as 0.
+        // Preserve existing data for slots the packet doesn't meaningfully update.
+        for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
+        {
+            if (transmogOutfitUpdateSlots.Set.Appearances[slot])
+            {
+                // Incoming packet has a valid IMAID for this slot — use it
+                updatedSet.Appearances[slot] = transmogOutfitUpdateSlots.Set.Appearances[slot];
+                updatedSet.IgnoreMask &= ~(1u << slot); // clear ignore bit
+            }
+            else if (existingSet->Appearances[slot])
+            {
+                // Outfit packet has 0 for this slot but existing outfit has data — preserve it.
+                // This keeps HEAD, MH, OH, RANGED appearances that were set via individual transmog.
+                updatedSet.Appearances[slot] = existingSet->Appearances[slot];
+                updatedSet.IgnoreMask &= ~(1u << slot);
+                TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS [{}]: preserving existing IMAID {} for equipSlot={}",
+                    GetPlayerInfo(), existingSet->Appearances[slot], slot);
+            }
+            else
+            {
+                // Both incoming and existing are 0 — slot is unused
+                updatedSet.IgnoreMask |= (1u << slot);
+            }
+        }
+
+        // Update secondary shoulder and enchants from incoming packet
+        if (transmogOutfitUpdateSlots.Set.SecondaryShoulderApparanceID)
+        {
+            updatedSet.SecondaryShoulderApparanceID = transmogOutfitUpdateSlots.Set.SecondaryShoulderApparanceID;
+            updatedSet.SecondaryShoulderSlot = transmogOutfitUpdateSlots.Set.SecondaryShoulderSlot;
+        }
     }
     else
     {

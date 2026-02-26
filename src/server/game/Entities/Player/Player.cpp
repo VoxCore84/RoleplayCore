@@ -18097,9 +18097,17 @@ void Player::_SyncTransmogOutfitsToActivePlayerData()
                     if (ItemAppearanceEntry const* appear = sItemAppearanceStore.LookupEntry(modAppear->ItemAppearanceID))
                         displayType = uint8(appear->DisplayType);
 
+            // SlotOption tells the client how to render the slot:
+            //   0 = empty/unused, 1 = visible armor, 3 = hidden undergarment (shirt/tabard)
+            // The 12.x client sends byte[5]=1 for visible armor and byte[5]=3 for shirt/tabard
+            // in CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS. We derive this from DB2 DisplayType.
+            uint8 slotOption = 0;
+            if (imaID)
+                slotOption = (displayType == 2 /*Shirt*/ || displayType == 10 /*Tabard*/) ? 3 : 1;
+
             auto slotSetter = AddDynamicUpdateFieldValue(outfitSetter.ModifyValue(&UF::TransmogOutfitData::Slots));
             slotSetter.ModifyValue(&UF::TransmogOutfitSlotData::Slot).SetValue(mapping.transmogSlot);
-            slotSetter.ModifyValue(&UF::TransmogOutfitSlotData::SlotOption).SetValue(uint8(0));
+            slotSetter.ModifyValue(&UF::TransmogOutfitSlotData::SlotOption).SetValue(slotOption);
             slotSetter.ModifyValue(&UF::TransmogOutfitSlotData::ItemModifiedAppearanceID).SetValue(imaID);
             slotSetter.ModifyValue(&UF::TransmogOutfitSlotData::AppearanceDisplayType).SetValue(displayType);
             slotSetter.ModifyValue(&UF::TransmogOutfitSlotData::Flags).SetValue(uint32(0));
@@ -18123,6 +18131,14 @@ void Player::_SyncTransmogOutfitsToActivePlayerData()
         if (equipmentSet.Data.Type != EquipmentSetInfo::TRANSMOG)
             continue;
 
+        // Skip legacy SetID=0 entries — client treats TransmogOutfitID=0 as "no outfit"
+        if (equipmentSet.Data.SetID == 0)
+        {
+            TC_LOG_DEBUG("entities.player", "_SyncTransmogOutfitsToActivePlayerData [{}]: skipping legacy SetID=0 outfit guid={}",
+                GetGUID().ToString(), equipmentSet.Data.Guid);
+            continue;
+        }
+
         ++transmogSetCount;
 
         auto transmogOutfitSetter = activePlayerData.ModifyValue(&UF::ActivePlayerData::TransmogOutfits, equipmentSet.Data.SetID);
@@ -18132,7 +18148,7 @@ void Player::_SyncTransmogOutfitsToActivePlayerData()
         TC_LOG_DEBUG("entities.player", "_SyncTransmogOutfitsToActivePlayerData [{}]: setId={} guid={} name='{}' icon='{}'",
             GetGUID().ToString(), equipmentSet.Data.SetID, equipmentSet.Data.Guid, equipmentSet.Data.SetName, equipmentSet.Data.SetIcon);
 
-        if (!firstOutfitId)
+        if (!firstOutfitId || equipmentSet.Data.SetID < firstOutfitId)
         {
             firstOutfitId = equipmentSet.Data.SetID;
             firstOutfitData = &equipmentSet.Data;
