@@ -51,7 +51,8 @@ bool ValidateTransmogOutfitNpc(WorldSession* session, ObjectGuid const& npcGuid,
 
 uint32 FindNextAvailableTransmogSetID(Player const* player)
 {
-    for (uint32 setId = 0; setId < MAX_EQUIPMENT_SET_INDEX; ++setId)
+    // Start at 1: the client treats SetID=0 as "no outfit" in TransmogOutfitMetadata
+    for (uint32 setId = 1; setId < MAX_EQUIPMENT_SET_INDEX; ++setId)
         if (!player->GetTransmogOutfitBySetID(setId))
             return setId;
 
