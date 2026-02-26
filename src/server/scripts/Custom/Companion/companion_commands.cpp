@@ -16,14 +16,14 @@ public:
     {
         static ChatCommandTable compCommandTable =
         {
-            { "roster",   HandleCompRoster,  rbac::RBAC_PERM_COMMAND_COMP, Console::No },
-            { "set",      HandleCompSet,     rbac::RBAC_PERM_COMMAND_COMP, Console::No },
-            { "clear",    HandleCompClear,   rbac::RBAC_PERM_COMMAND_COMP, Console::No },
-            { "summon",   HandleCompSummon,  rbac::RBAC_PERM_COMMAND_COMP, Console::No },
-            { "dismiss",  HandleCompDismiss, rbac::RBAC_PERM_COMMAND_COMP, Console::No },
-            { "mode",     HandleCompMode,    rbac::RBAC_PERM_COMMAND_COMP, Console::No },
-            { "follow",   HandleCompFollow,  rbac::RBAC_PERM_COMMAND_COMP, Console::No },
-            { "status",   HandleCompStatus,  rbac::RBAC_PERM_COMMAND_COMP, Console::No },
+            { "roster",   HandleCompRoster,  rbac::RBAC_ROLE_PLAYER, Console::No },
+            { "set",      HandleCompSet,     rbac::RBAC_ROLE_PLAYER, Console::No },
+            { "clear",    HandleCompClear,   rbac::RBAC_ROLE_PLAYER, Console::No },
+            { "summon",   HandleCompSummon,  rbac::RBAC_ROLE_PLAYER, Console::No },
+            { "dismiss",  HandleCompDismiss, rbac::RBAC_ROLE_PLAYER, Console::No },
+            { "mode",     HandleCompMode,    rbac::RBAC_ROLE_PLAYER, Console::No },
+            { "follow",   HandleCompFollow,  rbac::RBAC_ROLE_PLAYER, Console::No },
+            { "status",   HandleCompStatus,  rbac::RBAC_ROLE_PLAYER, Console::No },
         };
 
         static ChatCommandTable commandTable =
