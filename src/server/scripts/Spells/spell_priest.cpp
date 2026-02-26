@@ -3611,9 +3611,6 @@ public:
         if (visualSender)
             visualSender->SendPlaySpellVisual(target, SPELL_VISUAL_PRIEST_PRAYER_OF_MENDING, 0, 0, 40.0f);
     }
-
-protected:
-    SpellInfo const* _spellInfoHeal = nullptr;
 };
 
 // 33076 - Prayer of Mending (Dummy)

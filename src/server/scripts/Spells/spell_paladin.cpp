@@ -416,13 +416,14 @@ class spell_pal_blinding_light : public SpellScript
 
     void HandleDummy(SpellEffIndex /*effIndex*/) const
     {
-        if (Unit* target = GetHitUnit())
-            GetCaster()->CastSpell(target, SPELL_PALADIN_BLINDING_LIGHT_EFFECT, true);
+        GetCaster()->CastSpell(GetHitUnit(), SPELL_PALADIN_BLINDING_LIGHT_EFFECT, CastSpellExtraArgsInit{
+            .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR,
+            .TriggeringSpell = GetSpell()
+        });
     }
 
     void Register() override
     {
-        // Midnight 12.0.1: spell 115750 EFFECT_0 is SPELL_EFFECT_DUMMY(3), not APPLY_AURA(6)
         OnEffectHitTarget += SpellEffectFn(spell_pal_blinding_light::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
     }
 };

@@ -889,19 +889,18 @@ class spell_mage_flame_on : public AuraScript
    {
        return ValidateSpellInfo({ SPELL_MAGE_FIRE_BLAST })
            && sSpellCategoryStore.HasRecord(sSpellMgr->AssertSpellInfo(SPELL_MAGE_FIRE_BLAST, DIFFICULTY_NONE)->ChargeCategoryId)
-           && ValidateSpellEffect({ { spellInfo->Id, EFFECT_0 } });
+           && ValidateSpellEffect({ { spellInfo->Id, EFFECT_2 } });
    }
 
    void CalculateAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
    {
        canBeRecalculated = false;
-       amount = -GetPctOf(GetEffectInfo(EFFECT_0).CalcValue() * IN_MILLISECONDS, sSpellCategoryStore.AssertEntry(sSpellMgr->AssertSpellInfo(SPELL_MAGE_FIRE_BLAST, DIFFICULTY_NONE)->ChargeCategoryId)->ChargeRecoveryTime);
+       amount = -GetPctOf(GetEffectInfo(EFFECT_2).CalcValue() * IN_MILLISECONDS, sSpellCategoryStore.AssertEntry(sSpellMgr->AssertSpellInfo(SPELL_MAGE_FIRE_BLAST, DIFFICULTY_NONE)->ChargeCategoryId)->ChargeRecoveryTime);
    }
 
    void Register() override
    {
-        // Midnight 12.0.1: spell 205029 EFFECT_0 aura is MOD_MAX_CHARGES(411), not MOD_GLOBAL_COOLDOWN(6)
-        DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mage_flame_on::CalculateAmount, EFFECT_0, SPELL_AURA_MOD_MAX_CHARGES);
+        DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mage_flame_on::CalculateAmount, EFFECT_1, SPELL_AURA_CHARGE_RECOVERY_MULTIPLIER);
    }
 };
 
@@ -1704,66 +1703,21 @@ uint32 const spell_mage_polymorph_visual::PolymorhForms[6] =
 // 235450 - Prismatic Barrier
 class spell_mage_prismatic_barrier : public AuraScript
 {
-
-    bool Validate(SpellInfo const* /*spellInfo*/) override
+    bool Validate(SpellInfo const* spellInfo) override
     {
-        return ValidateSpellInfo({ SPELL_MAGE_PRISMATIC_BARRIER });
+        return ValidateSpellEffect({ { spellInfo->Id, EFFECT_5 } });
     }
 
     void CalculateAmount(AuraEffect const* /*aurEff*/, int32& amount, bool& canBeRecalculated)
     {
         canBeRecalculated = false;
         if (Unit* caster = GetCaster())
-        {
-            int32 pct = 20;
-
-            SpellInfo const* spellInfo = GetSpellInfo();
-
-            if (spellInfo->GetEffects().size() > 1)
-            {
-                SpellEffectInfo const& effectInfo = spellInfo->GetEffect(EFFECT_1);
-                if (effectInfo.CalcValue(caster) > 0)
-                {
-                    pct = effectInfo.CalcValue(caster);
-                }
-            }
-
-            amount = int32(CalculatePct(caster->GetMaxHealth(), pct));
-        }
-    }
-
-    void HandleAfterApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-    {
-        if (Unit* target = GetTarget())
-        {
-            if (Aura* aura = target->GetAura(GetId()))
-            {
-                aura->SetNeedClientUpdateForTargets();
-            }
-        }
-    }
-
-    void HandleAbsorb(AuraEffect* aurEff, DamageInfo& dmgInfo, uint32& absorbAmount)
-    {
-        if (!(GetSpellInfo()->GetSchoolMask() & dmgInfo.GetSchoolMask()))
-            return;
-
-        absorbAmount = std::min(uint32(aurEff->GetAmount()), dmgInfo.GetDamage());
-
-        if (absorbAmount > 0 && GetTarget())
-        {
-            if (Aura* aura = GetTarget()->GetAura(GetId()))
-            {
-                aura->SetNeedClientUpdateForTargets();
-            }
-        }
+            amount = int32(CalculatePct(caster->GetMaxHealth(), GetEffectInfo(EFFECT_5).CalcValue(caster)));
     }
 
     void Register() override
     {
         DoEffectCalcAmount += AuraEffectCalcAmountFn(spell_mage_prismatic_barrier::CalculateAmount, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB);
-        AfterEffectApply += AuraEffectApplyFn(spell_mage_prismatic_barrier::HandleAfterApply, EFFECT_0, SPELL_AURA_SCHOOL_ABSORB, AURA_EFFECT_HANDLE_REAL);
-        OnEffectAbsorb += AuraEffectAbsorbFn(spell_mage_prismatic_barrier::HandleAbsorb, EFFECT_0);
     }
 };
 

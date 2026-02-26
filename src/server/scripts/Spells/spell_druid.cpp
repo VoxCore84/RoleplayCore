@@ -1756,17 +1756,18 @@ class spell_dru_natures_grace_eclipse : public AuraScript
     bool Validate(SpellInfo const* /*spellInfo*/) override
     {
         return ValidateSpellInfo({ SPELL_DRUID_DREAMSTATE })
-            && ValidateSpellEffect({ { SPELL_DRUID_NATURES_GRACE_TALENT, EFFECT_2 } });
+            // Midnight 12.0.1: spell 450347 effect index moved from EFFECT_2 to EFFECT_0
+            && ValidateSpellEffect({ { SPELL_DRUID_NATURES_GRACE_TALENT, EFFECT_0 } });
     }
 
     bool Load() override
     {
-        return GetCaster()->HasAuraEffect(SPELL_DRUID_NATURES_GRACE_TALENT, EFFECT_2);
+        return GetCaster()->HasAuraEffect(SPELL_DRUID_NATURES_GRACE_TALENT, EFFECT_0);
     }
 
     void HandleRemoved(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/) const
     {
-        spell_dru_natures_grace::Trigger(GetTarget(), GetTarget()->GetAuraEffect(SPELL_DRUID_NATURES_GRACE_TALENT, EFFECT_2));
+        spell_dru_natures_grace::Trigger(GetTarget(), GetTarget()->GetAuraEffect(SPELL_DRUID_NATURES_GRACE_TALENT, EFFECT_0));
     }
 
     void Register() override

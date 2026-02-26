@@ -2821,8 +2821,7 @@ void AddSC_warrior_spell_scripts()
     RegisterSpellScript(spell_warr_victory_rush);
     RegisterSpellScript(spell_warr_warlords_torment);
     RegisterSpellScript(spell_warr_bladesmasters_torment);
-    RegisterSpellScript(spell_warr_intervene);
-    RegisterSpellScript(spell_warr_intervene_charge);
+    // Intervene scripts removed — not needed for 12.x DBC layout
 
     //new
     new spell_warr_spell_reflect();
