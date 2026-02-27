@@ -18,6 +18,7 @@ private:
     Unit* SelectAssistTarget();
     Unit* SelectHealTarget();
     bool  IsValidCompanionTarget(Unit* target) const;
+    bool  IsFriendlyTarget(Unit* target) const;
 
     // Role behaviors
     void UpdateTankBehavior(Unit* target);

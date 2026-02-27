@@ -43,6 +43,27 @@ bool CompanionAI::IsValidCompanionTarget(Unit* target) const
     return true;
 }
 
+bool CompanionAI::IsFriendlyTarget(Unit* target) const
+{
+    if (!target)
+        return true;
+
+    Player* owner = GetOwner();
+    if (!owner)
+        return true;
+
+    // Don't attack owner
+    if (target->GetGUID() == owner->GetGUID())
+        return true;
+
+    // Don't attack other companions in the same squad
+    if (TempSummon const* ts = target->ToTempSummon())
+        if (ts->GetSummonerGUID() == owner->GetGUID())
+            return true;
+
+    return false;
+}
+
 // ---------------------------------------------------------------------------
 // Target selection strategies
 // ---------------------------------------------------------------------------
@@ -78,12 +99,13 @@ Unit* CompanionAI::SelectAssistTarget()
     if (!owner)
         return nullptr;
 
-    // Assist the owner's current target
+    // Assist the owner's current victim — trust the owner's combat choice
+    // (bypasses IsValidAttackTarget which fails on neutral targets like training dummies)
     Unit* ownerVictim = owner->GetVictim();
-    if (ownerVictim && IsValidCompanionTarget(ownerVictim))
+    if (ownerVictim && ownerVictim->IsAlive() && !IsFriendlyTarget(ownerVictim))
         return ownerVictim;
 
-    // Fall back to the owner's selected target
+    // Fall back to the owner's selected target (use stricter validation here)
     ObjectGuid targetGuid = owner->GetTarget();
     if (!targetGuid.IsEmpty())
     {
