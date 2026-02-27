@@ -99,18 +99,32 @@ Unit* CompanionAI::SelectAssistTarget()
     if (!owner)
         return nullptr;
 
-    // Assist the owner's current victim — trust the owner's combat choice
-    // (bypasses IsValidAttackTarget which fails on neutral targets like training dummies)
+    // Trust the owner's combat choice — bypasses faction/neutral checks that reject
+    // training dummies and other edge-case targets the owner is intentionally engaging
     Unit* ownerVictim = owner->GetVictim();
-    if (ownerVictim && ownerVictim->IsAlive() && !IsFriendlyTarget(ownerVictim))
-        return ownerVictim;
+    if (ownerVictim && !IsFriendlyTarget(ownerVictim))
+    {
+        TC_LOG_DEBUG("misc", "CompanionAI::SelectAssist [{}] victim={} alive={} inCombat={} melee={}",
+            me->GetEntry(), ownerVictim->GetName(),
+            ownerVictim->IsAlive() ? "yes" : "no",
+            owner->IsInCombatWith(ownerVictim) ? "yes" : "no",
+            owner->HasUnitState(UNIT_STATE_MELEE_ATTACKING) ? "yes" : "no");
 
-    // Fall back to the owner's selected target (use stricter validation here)
+        // Accept if owner is actively engaged with this target
+        if (owner->IsInCombatWith(ownerVictim) || ownerVictim->IsInCombatWith(owner))
+            return ownerVictim;
+
+        // Also accept if owner is actively swinging (covers edge cases like first-tick)
+        if (owner->HasUnitState(UNIT_STATE_MELEE_ATTACKING))
+            return ownerVictim;
+    }
+
+    // Fall back to the owner's selected target — only reject squad mates
     ObjectGuid targetGuid = owner->GetTarget();
     if (!targetGuid.IsEmpty())
     {
         if (Unit* selected = ObjectAccessor::GetUnit(*me, targetGuid))
-            if (IsValidCompanionTarget(selected))
+            if (selected->IsAlive() && !IsFriendlyTarget(selected))
                 return selected;
     }
 
@@ -394,6 +408,10 @@ void CompanionAI::UpdateAI(uint32 diff)
     }
 
     // Mode-based behavior
+    TC_LOG_DEBUG("misc", "CompanionAI::UpdateAI [{}] mode={} roster={} owner={} guid={}",
+        me->GetEntry(), (uint8)state->control.mode, myRoster ? myRoster->name : "null",
+        owner->GetName(), owner->GetGUID().ToString());
+
     switch (state->control.mode)
     {
         case Companion::MODE_PASSIVE:
@@ -412,6 +430,9 @@ void CompanionAI::UpdateAI(uint32 diff)
             Unit* target = me->GetVictim();
             if (!target || !IsValidCompanionTarget(target))
                 target = SelectDefendTarget();
+
+            TC_LOG_DEBUG("misc", "CompanionAI::DEFEND [{}] target={}", me->GetEntry(),
+                target ? target->GetName() : "none");
 
             if (target && myRoster)
             {
@@ -435,6 +456,13 @@ void CompanionAI::UpdateAI(uint32 diff)
             Unit* target = me->GetVictim();
             if (!target || !IsValidCompanionTarget(target))
                 target = SelectAssistTarget();
+
+            TC_LOG_DEBUG("misc", "CompanionAI::ASSIST [{}] target={} victim={} melee={} attackerCount={}",
+                me->GetEntry(),
+                target ? target->GetName() : "none",
+                owner->GetVictim() ? owner->GetVictim()->GetName() : "none",
+                owner->HasUnitState(UNIT_STATE_MELEE_ATTACKING) ? "yes" : "no",
+                owner->getAttackers().size());
 
             if (target && myRoster)
             {
