@@ -21155,6 +21155,7 @@ void Player::SaveToDB(LoginDatabaseTransaction loginTransaction, CharacterDataba
     GetSession()->GetCollectionMgr()->SaveAccountHeirlooms(loginTransaction);
     GetSession()->GetCollectionMgr()->SaveAccountMounts(loginTransaction);
     GetSession()->GetCollectionMgr()->SaveAccountItemAppearances(loginTransaction);
+    GetSession()->GetCollectionMgr()->SaveTransmogSetFavorites(loginTransaction);
     GetSession()->GetCollectionMgr()->SaveAccountTransmogIllusions(loginTransaction);
     GetSession()->GetCollectionMgr()->SaveAccountWarbandScenes(loginTransaction);
     GetSession()->SavePlayerDataAccount(loginTransaction);
@@ -25427,6 +25428,7 @@ void Player::SendInitialPacketsBeforeAddToMap()
     SendDirectMessage(heirloomUpdate.Write());
 
     GetSession()->GetCollectionMgr()->SendFavoriteAppearances();
+    GetSession()->GetCollectionMgr()->SendTransmogSetFavorites();
 
     // SMSG_ACCOUNT_WARBAND_SCENE_UPDATE
     WorldPackets::Misc::AccountWarbandSceneUpdate warbandSceneUpdate;

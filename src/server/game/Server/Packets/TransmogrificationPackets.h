@@ -64,11 +64,16 @@ namespace WorldPackets
 
         struct TransmogOutfitSlotEntry
         {
-            // Wire format is 16 bytes per entry:
-            //   [u8:0x00][u32:AppearanceID][u8:Flags][9 bytes reserved][u8:SlotIndex]
+            // Wire format (verified via WPP sniff) — 16 bytes per entry:
+            //   byte[0]    = TransmogOutfitSlotInfo.ID (1-14)
+            //   byte[1]    = SlotOption (0=empty, 1=armor, 3=undergarment)
+            //   bytes[2-5] = AppearanceID (uint32 LE)
+            //   bytes[6-7] = DisplayType (uint16 LE, matches ItemAppearance.DisplayType)
+            //   bytes[8-15]= Reserved (zeros)
             uint32 AppearanceID = 0;
-            uint8 Flags = 0;
-            uint8 SlotIndex = 0;
+            uint8 Flags = 0;          // SlotOption
+            uint8 SlotIndex = 0;      // TransmogOutfitSlotInfo.ID
+            uint16 WireDisplayType = 0;
             uint8 RawBytes[16] = {};
         };
 
@@ -199,6 +204,18 @@ namespace WorldPackets
             bool IsSetFavorite = false;
             std::vector<uint32> FavoriteAppearances;
             std::vector<uint32> NewAppearances;
+        };
+
+        class AccountTransmogSetFavoritesUpdate final : public ServerPacket
+        {
+        public:
+            explicit AccountTransmogSetFavoritesUpdate() : ServerPacket(SMSG_ACCOUNT_TRANSMOG_SET_FAVORITES_UPDATE) { }
+
+            WorldPacket const* Write() override;
+
+            bool IsFullUpdate = false;
+            bool IsFavorite = false;
+            std::vector<uint32> TransmogSetIDs;
         };
     }
 }

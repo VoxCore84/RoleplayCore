@@ -90,10 +90,27 @@ bool IsWeaponAppearance(uint32 itemModifiedAppearanceID)
     return (dt == 11 || dt == 12 || dt == 13 || dt == 15);
 }
 
+// Look up the real ItemAppearance.DisplayType for an IMAID via DB2 stores.
+// Returns 0xFF if the IMAID is invalid or not found.
+uint8 GetDisplayTypeForIMaid(uint32 itemModifiedAppearanceID)
+{
+    if (!itemModifiedAppearanceID)
+        return 0xFF;
+
+    ItemModifiedAppearanceEntry const* modAppear = sItemModifiedAppearanceStore.LookupEntry(itemModifiedAppearanceID);
+    if (!modAppear)
+        return 0xFF;
+
+    ItemAppearanceEntry const* appear = sItemAppearanceStore.LookupEntry(modAppear->ItemAppearanceID);
+    if (!appear)
+        return 0xFF;
+
+    return uint8(appear->DisplayType);
+}
+
 uint8 DisplayTypeToEquipSlot(uint8 displayType)
 {
-    // Maps ItemAppearance.DisplayType (wire byte[5] in outfit slot entries)
-    // to server EQUIPMENT_SLOT constants.
+    // Maps ItemAppearance.DisplayType to server EQUIPMENT_SLOT constants.
     //
     // IMPORTANT: This is ItemAppearance.DisplayType, NOT TransmogOutfitSlotEnum!
     // They are different enums with different orderings:
@@ -242,11 +259,30 @@ void TransmogOutfitNew::Read()
             bool seenPrimaryShoulder = false;
             for (std::size_t i = 0; i < slotData.size(); i += 16)
             {
-                uint32 appearanceID = ReadLE<uint32>(slotData, i + 0);
-                uint32 rawSlotField = ReadLE<uint32>(slotData, i + 4);
-                uint8 displayType = uint8((rawSlotField >> 8) & 0xFF);  // byte[5] = ItemAppearance.DisplayType
-                uint8 transmogSlot = uint8(rawSlotField >> 24);         // byte[7] of entry, diagnostic only
-                uint8 equipSlot = DisplayTypeToEquipSlot(displayType);
+                // Wire format (verified via WPP sniff):
+                //   byte[0]    = TransmogOutfitSlotInfo.ID (1-14)
+                //   byte[1]    = SlotOption (0=empty, 1=armor, 3=undergarment)
+                //   bytes[2-5] = AppearanceID (uint32 LE)
+                //   bytes[6-7] = DisplayType (uint16 LE)
+                //   bytes[8-15]= Reserved (zeros)
+                uint8 transmogSlot = slotData[i + 0];
+                uint8 slotOption = slotData[i + 1];
+                uint32 appearanceID = ReadLE<uint32>(slotData, i + 2);
+                uint16 wireDisplayType = ReadLE<uint16>(slotData, i + 6);
+
+                // SlotOption=0 means empty/hidden — skip (IMAID and wireDT may be stale)
+                if (slotOption == 0)
+                {
+                    TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_NEW entry[{}]: appear={} slotOpt=0 tSlot={} wireDT={} (empty, skipped)",
+                        i / 16, appearanceID, transmogSlot, wireDisplayType);
+                    continue;
+                }
+
+                // Use wire DisplayType directly; fall back to DB2 lookup if unavailable
+                uint8 realDisplayType = (wireDisplayType <= 15)
+                    ? uint8(wireDisplayType)
+                    : GetDisplayTypeForIMaid(appearanceID);
+                uint8 equipSlot = DisplayTypeToEquipSlot(realDisplayType);
 
                 // DisplayType=1 (Shoulder) appears twice: first is primary, second is secondary
                 if (equipSlot == EQUIPMENT_SLOT_SHOULDERS && seenPrimaryShoulder)
@@ -273,8 +309,8 @@ void TransmogOutfitNew::Read()
                     }
                 }
 
-                TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_NEW entry[{}]: appear={} displayType={} transmogSlot={} rawSlotField=0x{:08X} equipSlot={}",
-                    i / 16, appearanceID, displayType, transmogSlot, rawSlotField, equipSlot);
+                TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_NEW entry[{}]: appear={} slotOpt={} tSlot={} wireDT={} realDT={} equipSlot={}",
+                    i / 16, appearanceID, slotOption, transmogSlot, wireDisplayType, realDisplayType, equipSlot);
             }
         }
 
@@ -432,16 +468,19 @@ void TransmogOutfitUpdateSlots::Read()
             return;
         }
 
-        // Extra bytes between packed guid and slot entries
-        std::size_t bytesBeforeSlots = bytesRemainingAfterGuid - expectedSlotBytes;
+        // Extra bytes between packed guid and slot entries (+ 1 trailing byte after entries).
+        // The packet has: [header][guid][skip N bytes][slotCount * 16 bytes][1 trailing byte]
+        // So: bytesRemainingAfterGuid = N + slotCount*16 + 1  =>  N = remaining - expected - 1
+        std::size_t totalExtra = bytesRemainingAfterGuid - expectedSlotBytes;
+        std::size_t bytesBeforeSlots = (totalExtra > 0) ? totalExtra - 1 : 0;  // reserve 1 for trailing byte
 
         // Dump the skipped bytes for diagnostics
-        if (bytesBeforeSlots > 0)
+        if (totalExtra > 0)
         {
             std::size_t dumpPos = _worldPacket.rpos();
-            std::size_t dumpLen = std::min<std::size_t>(bytesBeforeSlots, 32);
-            TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS skipping {} bytes at rpos={}: {}",
-                bytesBeforeSlots, dumpPos, ByteArrayToHexStr(std::span(_worldPacket.data() + dumpPos, dumpLen)));
+            std::size_t dumpLen = std::min<std::size_t>(totalExtra, 32);
+            TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS totalExtra={} skipBefore={} at rpos={}: {}",
+                totalExtra, bytesBeforeSlots, dumpPos, ByteArrayToHexStr(std::span(_worldPacket.data() + dumpPos, dumpLen)));
         }
 
         for (std::size_t i = 0; i < bytesBeforeSlots; ++i)
@@ -477,21 +516,40 @@ void TransmogOutfitUpdateSlots::Read()
             // Read 16 raw bytes per entry
             _worldPacket.read(slot.RawBytes, 16);
 
-            // Wire format: [u8:byte0][u32:AppearanceID LE][u8:DisplayType][9 bytes:reserved][u8:SlotIndex]
-            slot.AppearanceID = ReadLE<uint32>(std::span<uint8 const>(slot.RawBytes, 16), 1);
-            slot.Flags = slot.RawBytes[5];   // ItemAppearance.DisplayType
-            slot.SlotIndex = slot.RawBytes[15];
+            // Wire format (verified via WPP sniff):
+            //   byte[0]    = TransmogOutfitSlotInfo.ID (1-14)
+            //   byte[1]    = SlotOption (0=empty, 1=armor, 3=undergarment)
+            //   bytes[2-5] = AppearanceID (uint32 LE)
+            //   bytes[6-7] = DisplayType (uint16 LE, matches ItemAppearance.DisplayType)
+            //   bytes[8-15]= Reserved (zeros)
+            slot.SlotIndex = slot.RawBytes[0];
+            slot.Flags = slot.RawBytes[1];    // SlotOption (1=armor, 3=undergarment, 0=empty)
+            slot.AppearanceID = ReadLE<uint32>(std::span<uint8 const>(slot.RawBytes, 16), 2);
+            slot.WireDisplayType = ReadLE<uint16>(std::span<uint8 const>(slot.RawBytes, 16), 6);
 
             // Only process the first 14 entries for the base outfit
             if (i >= baseSlotCount)
             {
-                TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: appear={} flags={} transmogSlot={} (situation data, skipped)",
-                    i, slot.AppearanceID, slot.Flags, slot.SlotIndex);
+                TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: appear={} slotOpt={} tSlot={} wireDT={} (situation data, skipped)",
+                    i, slot.AppearanceID, slot.Flags, slot.SlotIndex, slot.WireDisplayType);
                 continue;
             }
 
-            uint8 transmogSlot = slot.SlotIndex; // byte[15], diagnostic only
-            uint8 equipSlot = DisplayTypeToEquipSlot(slot.Flags); // byte[5] = ItemAppearance.DisplayType
+            uint8 transmogSlot = slot.SlotIndex; // byte[0], DB2 TransmogOutfitSlotInfo.ID (1-14)
+
+            // SlotOption=0 means empty/hidden — skip (IMAID and wireDT may be stale)
+            if (slot.Flags == 0)
+            {
+                TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: appear={} slotOpt=0 tSlot={} wireDT={} (empty, skipped)",
+                    i, slot.AppearanceID, transmogSlot, slot.WireDisplayType);
+                continue;
+            }
+
+            // Use wire DisplayType from bytes[6-7] directly; fall back to DB2 lookup if unavailable
+            uint8 realDisplayType = (slot.WireDisplayType <= 15)
+                ? uint8(slot.WireDisplayType)
+                : GetDisplayTypeForIMaid(slot.AppearanceID);
+            uint8 equipSlot = DisplayTypeToEquipSlot(realDisplayType);
 
             // DisplayType=1 (Shoulder) appears twice: first is primary, second is secondary
             if (equipSlot == EQUIPMENT_SLOT_SHOULDERS && seenPrimaryShoulder)
@@ -501,8 +559,8 @@ void TransmogOutfitUpdateSlots::Read()
                     Set.SecondaryShoulderApparanceID = int32(slot.AppearanceID);
                     Set.SecondaryShoulderSlot = 2;
                 }
-                TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: appear={} flags={} transmogSlot={} equipSlot=SECONDARY_SHOULDER",
-                    i, slot.AppearanceID, slot.Flags, transmogSlot);
+                TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: appear={} slotOpt={} transmogSlot={} realDT={} equipSlot=SECONDARY_SHOULDER",
+                    i, slot.AppearanceID, slot.Flags, transmogSlot, realDisplayType);
                 continue;
             }
             if (equipSlot == EQUIPMENT_SLOT_SHOULDERS)
@@ -528,8 +586,8 @@ void TransmogOutfitUpdateSlots::Read()
                 }
             }
 
-            TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: appear={} flags={} transmogSlot={} equipSlot={}",
-                i, slot.AppearanceID, slot.Flags, transmogSlot, equipSlot);
+            TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: appear={} slotOpt={} tSlot={} wireDT={} realDT={} equipSlot={}",
+                i, slot.AppearanceID, slot.Flags, transmogSlot, slot.WireDisplayType, realDisplayType, equipSlot);
         }
 
         if (slotCount > 14)
@@ -640,6 +698,17 @@ WorldPacket const* AccountTransmogUpdate::Write()
 
     if (!NewAppearances.empty())
         _worldPacket.append(NewAppearances.data(), NewAppearances.size());
+
+    return &_worldPacket;
+}
+
+WorldPacket const* AccountTransmogSetFavoritesUpdate::Write()
+{
+    _worldPacket << Bits<1>(IsFullUpdate);
+    _worldPacket << Bits<1>(IsFavorite);
+    _worldPacket << Size<uint32>(TransmogSetIDs);
+    if (!TransmogSetIDs.empty())
+        _worldPacket.append(TransmogSetIDs.data(), TransmogSetIDs.size());
 
     return &_worldPacket;
 }
