@@ -462,15 +462,18 @@ void TransmogOutfitUpdateSlots::Read()
                 curRpos, ByteArrayToHexStr(std::span(_worldPacket.data() + curRpos, dumpSize)));
         }
 
-        // Multi-iteration packets (slotCount > 14) contain situation variants.
-        // Only the FIRST 14 entries (iteration 0) represent the base outfit.
-        // Subsequent iterations are alternate "situations" with different/shuffled IMAIDs
-        // and must NOT be mixed into the base Appearances array.
-        uint32 baseSlotCount = std::min(slotCount, uint32(14));
+        // Multi-group packets (slotCount > 14) contain one 14-slot group per situation.
+        // Process ALL groups with "last non-zero wins" semantics — later groups can
+        // override earlier ones. Reset seenPrimaryShoulder every 14 entries for correct
+        // per-group shoulder tracking.
         bool seenPrimaryShoulder = false;
 
         for (uint32 i = 0; i < slotCount; ++i)
         {
+            // Reset shoulder tracking at the start of each 14-slot group
+            if (i % 14 == 0)
+                seenPrimaryShoulder = false;
+
             TransmogOutfitSlotEntry& slot = Slots[i];
 
             // Read 16 raw bytes per entry
@@ -487,21 +490,13 @@ void TransmogOutfitUpdateSlots::Read()
             slot.AppearanceID = ReadLE<uint32>(std::span<uint8 const>(slot.RawBytes, 16), 2);
             slot.WireDisplayType = ReadLE<uint16>(std::span<uint8 const>(slot.RawBytes, 16), 6);
 
-            // Only process the first 14 entries for the base outfit
-            if (i >= baseSlotCount)
-            {
-                TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: appear={} tSlot={} wireDT={} (situation data, skipped)",
-                    i, slot.AppearanceID, slot.SlotIndex, slot.WireDisplayType);
-                continue;
-            }
-
             uint8 ordinal = slot.SlotIndex; // byte[0], sequential index (1-14)
 
-            // Empty slot = IMAID is 0 (no transmog applied)
+            // Empty slot = IMAID is 0 (no transmog applied) — skip, don't overwrite
             if (slot.AppearanceID == 0)
             {
-                TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: ordinal={} wireDT={} (empty, skipped)",
-                    i, ordinal, slot.WireDisplayType);
+                TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: ordinal={} wireDT={} group={} (empty, skipped)",
+                    i, ordinal, slot.WireDisplayType, i / 14);
                 continue;
             }
 
@@ -513,28 +508,29 @@ void TransmogOutfitUpdateSlots::Read()
                 TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: wireDT={} overridden by serverDT={} for IMAID={}",
                     i, slot.WireDisplayType, serverDT, slot.AppearanceID);
 
-            // DT=1 (Shoulder) appears twice: first is primary, second is secondary
+            // DT=1 (Shoulder) appears twice per group: first is primary, second is secondary
             if (equipSlot == EQUIPMENT_SLOT_SHOULDERS && seenPrimaryShoulder)
             {
                 Set.SecondaryShoulderApparanceID = int32(slot.AppearanceID);
                 Set.SecondaryShoulderSlot = 2;
-                TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: appear={} ordinal={} wireDT={} serverDT={} equipSlot=SECONDARY_SHOULDER",
-                    i, slot.AppearanceID, ordinal, slot.WireDisplayType, serverDT);
+                TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: appear={} ordinal={} wireDT={} serverDT={} group={} equipSlot=SECONDARY_SHOULDER",
+                    i, slot.AppearanceID, ordinal, slot.WireDisplayType, serverDT, i / 14);
                 continue;
             }
             if (equipSlot == EQUIPMENT_SLOT_SHOULDERS)
                 seenPrimaryShoulder = true;
 
-            if (equipSlot < EQUIPMENT_SLOT_END)
+            // "First non-zero wins" — only set if not already populated by an earlier group
+            if (equipSlot < EQUIPMENT_SLOT_END && !Set.Appearances[equipSlot])
                 Set.Appearances[equipSlot] = int32(slot.AppearanceID);
 
-            TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: appear={} ordinal={} wireDT={} serverDT={} equipSlot={}",
-                i, slot.AppearanceID, ordinal, slot.WireDisplayType, serverDT, equipSlot);
+            TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: appear={} ordinal={} wireDT={} serverDT={} group={} equipSlot={}",
+                i, slot.AppearanceID, ordinal, slot.WireDisplayType, serverDT, i / 14, equipSlot);
         }
 
         if (slotCount > 14)
-            TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS: {} total entries, using first 14 as base outfit, {} situation entries skipped",
-                slotCount, slotCount - 14);
+            TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS: {} total entries across {} groups (first non-zero wins)",
+                slotCount, (slotCount + 13) / 14);
 
         for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
             if (!Set.Appearances[slot])
