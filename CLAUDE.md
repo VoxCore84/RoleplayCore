@@ -140,6 +140,26 @@ _patches_transmog/       # Reference git diff patches for the transmog outfit fe
 - **`creature_template`**: `faction` (not FactionID), `npcflag` (bigint), spells in `creature_template_spell`
 - **Always DESCRIBE tables before writing SQL**
 
+## Debugging Methodology
+
+**Follow this for ALL bug investigations. The #1 cause of wasted time is coding fixes based on assumptions instead of data.**
+
+### The 5 Steps
+1. **Understand** — Reproduce the bug. Trace the full code path with codeintel (`find_definition`, `call_hierarchy`). Narrow scope: what works vs what doesn't.
+2. **Collect Data** — Check logs (`Server.log`, `DBErrors.log`, `Debug.log`) first. Then use the right tool: `opcode_analyzer.py` (packets), mysql MCP (DB state), `transmog_debug.py` (transmog), TransmogSpy (client-side). **Always SELECT before UPDATE.**
+3. **Analyze** — Form an explicit hypothesis ("X happens because Y, data should show Z"). Cross-reference IDs against DB2/Wago. Check for data corruption before blaming code.
+4. **Fix** — One change at a time. Add logging at decision points, never remove it. Verify root cause, not symptom. Trace downstream callers with codeintel before changing any function.
+5. **Verify** — Build, reproduce in clean state, collect ALL outputs (logs + DB state + packets if relevant), confirm hypothesis. If data doesn't match, back to step 1.
+
+### Code Change Rules
+- **Never combine multiple fixes** — each is a separate commit and test cycle
+- **Don't add fallback logic to parsers** — `Read()` parses bytes, never accesses Player/Item/DB
+- **Don't fix writers by patching readers** — if the DB has bad data, clean the DB
+- **DESCRIBE tables before writing SQL** — always
+- **Trace downstream** — use codeintel `find_references`/`call_hierarchy` before changing any function signature
+
+Full patterns and domain-specific recipes: see auto-memory `debugging-methodology.md`
+
 ## Work Style & Parallelism Guidelines
 
 **MANDATORY**: Always default to parallel execution. Do NOT work sequentially when tasks can be parallelized. Hardware is not a constraint (128GB RAM, NVMe). Err on the side of spawning too many agents rather than too few.
