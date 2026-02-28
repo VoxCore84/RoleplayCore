@@ -589,51 +589,6 @@ void WorldSession::HandleTransmogOutfitNew(WorldPackets::Transmogrification::Tra
         return;
     }
 
-    // The 12.x client omits HEAD, BACK, TABARD, MH, OH from outfit packets.
-    // Fill missing slots from equipped item transmog modifiers.
-    Player* player = GetPlayer();
-    static constexpr uint8 missingSlots[] = {
-        EQUIPMENT_SLOT_HEAD, EQUIPMENT_SLOT_BACK, EQUIPMENT_SLOT_TABARD,
-        EQUIPMENT_SLOT_MAINHAND, EQUIPMENT_SLOT_OFFHAND
-    };
-    for (uint8 slot : missingSlots)
-    {
-        if (set.Appearances[slot] == 0)
-        {
-            if (Item const* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
-            {
-                uint32 transmogId = item->GetModifier(ITEM_MODIFIER_TRANSMOG_APPEARANCE_ALL_SPECS);
-                if (transmogId)
-                {
-                    set.Appearances[slot] = int32(transmogId);
-                    set.IgnoreMask &= ~(1u << slot);
-                    TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_NEW [{}]: filled missing equipSlot={} from equipped item IMAID={}",
-                        GetPlayerInfo(), slot, transmogId);
-                }
-            }
-        }
-    }
-
-    // Fill weapon enchant illusions from equipped items
-    if (!set.Enchants[0])
-    {
-        if (Item const* mh = player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND))
-        {
-            uint32 illusionId = mh->GetModifier(ITEM_MODIFIER_ENCHANT_ILLUSION_ALL_SPECS);
-            if (illusionId)
-                set.Enchants[0] = int32(illusionId);
-        }
-    }
-    if (!set.Enchants[1])
-    {
-        if (Item const* oh = player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND))
-        {
-            uint32 illusionId = oh->GetModifier(ITEM_MODIFIER_ENCHANT_ILLUSION_ALL_SPECS);
-            if (illusionId)
-                set.Enchants[1] = int32(illusionId);
-        }
-    }
-
     if (!ValidateTransmogOutfitSet(this, set))
         return;
 
@@ -754,61 +709,6 @@ void WorldSession::HandleTransmogOutfitUpdateSlots(WorldPackets::Transmogrificat
             {
                 // Both incoming and existing are 0 — slot is unused
                 updatedSet.IgnoreMask |= (1u << slot);
-            }
-        }
-
-        // The 12.x client removed C_Transmog.ApplyAllPending() — CMSG_TRANSMOGRIFY_ITEMS
-        // is never sent. The outfit packet omits HEAD, BACK, TABARD, MH, and OH entirely.
-        // Fill these from the player's currently equipped item transmog modifiers so that
-        // appearances applied via the wardrobe UI are captured into the outfit.
-        Player* player = GetPlayer();
-        static constexpr uint8 missingSlots[] = {
-            EQUIPMENT_SLOT_HEAD, EQUIPMENT_SLOT_BACK, EQUIPMENT_SLOT_TABARD,
-            EQUIPMENT_SLOT_MAINHAND, EQUIPMENT_SLOT_OFFHAND
-        };
-        for (uint8 slot : missingSlots)
-        {
-            if (updatedSet.Appearances[slot] == 0)
-            {
-                if (Item const* item = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
-                {
-                    uint32 transmogId = item->GetModifier(ITEM_MODIFIER_TRANSMOG_APPEARANCE_ALL_SPECS);
-                    if (transmogId)
-                    {
-                        updatedSet.Appearances[slot] = int32(transmogId);
-                        updatedSet.IgnoreMask &= ~(1u << slot);
-                        TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS [{}]: filled missing equipSlot={} from equipped item IMAID={}",
-                            GetPlayerInfo(), slot, transmogId);
-                    }
-                }
-            }
-        }
-
-        // Also fill weapon enchant illusions from equipped items if not already set
-        if (!updatedSet.Enchants[0])
-        {
-            if (Item const* mh = player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_MAINHAND))
-            {
-                uint32 illusionId = mh->GetModifier(ITEM_MODIFIER_ENCHANT_ILLUSION_ALL_SPECS);
-                if (illusionId)
-                {
-                    updatedSet.Enchants[0] = int32(illusionId);
-                    TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS [{}]: filled MH enchant illusion={}",
-                        GetPlayerInfo(), illusionId);
-                }
-            }
-        }
-        if (!updatedSet.Enchants[1])
-        {
-            if (Item const* oh = player->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_OFFHAND))
-            {
-                uint32 illusionId = oh->GetModifier(ITEM_MODIFIER_ENCHANT_ILLUSION_ALL_SPECS);
-                if (illusionId)
-                {
-                    updatedSet.Enchants[1] = int32(illusionId);
-                    TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS [{}]: filled OH enchant illusion={}",
-                        GetPlayerInfo(), illusionId);
-                }
             }
         }
 

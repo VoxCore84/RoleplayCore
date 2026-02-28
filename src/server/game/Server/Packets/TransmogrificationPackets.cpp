@@ -463,9 +463,9 @@ void TransmogOutfitUpdateSlots::Read()
         }
 
         // Multi-group packets (slotCount > 14) contain one 14-slot group per situation.
-        // Process ALL groups with "last non-zero wins" semantics — later groups can
-        // override earlier ones. Reset seenPrimaryShoulder every 14 entries for correct
-        // per-group shoulder tracking.
+        // Process ALL groups with "first non-zero wins" — Group 1 has the user's new
+        // armor picks, Group 2+ have head/back/tabard that Group 1 omits.
+        // Reset seenPrimaryShoulder every 14 entries for per-group shoulder tracking.
         bool seenPrimaryShoulder = false;
 
         for (uint32 i = 0; i < slotCount; ++i)
@@ -511,8 +511,11 @@ void TransmogOutfitUpdateSlots::Read()
             // DT=1 (Shoulder) appears twice per group: first is primary, second is secondary
             if (equipSlot == EQUIPMENT_SLOT_SHOULDERS && seenPrimaryShoulder)
             {
-                Set.SecondaryShoulderApparanceID = int32(slot.AppearanceID);
-                Set.SecondaryShoulderSlot = 2;
+                if (!Set.SecondaryShoulderApparanceID)
+                {
+                    Set.SecondaryShoulderApparanceID = int32(slot.AppearanceID);
+                    Set.SecondaryShoulderSlot = 2;
+                }
                 TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: appear={} ordinal={} wireDT={} serverDT={} group={} equipSlot=SECONDARY_SHOULDER",
                     i, slot.AppearanceID, ordinal, slot.WireDisplayType, serverDT, i / 14);
                 continue;
@@ -529,8 +532,8 @@ void TransmogOutfitUpdateSlots::Read()
         }
 
         if (slotCount > 14)
-            TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS: {} total entries across {} groups (first non-zero wins)",
-                slotCount, (slotCount + 13) / 14);
+            TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS: {} total entries ({} groups of 14), merged with first-non-zero precedence",
+                slotCount, slotCount / 14);
 
         for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
             if (!Set.Appearances[slot])
