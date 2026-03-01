@@ -27,3 +27,8 @@ AND NOT EXISTS (
 
 -- 4. Delete creature_text with CreatureID = 0 (15 orphaned Rifleman Middlecamp rows)
 DELETE FROM creature_text WHERE CreatureID = 0;
+
+-- 5. UPSTREAM: DH Voidglare Boon spell script
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_dh_voidglare_boon';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(473728, 'spell_dh_voidglare_boon');

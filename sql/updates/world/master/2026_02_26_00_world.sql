@@ -197,3 +197,11 @@ WHERE c.guid IS NULL;
 DELETE ga FROM gameobject_addon ga
 LEFT JOIN gameobject g ON ga.guid = g.guid
 WHERE g.guid IS NULL;
+
+-- ============================================================================
+-- 11. UPSTREAM: DH Void Ray spell script
+-- ============================================================================
+
+DELETE FROM `spell_script_names` WHERE `ScriptName`='spell_dh_void_ray';
+INSERT INTO `spell_script_names` (`spell_id`, `ScriptName`) VALUES
+(473728, 'spell_dh_void_ray');
