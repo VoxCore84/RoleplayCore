@@ -1,0 +1,487 @@
+================================================================================
+ZONE-TO-CONTENTTUNINGID MAPPING — RoleplayCore NPC Level Assignment
+================================================================================
+Generated: 2026-03-01
+Source: hotfixes.area_table + hotfixes.content_tuning + world.creature_template_difficulty
+
+PURPOSE: Given a Wowhead NPC with zone_id and level, determine the best
+ContentTuningID to assign in creature_template_difficulty.
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+1. Quick Reference — Default CTs by Expansion
+2. Capital Cities & Universal Zones
+3. Classic Zones (Expansion 0)
+4. The Burning Crusade Zones (Expansion 1)
+5. Wrath of the Lich King Zones (Expansion 2)
+6. Cataclysm Zones (Expansion 3)
+7. Mists of Pandaria Zones (Expansion 4)
+8. Warlords of Draenor Zones (Expansion 5)
+9. Legion Zones (Expansion 6)
+10. Battle for Azeroth Zones (Expansion 7)
+11. Shadowlands Zones (Expansion 8)
+12. Dragonflight Zones (Expansion 9)
+13. The War Within Zones (Expansion 10)
+14. Midnight Zones (Expansion 11)
+15. Level-Based Fallback Strategy (when zone is unknown)
+16. Usage Statistics — Top ContentTuningIDs by Creature Count
+
+================================================================================
+1. QUICK REFERENCE — DEFAULT CTs BY EXPANSION
+================================================================================
+
+These are the MOST COMMONLY USED ContentTuningIDs per expansion, derived from
+actual creature_template_difficulty data (usage_count = number of creature entries):
+
+  Expansion   CT ID   Levels    Usage Count   Notes
+  ---------   -----   ------    -----------   -----
+  Universal    864    1-∞(2)     48,774       Cities, universal scaling
+  Classic        2    5-30       22,659       Most Classic outdoor zones
+  TBC           42   25-30        1,795       Netherstorm-tier (highest count)
+  TBC           41   20-30          841       Blade's Edge tier
+  WotLK         13   10-30        1,830       Borean/HF/Dragonblight tier
+  Cata          56   30-35          621       Uldum/Twilight Highlands tier
+  MoP           57   10-35          731       Jade Forest tier
+  WoD           64   10-40          530       Frostfire/SMV tier
+  Legion       628   45-45          350       Broken Shore/Suramar tier
+  Legion       633   10-45          264       Azsuna/HM/Val'sharah tier
+  BfA         1227   10-60      127,269       Chromie Time universal (MOST USED)
+  BfA          502   50-50          198       Nazjatar/Mechagon max-level
+  SL           746   10-60          252       Revendreth/general SL
+  DF          2151   10-70       29,103       Waking Shores / general DF
+  TWW         2677   70-80      152,603       General TWW (HIGHEST OVERALL)
+  Midnight    3085   80-83          309       Eversong Woods (Midnight)
+
+================================================================================
+2. CAPITAL CITIES & UNIVERSAL ZONES (ExpansionID = -3)
+================================================================================
+
+These zones use universal ContentTuningIDs (MaxLevelType=2 means "current max").
+NPCs here scale with the player.
+
+  ZoneID  Zone Name          CT ID   Levels
+  ------  ---------          -----   ------
+  1519    Stormwind City      864    1-∞ (universal)
+  1637    Orgrimmar           866    1-∞ (universal)
+  1537    Ironforge           868    1-∞ (universal)
+  1497    Undercity           867    1-∞ (universal)
+  1638    Thunder Bluff       865    1-∞ (universal)
+  1657    Darnassus           876    1-∞ (universal)
+  5861    Darkmoon Island     402    1-∞ (universal)
+
+  RECOMMENDATION: Use CT 864 for any capital/sanctuary NPC.
+
+================================================================================
+3. CLASSIC ZONES (Expansion 0, Levels 1-30)
+================================================================================
+
+Starter Zones (1-10):
+  ZoneID  Zone Name          CT ID   Levels
+  ------  ---------          -----   ------
+  12      Elwynn Forest       73     1-30
+  1       Dun Morogh          74     1-30
+  14      Durotar             70     1-30
+  215     Mulgore             71     1-30
+  141     Teldrassil          72     1-30
+  85      Tirisfal Glades     75     1-30
+  10424   Exile's Reach      741     1-10
+
+Low-Level Zones (5-15):
+  ZoneID  Zone Name          CT ID   Levels
+  ------  ---------          -----   ------
+  40      Westfall             6     5-30
+  38      Loch Modan           9     5-30
+  130     Silverpine Forest    7     5-30
+  148     Darkshore            5     5-30
+  16      Azshara              2     5-30
+  17      Northern Barrens     3     5-30
+
+Mid-Level Zones (7-15):
+  ZoneID  Zone Name          CT ID   Levels
+  ------  ---------          -----   ------
+  267     Hillsbrad Foothills 11     7-30
+  44      Redridge Mountains  10     7-30
+  331     Ashenvale           12     7-30
+  10      Duskwood            13    10-30
+  11      Wetlands            15    10-30
+  45      Arathi Highlands    17    10-30
+  406     Stonetalon Mountains 14   10-30
+  405     Desolace            19    10-30
+  47      The Hinterlands     20    10-30
+  4709    Southern Barrens    16    10-30
+  5339    Stranglethorn Vale  18    10-30
+
+Higher-Level Zones (15-30):
+  ZoneID  Zone Name          CT ID   Levels
+  ------  ---------          -----   ------
+  15      Dustwallow Marsh    23    15-30
+  357     Feralas              22    15-30
+  400     Thousand Needles    21    15-30
+  361     Felwood             26    15-30
+  28      Western Plaguelands 25    15-30
+  139     Eastern Plaguelands 35    15-30
+  440     Tanaris              28    15-30
+  46      Burning Steppes     30    15-30
+  51      Searing Gorge       29    15-30
+  490     Un'Goro Crater      32    15-30
+  1377    Silithus            36    15-30
+  4       Blasted Lands       34    15-30
+  3       Badlands            27    15-30
+  8       Swamp of Sorrows    31    15-30
+  618     Winterspring         33    15-30
+
+  DEFAULT FOR CLASSIC: CT 2 (5-30) — highest usage at 22,659 creatures
+
+================================================================================
+4. THE BURNING CRUSADE ZONES (Expansion 1, Levels 10-30)
+================================================================================
+
+  ZoneID  Zone Name          CT ID   Levels
+  ------  ---------          -----   ------
+  3430    Eversong Woods      77     1-30
+  3433    Ghostlands           8     1-30
+  3524    Azuremyst Isle      76     1-30
+  3525    Bloodmyst Isle       4     1-30
+  3483    Hellfire Peninsula  37    10-30
+  3521    Zangarmarsh         38    10-30
+  3519    Terokkar Forest     39    15-30
+  3518    Nagrand             40    15-30
+  3522    Blade's Edge Mtns   41    20-30
+  3523    Netherstorm         42    25-30
+  3520    Shadowmoon Valley   43    25-30
+  4080    Isle of Quel'Danas 161    25-30
+  3703    Shattrath City     870    10-30 (city/universal)
+  3557    The Exodar         874    10-30 (city)
+  3487    Silvermoon City    871    10-30 (city)
+
+  DEFAULT FOR TBC: CT 42 (25-30) — 1,795 creatures (highest)
+  ALT DEFAULT: CT 41 (20-30) — 841 creatures
+
+================================================================================
+5. WRATH OF THE LICH KING ZONES (Expansion 2, Levels 10-30)
+================================================================================
+
+  ZoneID  Zone Name          CT ID   Levels
+  ------  ---------          -----   ------
+  3537    Borean Tundra       44    10-30
+  495     Howling Fjord       45    10-30
+  65      Dragonblight        46    15-30
+  394     Grizzly Hills       47    15-30
+  66      Zul'Drak            48    20-30
+  3711    Sholazar Basin      49    20-30
+  67      The Storm Peaks     50    25-30
+  210     Icecrown            51    25-30
+  2817    Crystalsong Forest 163    25-30
+  4395    Dalaran            196    10-30 (city)
+
+  DEFAULT FOR WOTLK: CT 13 (10-30) — 1,830 creatures (generic Northrend)
+
+================================================================================
+6. CATACLYSM ZONES (Expansion 3, Levels 30-35)
+================================================================================
+
+  ZoneID  Zone Name          CT ID   Levels
+  ------  ---------          -----   ------
+  616     Mount Hyjal         52    30-35
+  5146    Vashj'ir            53    30-35
+  5042    Deepholm             54    30-35
+  5034    Uldum                55    30-35
+  4922    Twilight Highlands  56    30-35
+  5095    Tol Barad          963    35-35
+  5733    Molten Front        165    32-35
+
+  Starter Zones:
+  4714    Gilneas             78     1-20
+  4737    Kezan               79     1-20
+  4707    The Lost Isles      79     1-20
+
+  DEFAULT FOR CATA: CT 56 (30-35) — 621 creatures
+
+================================================================================
+7. MISTS OF PANDARIA ZONES (Expansion 4, Levels 10-35)
+================================================================================
+
+  ZoneID  Zone Name          CT ID   Levels
+  ------  ---------          -----   ------
+  5785    The Jade Forest     57    10-35
+  5805    Valley of the 4 Winds 58  15-35
+  6134    Krasarang Wilds     59    15-35
+  5841    Kun-Lai Summit      60    20-35
+  5842    Townlong Steppes    61    25-35
+  6138    Dread Wastes        62    30-35
+  5840    Vale of Eternal Blossoms 173 30-35
+  6757    Timeless Isle      169    30-35
+  6507    Isle of Thunder    167    32-35
+  5736    The Wandering Isle  80     1-20 (starter)
+
+  DEFAULT FOR MOP: CT 57 (10-35) — 731 creatures (Jade Forest CT)
+
+================================================================================
+8. WARLORDS OF DRAENOR ZONES (Expansion 5, Levels 10-40)
+================================================================================
+
+  ZoneID  Zone Name          CT ID   Levels
+  ------  ---------          -----   ------
+  6719    Shadowmoon Valley   63    10-40
+  6720    Frostfire Ridge     64    10-40
+  6721    Gorgrond            65    15-40
+  6662    Talador             66    20-40
+  6722    Spires of Arak      67    30-40
+  6755    Nagrand             68    35-40
+  6723    Tanaan Jungle      176    40-40
+  6941    Ashran             960    10-40
+
+  DEFAULT FOR WOD: CT 64 (10-40) — 530 creatures (Frostfire/SMV CT)
+
+================================================================================
+9. LEGION ZONES (Expansion 6, Levels 10-45)
+================================================================================
+
+  ZoneID  Zone Name          CT ID   Levels
+  ------  ---------          -----   ------
+  7334    Azsuna             331    10-45
+  7558    Val'sharah         332    10-45
+  7503    Highmountain       333    10-45
+  7541    Stormheim          334    10-45
+  7637    Suramar            335    45-45
+  7543    Broken Shore       336    45-45
+  8574    Krokuun            337    45-45
+  8701    Eredath            337    45-45
+  8899    Antoran Wastes     337    45-45
+  7502    Dalaran            885    10-45 (city)
+
+  DEFAULT FOR LEGION: CT 633 (10-45) — 264 creatures (generic Legion)
+  For max-level: CT 628 (45-45) — 350 creatures
+
+================================================================================
+10. BATTLE FOR AZEROTH ZONES (Expansion 7, Levels 10-60)
+================================================================================
+
+  Alliance (Kul Tiras):
+  ZoneID  Zone Name          CT ID   Levels
+  ------  ---------          -----   ------
+  8567    Tiragarde Sound    186    10-60
+  8721    Drustvar           187    20-60
+  9042    Stormsong Valley   188    30-60
+
+  Horde (Zandalar):
+  8499    Zuldazar           189    10-60
+  8500    Nazmir             190    20-60
+  8501    Vol'dun            191    30-60
+
+  Neutral/End-game:
+  10052   Nazjatar           690    50-50
+  10290   Mechagon           713    10-60
+
+  DEFAULT FOR BFA: CT 1227 (10-60) — 127,269 creatures (Chromie Time universal)
+  This is the MOST COMMON CT overall for BfA-era content.
+
+================================================================================
+11. SHADOWLANDS ZONES (Expansion 8, Levels 10-60)
+================================================================================
+
+  ZoneID  Zone Name          CT ID   Levels
+  ------  ---------          -----   ------
+  10534   Bastion            743    10-53
+  11510   Ardenweald         744    10-58
+  11462   Maldraxxus         745    10-55
+  10413   Revendreth         746    10-60
+  11400   The Maw            742    60-60
+  13536   Zereth Mortis     2057    60-60
+  13570   Korthia            742    60-60 (uses Maw CT)
+
+  DEFAULT FOR SL: CT 746 (10-60) — 252 creatures (Revendreth, broadest range)
+  For max-level: CT 742 (60-60) — The Maw/Korthia
+
+================================================================================
+12. DRAGONFLIGHT ZONES (Expansion 9, Levels 10-70)
+================================================================================
+
+  ZoneID  Zone Name          CT ID   Levels
+  ------  ---------          -----   ------
+  13644   The Waking Shores  2151   10-70
+  13645   Ohn'ahran Plains   2152   20-70
+  13646   The Azure Span     2153   30-70
+  13647   Thaldraszus        2154   40-70
+  13862   Valdrakken           —    (inherits parent: 2154, 40-70)
+  14022   Zaralek Cavern       —    (creatures use CT 2613, 10-80)
+  14433   The Forbidden Reach 2589  70-70
+  14529   Emerald Dream      2699   10-80
+
+  DEFAULT FOR DF: CT 2151 (10-70) — 29,103 creatures (Waking Shores, broadest)
+  For max-level DF: CT 2589 (70-70) — Forbidden Reach
+
+================================================================================
+13. THE WAR WITHIN ZONES (Expansion 10, Levels 70-80)
+================================================================================
+
+  ZoneID  Zone Name          CT ID   Levels
+  ------  ---------          -----   ------
+  14717   Isle of Dorn       2832   70-80  (full range, TWW starter)
+  14795   The Ringing Deeps  2798   73-75
+  14838   Hallowfall         2799   75-78
+  14752   Azj-Kahet          2762   78-80
+  14753   City of Threads    2762   78-80  (sub-zone of Azj-Kahet)
+  14771   Dornogal             —    (inherits parent: 2832, 70-80)
+  10416   Siren Isle         3004   80-80
+  15347   Undermine          2888   80-80
+  15716   Arathi Highlands   3005   80-80
+  15177   Dalaran            2797   70-73
+
+  Delves (all use CT 2677):
+  14957   Fungal Folly       2677   70-80
+  14998   Mycomancer Cavern  2677   70-80
+  14999   Earthcrawl Mines   2677   70-80
+  15000   Kriegval's Rest    2677   70-80
+  (and ~15 more delves)
+
+  DEFAULT FOR TWW: CT 2677 (70-80) — 152,603 creatures (HIGHEST USAGE OVERALL)
+  For max-level TWW: CT 2718 (80-80) — 264 creatures
+
+================================================================================
+14. MIDNIGHT ZONES (Expansion 11, Levels 80-90)
+================================================================================
+
+  ZoneID  Zone Name          CT ID   Levels
+  ------  ---------          -----   ------
+  15968   Eversong Woods     3085   80-83
+  15969   Silvermoon City    6413   80-83
+  16215   Isle of Quel'Danas 3085   80-83
+  15947   Zul'Aman           3086   83-88
+  15355   Harandar           3087   83-88
+  10473   Arcantina          5914   83-90
+  16479   Voidstorm          3084   88-90
+
+  DEFAULT FOR MIDNIGHT: CT 3085 (80-83) — starter zones
+  For max-level Midnight: CT 3084 (88-90)
+
+================================================================================
+15. LEVEL-BASED FALLBACK STRATEGY (when zone is unknown)
+================================================================================
+
+When an NPC has a Wowhead level but no zone_id, or the zone_id doesn't map
+cleanly, use these level-range fallbacks:
+
+  NPC Level    Best CT ID   Levels    Expansion    Rationale
+  ---------    ----------   ------    ---------    ---------
+  1-10          741          1-10     Classic      Exile's Reach / starter
+  1-30            2          5-30     Classic      Generic Classic (22K uses)
+  10-30          13         10-30     Classic      Generic scaling Classic
+  30-35        1029         35-35     Cata         Cata max-level tier
+  10-35          57         10-35     MoP          MoP generic (Jade Forest)
+  10-40          64         10-40     WoD          WoD generic (Frostfire/SMV)
+  10-45         633         10-45     Legion       Legion generic
+  45             628        45-45     Legion       Legion max-level
+  10-60        1227         10-60     BfA          Chromie Time (127K uses!)
+  50             502        50-50     BfA          BfA max-level
+  60             742        60-60     SL           SL max-level (Maw/Korthia)
+  10-70        2151         10-70     DF           DF generic (29K uses)
+  70             2589       70-70     DF           DF max-level (Forbidden Reach)
+  70-80        2677         70-80     TWW          TWW generic (152K uses!)
+  80            2718         80-80     TWW          TWW max-level
+  80-83        3085         80-83     Midnight     Midnight starter
+  83-88        3086         83-88     Midnight     Midnight mid
+  88-90        3084         88-90     Midnight     Midnight max
+
+  SIMPLIFIED DECISION TREE:
+  ┌─────────────────────────────────────────────────────────────┐
+  │ IF zone_id maps to a known zone above → use that zone's CT │
+  │ ELSE:                                                       │
+  │   Level 80-90  → CT 2677 (or specific Midnight CT)         │
+  │   Level 70-80  → CT 2677 (TWW, 152K uses)                  │
+  │   Level 60-70  → CT 2151 (DF, 29K uses)                    │
+  │   Level 50-60  → CT 1227 (BfA Chromie, 127K uses)          │
+  │   Level 10-50  → CT 1227 (BfA Chromie, 127K uses)          │
+  │   Level 1-10   → CT 864  (universal scaling, 48K uses)     │
+  │   Level 0 / ?? → CT 864  (universal scaling)               │
+  └─────────────────────────────────────────────────────────────┘
+
+================================================================================
+16. USAGE STATISTICS — TOP CONTENTUNINGIDS BY CREATURE COUNT
+================================================================================
+
+Rank  CT ID   Min  Max  Type  Expansion   Creature Count
+----  -----   ---  ---  ----  ---------   --------------
+  1   2677    70   80    0    TWW         152,603
+  2   1227    10   60    0    BfA         127,269
+  3    864     1    0    2    Universal    48,774
+  4   2151    10   70    0    DF           29,103
+  5      2     5   30    0    Classic      22,659
+  6   2078    10   70    0    DF            8,279
+  7   2852     1   80    0    Universal     4,540
+  8   2692    10   80    0    DF            3,165
+  9     13    10   30    0    Classic       1,830
+ 10     42    25   30    0    TBC           1,795
+ 11     21    15   30    0    Classic       1,202
+ 12      4     1   30    0    TBC             954
+ 13     41    20   30    0    TBC             841
+ 14     81     0    0    1    Universal       839
+ 15     57    10   35    0    MoP             731
+ 16   2157    70   70    0    DF              631
+ 17     56    30   35    0    Cata            621
+ 18   2152    20   70    0    DF              608
+ 19   2158    70   70    0    DF              604
+ 20     64    10   40    0    WoD             530
+
+Notes on MaxLevelType:
+  0 = Fixed max level (use MaxLevel as-is)
+  1 = Current expansion max (ignore MaxLevel, scale to cap)
+  2 = Current expansion max + future-proof (universal scaling)
+  3 = Chromie time (treated as current expansion max in some contexts)
+
+================================================================================
+17. WOWHEAD ZONE_ID TO AREA_TABLE MAPPING
+================================================================================
+
+Wowhead zone_ids correspond directly to hotfixes.area_table.ID. The mapping is
+1:1. When an NPC has zone_id=0 or blank in the Wowhead CSV, it means the NPC
+has no fixed spawn location (summoned, event-only, etc.).
+
+To look up any Wowhead zone_id:
+  SELECT ID, AreaName, ContentTuningID FROM hotfixes.area_table WHERE ID = <zone_id>;
+
+If ContentTuningID = 0 for that zone, check ParentAreaID and walk up the tree:
+  SELECT p.ID, p.AreaName, p.ContentTuningID
+  FROM hotfixes.area_table c
+  JOIN hotfixes.area_table p ON p.ID = c.ParentAreaID
+  WHERE c.ID = <zone_id>;
+
+Known zones with ContentTuningID = 0 that need parent lookup:
+  13862 (Valdrakken)    → parent 13647 (Thaldraszus)  → CT 2154 (40-70)
+  14771 (Dornogal)      → parent 14717 (Isle of Dorn)  → CT 2832 (70-80)
+  14022 (Zaralek Cavern)→ no parent, creatures use CT 2613 (10-80, DF)
+
+================================================================================
+18. SQL HELPER QUERIES
+================================================================================
+
+-- Assign CT based on zone_id (for NPCs already in creature_template_difficulty):
+UPDATE world.creature_template_difficulty ctd
+JOIN world.creature c ON c.id = ctd.Entry AND ctd.DifficultyID = 0
+JOIN hotfixes.area_table at ON at.ID = c.zoneId
+SET ctd.ContentTuningID = at.ContentTuningID
+WHERE at.ContentTuningID > 0
+  AND ctd.ContentTuningID = 0;
+
+-- Find NPCs with no ContentTuningID:
+SELECT ctd.Entry, ct.name, ctd.ContentTuningID, c.zoneId, at.AreaName
+FROM world.creature_template_difficulty ctd
+JOIN world.creature_template ct ON ct.entry = ctd.Entry
+LEFT JOIN world.creature c ON c.id = ctd.Entry
+LEFT JOIN hotfixes.area_table at ON at.ID = c.zoneId
+WHERE ctd.ContentTuningID = 0 AND ctd.DifficultyID = 0
+LIMIT 50;
+
+-- Validate CT assignments:
+SELECT ctd.ContentTuningID, ct2.MinLevel, ct2.MaxLevel, ct2.ExpansionID,
+       COUNT(*) as cnt
+FROM world.creature_template_difficulty ctd
+JOIN hotfixes.content_tuning ct2 ON ct2.ID = ctd.ContentTuningID
+WHERE ctd.DifficultyID = 0 AND ctd.ContentTuningID > 0
+GROUP BY ctd.ContentTuningID, ct2.MinLevel, ct2.MaxLevel, ct2.ExpansionID
+ORDER BY cnt DESC;
+
+================================================================================
+END OF MAPPING
+================================================================================
