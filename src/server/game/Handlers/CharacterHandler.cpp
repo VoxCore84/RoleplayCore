@@ -2143,6 +2143,11 @@ void WorldSession::HandleCharCustomizeCallback(std::shared_ptr<WorldPackets::Cha
 
 void WorldSession::HandleEquipmentSetSave(WorldPackets::EquipmentSet::SaveEquipmentSet& saveEquipmentSet)
 {
+    TC_LOG_DEBUG("network.opcode.transmog",
+        "CMSG_SAVE_EQUIPMENT_SET [{}]: guid={} setId={} type={} name='{}'",
+        GetPlayerInfo(), saveEquipmentSet.Set.Guid, saveEquipmentSet.Set.SetID,
+        int32(saveEquipmentSet.Set.Type), saveEquipmentSet.Set.SetName);
+
     if (saveEquipmentSet.Set.SetID >= MAX_EQUIPMENT_SET_INDEX) // client set slots amount
         return;
 
@@ -2234,6 +2239,20 @@ void WorldSession::HandleEquipmentSetSave(WorldPackets::EquipmentSet::SaveEquipm
 
 void WorldSession::HandleDeleteEquipmentSet(WorldPackets::EquipmentSet::DeleteEquipmentSet& deleteEquipmentSet)
 {
+    // Log before delete — if this fires between transmog applies, it explains the "unknown set id" bug
+    if (EquipmentSetInfo::EquipmentSetData const* setData = _player->GetEquipmentSetData(deleteEquipmentSet.ID))
+    {
+        TC_LOG_DEBUG("network.opcode.transmog",
+            "CMSG_DELETE_EQUIPMENT_SET [{}]: deleting guid={} setId={} type={} name='{}'",
+            GetPlayerInfo(), deleteEquipmentSet.ID, setData->SetID,
+            int32(setData->Type), setData->SetName);
+    }
+    else
+    {
+        TC_LOG_DEBUG("network.opcode.transmog",
+            "CMSG_DELETE_EQUIPMENT_SET [{}]: guid={} not found (already deleted?)",
+            GetPlayerInfo(), deleteEquipmentSet.ID);
+    }
     _player->DeleteEquipmentSet(deleteEquipmentSet.ID);
 }
 

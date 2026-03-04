@@ -2532,6 +2532,7 @@ class TC_GAME_API Player final : public Unit, public GridObject<Player>
         EquipmentSetInfo::EquipmentSetData const* GetEquipmentSetData(uint64 id) const;
         EquipmentSetInfo::EquipmentSetData const* GetTransmogOutfitBySetID(uint32 setID) const;
         EquipmentSetInfo::EquipmentSetData* GetMutableTransmogOutfitBySetID(uint32 setID);
+        EquipmentSetContainer const& GetEquipmentSets() const { return _equipmentSets; }
         uint32 GetActiveTransmogOutfitID() const;
 
         void SendInitWorldStates(uint32 zoneId, uint32 areaId);

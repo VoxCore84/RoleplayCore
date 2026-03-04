@@ -173,7 +173,7 @@ void TransmogOutfitNew::Read()
             std::size_t lenByteOffset = remaining.size() - candidateLen - 2;
             if (lenByteOffset < 6) // must be after the 6-byte fixed header
                 break;
-            if (remaining[lenByteOffset] == candidateLen && remaining[lenByteOffset + 1] == 0x00)
+            if (remaining[lenByteOffset] == candidateLen) // pad byte varies (0x00 or 0x80)
             {
                 // Validate that the space between fixed header and lenByte is a multiple of 16 (slot data)
                 std::size_t slotRegion = lenByteOffset - 6;
@@ -226,7 +226,6 @@ void TransmogOutfitNew::Read()
         else if (extraBytes > 0)
         {
             std::span<uint8 const> slotData = remaining.subspan(6, extraBytes);
-            bool seenPrimaryShoulder = false;
             for (std::size_t i = 0; i < slotData.size(); i += 16)
             {
                 // Wire format (verified via WPP sniff + Wago DB2 Feb 2026 — 16 bytes per entry):
@@ -255,17 +254,15 @@ void TransmogOutfitNew::Read()
                     TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_NEW entry[{}]: wireDT={} overridden by serverDT={} for IMAID={}",
                         i / 16, wireDisplayType, serverDT, appearanceID);
 
-                // DT=1 (Shoulder) appears twice: first is primary, second is secondary
-                if (equipSlot == EQUIPMENT_SLOT_SHOULDERS && seenPrimaryShoulder)
+                // DT=1 (Shoulder): ordinal 3 = secondary, ordinals 1-2 = primary (first wins)
+                if (equipSlot == EQUIPMENT_SLOT_SHOULDERS && ordinal == 3)
                 {
                     Set.SecondaryShoulderApparanceID = int32(appearanceID);
                     Set.SecondaryShoulderSlot = 2;
                 }
-                else
+                else if (equipSlot < EQUIPMENT_SLOT_END)
                 {
-                    if (equipSlot == EQUIPMENT_SLOT_SHOULDERS)
-                        seenPrimaryShoulder = true;
-                    if (equipSlot < EQUIPMENT_SLOT_END)
+                    if (!Set.Appearances[equipSlot])
                         Set.Appearances[equipSlot] = int32(appearanceID);
                 }
 
@@ -334,7 +331,7 @@ void TransmogOutfitUpdateInfo::Read()
         if (remaining.size() >= 7)
         {
             uint8 candidateLen = remaining[5];
-            if (candidateLen > 0 && remaining[6] == 0x00 && 7 + candidateLen == remaining.size())
+            if (candidateLen > 0 && 7 + candidateLen == remaining.size()) // pad byte varies (0x00 or 0x80)
             {
                 nameLength = candidateLen;
                 nameStart = 7;
@@ -465,14 +462,8 @@ void TransmogOutfitUpdateSlots::Read()
         // Multi-group packets (slotCount > 14) contain one 14-slot group per situation.
         // Process ALL groups with "first non-zero wins" — Group 1 has the user's new
         // armor picks, Group 2+ have head/back/tabard that Group 1 omits.
-        // Reset seenPrimaryShoulder every 14 entries for per-group shoulder tracking.
-        bool seenPrimaryShoulder = false;
-
         for (uint32 i = 0; i < slotCount; ++i)
         {
-            // Reset shoulder tracking at the start of each 14-slot group
-            if (i % 14 == 0)
-                seenPrimaryShoulder = false;
 
             TransmogOutfitSlotEntry& slot = Slots[i];
 
@@ -508,8 +499,8 @@ void TransmogOutfitUpdateSlots::Read()
                 TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS entry[{}]: wireDT={} overridden by serverDT={} for IMAID={}",
                     i, slot.WireDisplayType, serverDT, slot.AppearanceID);
 
-            // DT=1 (Shoulder) appears twice per group: first is primary, second is secondary
-            if (equipSlot == EQUIPMENT_SLOT_SHOULDERS && seenPrimaryShoulder)
+            // DT=1 (Shoulder): ordinal 3 = secondary, ordinals 1-2 = primary (first wins)
+            if (equipSlot == EQUIPMENT_SLOT_SHOULDERS && ordinal == 3)
             {
                 if (!Set.SecondaryShoulderApparanceID)
                 {
@@ -520,8 +511,6 @@ void TransmogOutfitUpdateSlots::Read()
                     i, slot.AppearanceID, ordinal, slot.WireDisplayType, serverDT, i / 14);
                 continue;
             }
-            if (equipSlot == EQUIPMENT_SLOT_SHOULDERS)
-                seenPrimaryShoulder = true;
 
             // "First non-zero wins" — only set if not already populated by an earlier group
             if (equipSlot < EQUIPMENT_SLOT_END && !Set.Appearances[equipSlot])

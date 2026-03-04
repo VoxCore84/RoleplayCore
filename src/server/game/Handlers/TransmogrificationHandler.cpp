@@ -632,6 +632,15 @@ void WorldSession::HandleTransmogOutfitNew(WorldPackets::Transmogrification::Tra
     if (EquipmentSetInfo::EquipmentSetData const* savedSet = GetPlayer()->GetTransmogOutfitBySetID(set.SetID))
         set.Guid = savedSet->Guid;
 
+    // Force-flush pending UpdateField changes (TransmogOutfits) to the client BEFORE
+    // sending the response packet. SetEquipmentSet -> _SyncTransmogOutfitsToActivePlayerData
+    // modifies UpdateFields but they're batched until the next SMSG_UPDATE_OBJECT at tick end.
+    // Without this flush, the client receives SMSG_TRANSMOG_OUTFIT_NEW_ENTRY_ADDED first,
+    // fires TRANSMOG_OUTFITS_CHANGED, and GetOutfitsInfo() returns stale data — so the
+    // outfit list doesn't update until the transmog UI is reopened.
+    player->SendUpdateToPlayer(player);
+    player->ClearUpdateMask(true);
+
     WorldPackets::Transmogrification::TransmogOutfitNewEntryAdded response;
     response.SetID = set.SetID;
     response.Guid = set.Guid;
@@ -671,6 +680,10 @@ void WorldSession::HandleTransmogOutfitUpdateInfo(WorldPackets::Transmogrificati
 
     GetPlayer()->SetEquipmentSet(updatedSet);
 
+    // Flush UpdateField changes before response (see HandleTransmogOutfitNew comment)
+    GetPlayer()->SendUpdateToPlayer(GetPlayer());
+    GetPlayer()->ClearUpdateMask(true);
+
     WorldPackets::Transmogrification::TransmogOutfitInfoUpdated response;
     response.SetID = updatedSet.SetID;
     response.Guid = updatedSet.Guid;
@@ -695,7 +708,16 @@ void WorldSession::HandleTransmogOutfitUpdateSlots(WorldPackets::Transmogrificat
     EquipmentSetInfo::EquipmentSetData const* existingSet = GetPlayer()->GetTransmogOutfitBySetID(transmogOutfitUpdateSlots.Set.SetID);
     if (!existingSet || existingSet->Type != EquipmentSetInfo::TRANSMOG)
     {
-        TC_LOG_ERROR("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS rejected [{}]: unknown transmog set id {}", GetPlayerInfo(), transmogOutfitUpdateSlots.Set.SetID);
+        TC_LOG_ERROR("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS rejected [{}]: unknown transmog set id {}",
+            GetPlayerInfo(), transmogOutfitUpdateSlots.Set.SetID);
+        // Diagnostic dump: log every entry in the equipment set map to find out
+        // what happened to the set (deleted? wrong type? wrong SetID? missing entirely?)
+        for (auto const& [guid, eqInfo] : GetPlayer()->GetEquipmentSets())
+        {
+            TC_LOG_ERROR("network.opcode.transmog",
+                "  equipmentSet dump: guid={} setId={} type={} state={} name='{}'",
+                guid, eqInfo.Data.SetID, int32(eqInfo.Data.Type), int32(eqInfo.State), eqInfo.Data.SetName);
+        }
         return;
     }
 
@@ -1005,6 +1027,11 @@ void WorldSession::FinalizeTransmogBridgePendingOutfit()
         }
     }
 
+    // Flush UpdateField changes before response (see HandleTransmogOutfitNew comment)
+    Player* player = GetPlayer();
+    player->SendUpdateToPlayer(player);
+    player->ClearUpdateMask(true);
+
     WorldPackets::Transmogrification::TransmogOutfitSlotsUpdated response;
     response.SetID = pending.Outfit.SetID;
     response.Guid = pending.Outfit.Guid;
@@ -1060,6 +1087,10 @@ void WorldSession::HandleTransmogOutfitUpdateSituations(WorldPackets::Transmogri
     }
 
     GetPlayer()->SetEquipmentSet(updatedSet);
+
+    // Flush UpdateField changes before response (see HandleTransmogOutfitNew comment)
+    GetPlayer()->SendUpdateToPlayer(GetPlayer());
+    GetPlayer()->ClearUpdateMask(true);
 
     WorldPackets::Transmogrification::TransmogOutfitSituationsUpdated response;
     response.SetID = transmogOutfitUpdateSituations.SetID;

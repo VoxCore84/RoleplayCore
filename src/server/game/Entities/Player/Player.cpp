@@ -18201,6 +18201,10 @@ void Player::_SyncTransmogOutfitsToActivePlayerData()
 
     auto viewedOutfitSetter = activePlayerData.ModifyValue(&UF::ActivePlayerData::ViewedOutfit);
     SetUpdateFieldValue(viewedOutfitSetter.ModifyValue(&UF::TransmogOutfitData::Id), firstOutfitId);
+    // Clear dynamic arrays before re-populating — without this, Slots/Situations
+    // accumulate across calls (14→28→42...) and the client renders naked.
+    ClearDynamicUpdateFieldValues(viewedOutfitSetter.ModifyValue(&UF::TransmogOutfitData::Slots));
+    ClearDynamicUpdateFieldValues(viewedOutfitSetter.ModifyValue(&UF::TransmogOutfitData::Situations));
     fillOutfitData(viewedOutfitSetter, firstOutfitData);
 }
 
@@ -28669,6 +28673,17 @@ void Player::SetEquipmentSet(EquipmentSetInfo::EquipmentSetData const& newEqSet)
     uint64 setGuid = (newEqSet.Guid != 0) ? newEqSet.Guid : sObjectMgr->GenerateEquipmentSetGuid();
 
     EquipmentSetInfo& eqSlot = _equipmentSets[setGuid];
+
+    // Track type changes — if an existing entry changes type, this could explain
+    // GetTransmogOutfitBySetID returning null (type filter mismatch)
+    if (eqSlot.Data.Guid != 0 && eqSlot.Data.Type != newEqSet.Type)
+    {
+        TC_LOG_ERROR("network.opcode.transmog",
+            "Player::SetEquipmentSet TYPE CHANGE [{}]: guid={} setId={} type {}->{}",
+            GetGUID().ToString(), setGuid, newEqSet.SetID,
+            int32(eqSlot.Data.Type), int32(newEqSet.Type));
+    }
+
     eqSlot.Data = newEqSet;
 
     if (eqSlot.Data.Guid == 0)
@@ -28683,6 +28698,11 @@ void Player::SetEquipmentSet(EquipmentSetInfo::EquipmentSetData const& newEqSet)
     }
 
     eqSlot.State = eqSlot.State == EQUIPMENT_SET_NEW ? EQUIPMENT_SET_NEW : EQUIPMENT_SET_CHANGED;
+
+    TC_LOG_DEBUG("network.opcode.transmog",
+        "Player::SetEquipmentSet [{}]: guid={} setId={} type={} state={} name='{}'",
+        GetGUID().ToString(), setGuid, eqSlot.Data.SetID,
+        int32(eqSlot.Data.Type), int32(eqSlot.State), eqSlot.Data.SetName);
 
     if (eqSlot.Data.Type == EquipmentSetInfo::TRANSMOG)
         _SyncTransmogOutfitsToActivePlayerData();
@@ -28906,6 +28926,11 @@ void Player::DeleteEquipmentSet(uint64 id)
     {
         if (itr->second.Data.Guid == id)
         {
+            TC_LOG_DEBUG("network.opcode.transmog",
+                "Player::DeleteEquipmentSet [{}]: guid={} setId={} type={} state={} name='{}'",
+                GetGUID().ToString(), id, itr->second.Data.SetID,
+                int32(itr->second.Data.Type), int32(itr->second.State), itr->second.Data.SetName);
+
             bool isTransmogOutfit = itr->second.Data.Type == EquipmentSetInfo::TRANSMOG;
             if (itr->second.State == EQUIPMENT_SET_NEW)
                 itr = _equipmentSets.erase(itr);

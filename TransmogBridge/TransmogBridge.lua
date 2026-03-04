@@ -172,16 +172,25 @@ hooksecurefunc(C_TransmogOutfitInfo, "CommitAndApplyAllPending", function(useDis
         end
     end
 
-    -- Log slots that are still missing after all 3 layers (known limitation for weapons
-    -- during outfit loading — server baseline restoration handles these)
+    -- Detect hidden appearances: slots nil across all 3 layers.
+    -- HEAD (0), SECONDARY_SHOULDER (2), MH (12), OH (13) are ALWAYS nil
+    -- due to client serializer bugs — defer these to server baseline.
+    -- All other slots being nil means a hidden appearance — send explicit clear (slot.0.0).
+    local ALWAYS_NIL_SLOTS = { [0]=true, [2]=true, [12]=true, [13]=true }
     local missing = {}
     for slot = 0, 13 do
         if not merged[slot] then
-            missing[#missing + 1] = slot
+            if ALWAYS_NIL_SLOTS[slot] then
+                missing[#missing + 1] = slot
+            else
+                -- Nil across all layers = hidden appearance, send explicit clear
+                merged[slot] = { transmogID = 0, option = 0 }
+                Log(string.format("Hidden detect: slot=%d nil in all layers, sending clear", slot))
+            end
         end
     end
     if #missing > 0 then
-        Log(string.format("Missing after 3-layer merge: slots %s (server baseline will fill)",
+        Log(string.format("Deferred to server baseline: slots %s (always-nil client slots)",
             table.concat(missing, ",")))
     end
 
