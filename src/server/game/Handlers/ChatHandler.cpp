@@ -591,9 +591,9 @@ void WorldSession::HandleChatAddonMessage(ChatMsg type, std::string prefix, std:
 
     // TransmogBridge: intercept addon messages from the client-side TransmogBridge addon.
     // The 12.x client omits HEAD/MH/OH/enchants from CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS
-    // and sends stale IMAIDs for armor slots. The addon captures the correct pending
-    // IMAIDs via SetPendingTransmog hooks and sends them here. We buffer the overrides
-    // so HandleTransmogOutfitUpdateSlots can merge them before save/apply.
+    // and sends stale IMAIDs for armor slots. The addon uses a hybrid approach:
+    // GetViewedOutfitSlotInfo snapshot (base) + SetPendingTransmog hooks (overlay, wins).
+    // We buffer the overrides so FinalizeTransmogBridgePendingOutfit can merge before save/apply.
     if (prefix == "TMOG_BRIDGE")
     {
         std::string payload = text;

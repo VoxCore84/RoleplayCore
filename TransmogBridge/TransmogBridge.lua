@@ -1,11 +1,35 @@
--- TransmogBridge: Sends pending transmog selections to the server via addon message.
+-- TransmogBridge: Sends all outfit slot appearances to the server via addon message.
 -- The 12.x client's CommitAndApplyAllPending() C++ serializer omits HEAD, MH, OH,
--- weapon enchants, and sends stale data for all other slots. This addon captures
--- the correct IMAIDs from SetPendingTransmog and delivers them to the server.
+-- weapon enchants, and sends stale data for all other slots. This addon uses a hybrid
+-- approach: snapshot via GetViewedOutfitSlotInfo (captures outfit-loaded armor slots)
+-- merged with SetPendingTransmog hooks (captures weapons, secondary shoulder, tabard,
+-- shirt — slots where the snapshot is unreliable). Hook data wins on conflict.
 
 local ADDON_PREFIX = "TMOG_BRIDGE"
 local LOG_PREFIX  = "TMOG_LOG"
 local pendingOverrides = {}
+
+-- Inventory slot names for TransmogUtil.GetTransmogLocation (Layer 3 fallback)
+local INV_SLOT_NAMES = {
+    [0]  = "HEADSLOT",
+    [1]  = "SHOULDERSLOT",
+    [3]  = "BACKSLOT",
+    [4]  = "CHESTSLOT",
+    [5]  = "TABARDSLOT",
+    [6]  = "SHIRTSLOT",
+    [7]  = "WRISTSLOT",
+    [8]  = "HANDSSLOT",
+    [9]  = "WAISTSLOT",
+    [10] = "LEGSSLOT",
+    [11] = "FEETSLOT",
+    [12] = "MAINHANDSLOT",
+    [13] = "SECONDARYHANDSLOT",
+}
+
+-- Check API availability once at load
+local HAS_SLOT_VISUAL_INFO = C_Transmog and C_Transmog.GetSlotVisualInfo ~= nil
+    and TransmogUtil and TransmogUtil.GetTransmogLocation ~= nil
+    and Enum and Enum.TransmogType ~= nil
 
 C_ChatInfo.RegisterAddonMessagePrefix(ADDON_PREFIX)
 C_ChatInfo.RegisterAddonMessagePrefix(LOG_PREFIX)
@@ -52,19 +76,88 @@ end)
 
 -- Send overrides on apply (post-hook: fires after CommitAndApplyAllPending queues the CMSG)
 hooksecurefunc(C_TransmogOutfitInfo, "CommitAndApplyAllPending", function(useDiscount)
-    if not next(pendingOverrides) then return end
+    -- Hybrid merge: snapshot all slots via GetViewedOutfitSlotInfo (base layer),
+    -- then overlay SetPendingTransmog accumulations on top (wins on conflict).
+    -- GetViewedOutfitSlotInfo is unreliable for weapons (12, 13), secondary
+    -- shoulder (2), tabard (5), and shirt (6), but SetPendingTransmog captures
+    -- those correctly when the user clicks slots manually. Outfit set loading
+    -- bypasses SetPendingTransmog but populates the viewed state for armor slots.
+    local merged = {} -- slot -> {transmogID, option}
 
-    -- Encode: "slot.transmogID.option;..."
-    local parts = {}
-    for slot, data in pairs(pendingOverrides) do
-        local tmogID = data.transmogID or 0
-        local opt = data.option or 0
-        if tmogID > 0 then
-            parts[#parts + 1] = string.format("%d.%d.%d", slot, tmogID, opt)
+    -- Layer 1: snapshot from GetViewedOutfitSlotInfo (base)
+    for slot = 0, 13 do
+        if slot ~= 2 then -- secondary shoulder queried separately below
+            local info = C_TransmogOutfitInfo.GetViewedOutfitSlotInfo(slot, 0, 0)
+            if info and info.transmogID and info.transmogID > 0 then
+                merged[slot] = { transmogID = info.transmogID, option = 0 }
+            end
         end
     end
 
-    if #parts == 0 then return end
+    -- Secondary shoulder: slot 1 with option=1
+    local info2 = C_TransmogOutfitInfo.GetViewedOutfitSlotInfo(1, 0, 1)
+    if info2 and info2.transmogID and info2.transmogID > 0 then
+        merged[2] = { transmogID = info2.transmogID, option = 0 }
+    end
+
+    -- Layer 2: SetPendingTransmog accumulations override snapshot (wins on conflict)
+    for slot, data in pairs(pendingOverrides) do
+        local tmogID = data.transmogID or 0
+        if tmogID > 0 then
+            merged[slot] = { transmogID = tmogID, option = data.option or 0 }
+        end
+    end
+
+    -- Layer 3: C_Transmog.GetSlotVisualInfo fallback for slots still missing.
+    -- GetViewedOutfitSlotInfo returns nil for tabard (5), shirt (6), weapons (12, 13),
+    -- and secondary shoulder during outfit loading. If SetPendingTransmog didn't fire
+    -- either (outfit load, not manual click), try the old per-slot transmog API.
+    if HAS_SLOT_VISUAL_INFO then
+        for slot = 0, 13 do
+            if not merged[slot] and slot ~= 2 then -- skip secondary shoulder (no inv slot)
+                local invName = INV_SLOT_NAMES[slot]
+                if invName then
+                    local ok, loc = pcall(TransmogUtil.GetTransmogLocation, invName, Enum.TransmogType.Appearance, false)
+                    if ok and loc then
+                        local ok2, visInfo = pcall(C_Transmog.GetSlotVisualInfo, loc)
+                        if ok2 and visInfo then
+                            local id = visInfo.pendingSourceID
+                            if (not id or id == 0) then id = visInfo.appliedSourceID end
+                            if id and id > 0 then
+                                merged[slot] = { transmogID = id, option = 0 }
+                                Log(string.format("Layer3 fallback slot=%d IMAID=%d (visual)", slot, id))
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    -- Log slots that are still missing after all 3 layers (known limitation for weapons
+    -- during outfit loading — server baseline restoration handles these)
+    local missing = {}
+    for slot = 0, 13 do
+        if not merged[slot] then
+            missing[#missing + 1] = slot
+        end
+    end
+    if #missing > 0 then
+        Log(string.format("Missing after 3-layer merge: slots %s (server baseline will fill)",
+            table.concat(missing, ",")))
+    end
+
+    -- Encode: "slot.transmogID.option;..."
+    local parts = {}
+    for slot, data in pairs(merged) do
+        parts[#parts + 1] = string.format("%d.%d.%d", slot, data.transmogID, data.option)
+    end
+
+    if #parts == 0 then
+        Log("CommitAndApplyAllPending — hybrid merge produced 0 overrides")
+        wipe(pendingOverrides)
+        return
+    end
 
     local payload = table.concat(parts, ";")
 

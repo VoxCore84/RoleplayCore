@@ -1832,8 +1832,8 @@ class TC_GAME_API WorldSession
 
         // TransmogBridge: addon-message-based workaround for 12.x client serializer bug.
         // The client's CommitAndApplyAllPending C++ serializer omits HEAD/MH/OH/enchants
-        // and sends stale IMAIDs for all other slots. A client addon snapshots all 14
-        // slots via GetViewedOutfitSlotInfo and sends them via addon message.
+        // and sends stale IMAIDs for all other slots. A client addon sends correct IMAIDs
+        // via hybrid snapshot (GetViewedOutfitSlotInfo) + hook overlay (SetPendingTransmog).
         // HandleTransmogOutfitUpdateSlots defers finalization so the addon message can
         // merge overrides before save/apply.
         struct TransmogBridgeOverride

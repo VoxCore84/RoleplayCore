@@ -797,7 +797,7 @@ void WorldSession::HandleTransmogOutfitUpdateSlots(WorldPackets::Transmogrificat
 namespace
 {
 // Maps client addon slot index → EquipmentSlot.
-// Client indices (from SetPendingTransmog, confirmed via TransmogSpy):
+// Client indices (from GetViewedOutfitSlotInfo / TransmogOutfitSlot enum):
 //   0=HEAD, 1=SHOULDER, 2=SECONDARY_SHOULDER, 3=BACK, 4=CHEST,
 //   5=TABARD, 6=SHIRT, 7=WRIST, 8=HANDS, 9=WAIST, 10=LEGS,
 //   11=FEET, 12=MAINHAND, 13=OFFHAND
@@ -832,8 +832,9 @@ void WorldSession::FinalizeTransmogBridgePendingOutfit()
 
     auto& pending = *_transmogBridgePendingOutfit;
 
-    // Merge bridge overrides if any are buffered — track which equip slots were set
+    // Build bridge override map: clientSlot -> TransmogID
     bool mergedOverrides = false;
+    bool bridgeOverrodeSecondary = false; // separate flag — secondary shoulder doesn't use bridgeOverriddenMask
     uint32 bridgeOverriddenMask = 0; // bitmask of equipment slots the bridge explicitly set
     if (!_transmogBridgeOverrides.empty())
     {
@@ -843,13 +844,14 @@ void WorldSession::FinalizeTransmogBridgePendingOutfit()
 
         for (auto const& ov : _transmogBridgeOverrides)
         {
-            // Secondary shoulder (clientSlot 2) — routes to a separate field
+            // Secondary shoulder (clientSlot 2) — routes to a separate field, not Appearances[]
             if (ov.ClientSlot == 2)
             {
                 if (ov.TransmogID > 0)
                 {
                     pending.Outfit.SecondaryShoulderApparanceID = ov.TransmogID;
                     pending.Outfit.SecondaryShoulderSlot = 2;
+                    bridgeOverrodeSecondary = true;
                     TC_LOG_DEBUG("network.opcode.transmog", "TransmogBridge [{}]: merged secondary shoulder IMAID={}",
                         GetPlayerInfo(), ov.TransmogID);
                 }
@@ -860,7 +862,6 @@ void WorldSession::FinalizeTransmogBridgePendingOutfit()
             if (equipSlot >= EQUIPMENT_SLOT_END)
                 continue;
 
-            // Appearance override
             if (ov.TransmogID > 0)
             {
                 pending.Outfit.Appearances[equipSlot] = ov.TransmogID;
@@ -870,57 +871,52 @@ void WorldSession::FinalizeTransmogBridgePendingOutfit()
                 TC_LOG_DEBUG("network.opcode.transmog", "TransmogBridge [{}]: merged clientSlot={} -> equipSlot={} IMAID={}",
                     GetPlayerInfo(), ov.ClientSlot, equipSlot, ov.TransmogID);
             }
-
-            // Illusion merging disabled for now — appearances only until core is stable
         }
 
         _transmogBridgeOverrides.clear();
     }
 
-    // Fix stale serializer data: for slots NOT overridden by the bridge, the client
-    // sends the item's base appearance instead of the active transmog. Detect this by
-    // comparing against GetItemModifiedAppearance()->ID and replace with the item's
-    // current ITEM_MODIFIER_TRANSMOG_APPEARANCE_ALL_SPECS value.
-    // Skip bridge-overridden slots — those contain the user's intentional choice.
+    // Use server's saved outfit as baseline for non-bridge slots.
+    // The client's packet data is unreliable for ALL slots (sends stale cached IMAIDs).
+    // Only bridge-overridden slots have correct user-intended values.
     if (Player* player = GetPlayer())
     {
-        for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
+        EquipmentSetInfo::EquipmentSetData const* savedOutfit = player->GetTransmogOutfitBySetID(pending.Outfit.SetID);
+        if (savedOutfit)
         {
-            // Skip slots the bridge already set — user's intentional choice
-            if (bridgeOverriddenMask & (1u << slot))
-                continue;
-
-            // Skip slots the outfit doesn't care about (ignored)
-            if (pending.Outfit.IgnoreMask & (1u << slot))
-                continue;
-
-            int32 outfitIMAID = pending.Outfit.Appearances[slot];
-            if (outfitIMAID <= 0)
-                continue;
-
-            Item* equippedItem = player->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
-            if (!equippedItem)
-                continue;
-
-            // Get the item's base (un-transmogged) appearance
-            ItemModifiedAppearanceEntry const* baseAppearance = equippedItem->GetItemModifiedAppearance();
-            if (!baseAppearance)
-                continue;
-
-            // If the outfit IMAID matches the base appearance, the client likely sent stale data.
-            // Check if the item actually has an active transmog that should be preserved.
-            if (static_cast<uint32>(outfitIMAID) == baseAppearance->ID)
+            for (uint8 slot = EQUIPMENT_SLOT_START; slot < EQUIPMENT_SLOT_END; ++slot)
             {
-                uint32 activeTransmog = equippedItem->GetModifier(ITEM_MODIFIER_TRANSMOG_APPEARANCE_ALL_SPECS);
-                if (activeTransmog && activeTransmog != baseAppearance->ID)
-                {
-                    pending.Outfit.Appearances[slot] = static_cast<int32>(activeTransmog);
+                if (bridgeOverriddenMask & (1u << slot))
+                    continue; // bridge has the correct value
+
+                // Restore server's saved value for this slot
+                pending.Outfit.Appearances[slot] = savedOutfit->Appearances[slot];
+                if (savedOutfit->Appearances[slot])
                     pending.HasAnyAppearance = true;
-                    TC_LOG_DEBUG("network.opcode.transmog",
-                        "TransmogBridge [{}]: slot {} stale data corrected: base IMAID={} -> active transmog IMAID={}",
-                        GetPlayerInfo(), slot, baseAppearance->ID, activeTransmog);
-                }
             }
+
+            // Preserve saved secondary shoulder unless bridge explicitly overrode it.
+            // Note: bridgeOverriddenMask tracks Appearances[] slots (primary shoulder = bit 2).
+            // Secondary shoulder routes to SecondaryShoulderApparanceID, not Appearances[],
+            // so it has its own dedicated flag.
+            if (!bridgeOverrodeSecondary && pending.Outfit.SecondaryShoulderApparanceID == 0)
+            {
+                pending.Outfit.SecondaryShoulderApparanceID = savedOutfit->SecondaryShoulderApparanceID;
+                pending.Outfit.SecondaryShoulderSlot = savedOutfit->SecondaryShoulderSlot;
+            }
+
+            uint32 bridgeSlotCount = 0;
+            for (uint32 tmp = bridgeOverriddenMask; tmp; tmp &= tmp - 1)
+                ++bridgeSlotCount;
+            TC_LOG_DEBUG("network.opcode.transmog",
+                "TransmogBridge [{}]: restored server baseline (bridgeMask=0x{:X}, {} bridge slots)",
+                GetPlayerInfo(), bridgeOverriddenMask, bridgeSlotCount);
+        }
+        else
+        {
+            TC_LOG_DEBUG("network.opcode.transmog",
+                "TransmogBridge [{}]: no saved outfit for setId={} — using client packet data as-is (new outfit)",
+                GetPlayerInfo(), pending.Outfit.SetID);
         }
     }
 
