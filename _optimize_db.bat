@@ -1,49 +1,80 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: MySQL Optimize — finds and defragments all tables with >4MB wasted space
-:: Run after large imports, bulk deletes, or data audits
+:: MySQL Optimize — rebuilds InnoDB tables with >10MB file size and reports
+:: actual disk savings by comparing .ibd file sizes before/after.
+:: Run after large imports, bulk deletes, or data audits.
 
 set "MYSQL=C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe"
 set "USER=root"
 set "PASS=admin"
-set "THRESHOLD_MB=4"
+set "MIN_SIZE_MB=10"
 set "TMPFILE=%~dp0_optimize_tmp.txt"
 
 echo.
 echo ============================================
-echo   MySQL Table Optimizer
+echo   MySQL Table Optimizer (InnoDB)
 echo ============================================
-echo   Threshold: %THRESHOLD_MB% MB free space
+echo   Min table size: %MIN_SIZE_MB% MB
 echo.
 
-"%MYSQL%" -u %USER% -p%PASS% --batch --skip-column-names -e "SELECT CONCAT(t.TABLE_SCHEMA, '.', t.TABLE_NAME), ROUND(s.FILE_SIZE/1024/1024,1), ROUND(t.DATA_FREE/1024/1024,1) FROM information_schema.TABLES t JOIN information_schema.INNODB_TABLESPACES s ON s.NAME = CONCAT(t.TABLE_SCHEMA, '/', t.TABLE_NAME) WHERE t.TABLE_SCHEMA IN ('world','hotfixes','characters','auth','roleplay') AND t.ENGINE = 'InnoDB' AND t.DATA_FREE > %THRESHOLD_MB% * 1024 * 1024 ORDER BY t.DATA_FREE DESC;" 2>nul > "%TMPFILE%"
+:: Get data directory path
+for /f "usebackq tokens=2" %%d in (`"%MYSQL%" -u %USER% -p%PASS% --batch --skip-column-names -e "SELECT @@datadir;" 2^>nul`) do set "DATADIR=%%d"
+if not defined DATADIR (
+    for /f "usebackq tokens=*" %%d in (`"%MYSQL%" -u %USER% -p%PASS% --batch --skip-column-names -e "SELECT @@datadir;" 2^>nul`) do set "DATADIR=%%d"
+)
+
+:: Normalize path separators
+set "DATADIR=%DATADIR:\=/%"
+
+echo   Data dir: %DATADIR%
+echo.
+
+:: Find tables with .ibd files above threshold
+"%MYSQL%" -u %USER% -p%PASS% --batch --skip-column-names -e "SELECT t.TABLE_SCHEMA, t.TABLE_NAME, ROUND(s.FILE_SIZE/1024/1024,1) FROM information_schema.TABLES t JOIN information_schema.INNODB_TABLESPACES s ON s.NAME = CONCAT(t.TABLE_SCHEMA, '/', t.TABLE_NAME) WHERE t.TABLE_SCHEMA IN ('world','hotfixes','characters','auth','roleplay') AND t.ENGINE = 'InnoDB' AND s.FILE_SIZE > %MIN_SIZE_MB% * 1024 * 1024 ORDER BY s.FILE_SIZE DESC;" 2>nul > "%TMPFILE%"
 
 set "COUNT=0"
 for /f "usebackq tokens=*" %%a in ("%TMPFILE%") do set /a COUNT+=1
 
 if %COUNT%==0 (
-    echo   No fragmented tables found. Everything is clean!
+    echo   No tables above %MIN_SIZE_MB% MB found.
     echo.
     goto :done
 )
 
-echo   Found %COUNT% fragmented table(s):
+echo   Found %COUNT% table(s) above %MIN_SIZE_MB% MB:
 echo   ------------------------------------------
 for /f "usebackq tokens=1,2,3" %%a in ("%TMPFILE%") do (
-    echo     %%a    file: %%b MB    wasted: %%c MB
+    echo     %%a.%%b    %%c MB
 )
 echo.
+echo   Optimizing (ALTER TABLE ... FORCE) ...
+echo   ------------------------------------------
+echo.
 
+set "TOTAL_SAVED=0"
 set "N=0"
-for /f "usebackq tokens=1" %%a in ("%TMPFILE%") do (
+for /f "usebackq tokens=1,2,3" %%a in ("%TMPFILE%") do (
     set /a N+=1
-    echo   [!N!/%COUNT%] OPTIMIZE TABLE %%a ...
-    "%MYSQL%" -u %USER% -p%PASS% -e "OPTIMIZE TABLE %%a;" 2>nul | findstr /i "status"
+    set "SCHEMA=%%a"
+    set "TABLE=%%b"
+    set "BEFORE=%%c"
+
+    echo   [!N!/%COUNT%] !SCHEMA!.!TABLE! ^(!BEFORE! MB^)
+
+    :: Run OPTIMIZE (InnoDB does ALTER TABLE ... FORCE internally)
+    "%MYSQL%" -u %USER% -p%PASS% -e "OPTIMIZE TABLE !SCHEMA!.!TABLE!;" 2>nul >nul
+
+    :: Get new file size
+    for /f "usebackq tokens=*" %%s in (`"%MYSQL%" -u %USER% -p%PASS% --batch --skip-column-names -e "SELECT ROUND(FILE_SIZE/1024/1024,1) FROM information_schema.INNODB_TABLESPACES WHERE NAME = '!SCHEMA!/!TABLE!';" 2^>nul`) do set "AFTER=%%s"
+
+    echo            Before: !BEFORE! MB  -^>  After: !AFTER! MB
+    echo.
 )
 
-echo.
-echo   Done! %COUNT% table(s) optimized.
+echo   ============================================
+echo   Done! %COUNT% table(s) processed.
+echo   ============================================
 echo.
 
 :done
