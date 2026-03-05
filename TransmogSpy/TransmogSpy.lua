@@ -20,7 +20,15 @@ C_ChatInfo.RegisterAddonMessagePrefix(LOG_PREFIX)
 local function ServerLog(msg)
     local clean = msg:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
     if #clean > 255 then clean = clean:sub(1, 255) end
-    pcall(C_ChatInfo.SendAddonMessage, LOG_PREFIX, clean, "WHISPER", UnitName("player"))
+    -- UnitName("player") omits realm; use full Name-Realm for cross-realm whisper support
+    local name = UnitName("player")
+    if name then
+        local realm = GetNormalizedRealmName()
+        if realm and realm ~= "" then name = name .. "-" .. realm end
+    end
+    if name then
+        pcall(C_ChatInfo.SendAddonMessage, LOG_PREFIX, clean, "WHISPER", name)
+    end
 end
 
 local eventLog = {}
@@ -446,10 +454,13 @@ local TRANSMOG_EVENTS = {
 
 local registeredEvents = {}
 
+local failedEvents = {}
 for _, ev in ipairs(TRANSMOG_EVENTS) do
     local ok = pcall(eventFrame.RegisterEvent, eventFrame, ev)
     if ok then
         registeredEvents[#registeredEvents + 1] = ev
+    else
+        failedEvents[#failedEvents + 1] = ev
     end
 end
 
@@ -619,10 +630,18 @@ end
 -- Delay button hook until transmog UI loads
 local buttonHookFrame = CreateFrame("Frame")
 buttonHookFrame:RegisterEvent("ADDON_LOADED")
+buttonHookFrame:RegisterEvent("TRANSMOGRIFY_OPEN")
 buttonHookFrame:SetScript("OnEvent", function(self, event, addon)
-    if addon == "Blizzard_Transmog" or addon == "Blizzard_Collections"
-        or addon == "Blizzard_EncounterJournal" then
-        C_Timer.After(0.5, HookApplyButton)
+    if event == "TRANSMOGRIFY_OPEN" then
+        -- Guaranteed moment that transmog frames exist — most reliable hook point
+        if not buttonsHooked then
+            HookApplyButton()
+        end
+    elseif event == "ADDON_LOADED" then
+        if addon == "Blizzard_Transmog" or addon == "Blizzard_Collections"
+            or addon == "Blizzard_EncounterJournal" then
+            C_Timer.After(0.5, HookApplyButton)
+        end
     end
 end)
 C_Timer.After(1.0, HookApplyButton)
@@ -1310,6 +1329,9 @@ end
 
 Log(GREEN .. "TransmogSpy v2 loaded." .. RESET)
 Log(format("  Registered %d/%d events", #registeredEvents, #TRANSMOG_EVENTS))
+if #failedEvents > 0 then
+    Log(format("  %sFAILED to register: %s%s", RED, table.concat(failedEvents, ", "), RESET))
+end
 Log("  Type /tspy help for commands.")
 
 for _, ev in ipairs(registeredEvents) do

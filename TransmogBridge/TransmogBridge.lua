@@ -38,12 +38,24 @@ local HAS_SLOT_VISUAL_INFO = C_Transmog and C_Transmog.GetSlotVisualInfo ~= nil
 C_ChatInfo.RegisterAddonMessagePrefix(ADDON_PREFIX)
 C_ChatInfo.RegisterAddonMessagePrefix(LOG_PREFIX)
 
+-- Resolve full Name-Realm for addon message whisper target
+local function GetPlayerFullName()
+    local name = UnitName("player")
+    if not name then return nil end
+    local realm = GetNormalizedRealmName()
+    if realm and realm ~= "" then return name .. "-" .. realm end
+    return name
+end
+
 -- Send log entries to the server via addon message → shows up in Debug.log
 local function Log(msg)
     local entry = date("%H:%M:%S") .. " " .. msg
     -- Truncate to 255 byte addon message limit
     if #entry > 255 then entry = entry:sub(1, 255) end
-    C_ChatInfo.SendAddonMessage(LOG_PREFIX, entry, "WHISPER", UnitName("player"))
+    local target = GetPlayerFullName()
+    if target then
+        C_ChatInfo.SendAddonMessage(LOG_PREFIX, entry, "WHISPER", target)
+    end
 end
 
 -- Capture every SetPendingTransmog call.
@@ -230,7 +242,7 @@ hooksecurefunc(C_TransmogOutfitInfo, "CommitAndApplyAllPending", function(useDis
     -- Addon message payload limit is 255 bytes.
     -- Worst case: 12 3-field + 2 4-field (illusions) = ~192 bytes. Multi-part handles overflow.
     if #payload <= 255 then
-        C_ChatInfo.SendAddonMessage(ADDON_PREFIX, payload, "WHISPER", UnitName("player"))
+        C_ChatInfo.SendAddonMessage(ADDON_PREFIX, payload, "WHISPER", GetPlayerFullName())
     else
         -- Split at nearest ; boundary (253 = 255 limit minus 2-byte "1>" prefix)
         local mid = payload:sub(1, 253):match(".*;")
@@ -248,8 +260,8 @@ hooksecurefunc(C_TransmogOutfitInfo, "CommitAndApplyAllPending", function(useDis
             wipe(pendingIllusions)
             return
         end
-        C_ChatInfo.SendAddonMessage(ADDON_PREFIX, "1>" .. part1, "WHISPER", UnitName("player"))
-        C_ChatInfo.SendAddonMessage(ADDON_PREFIX, "2>" .. part2, "WHISPER", UnitName("player"))
+        C_ChatInfo.SendAddonMessage(ADDON_PREFIX, "1>" .. part1, "WHISPER", GetPlayerFullName())
+        C_ChatInfo.SendAddonMessage(ADDON_PREFIX, "2>" .. part2, "WHISPER", GetPlayerFullName())
     end
 
     Log(string.format("Sent %d overrides (%d bytes): %s", #parts, #payload, payload))
