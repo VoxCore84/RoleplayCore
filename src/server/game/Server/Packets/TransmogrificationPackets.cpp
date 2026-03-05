@@ -28,6 +28,12 @@
 namespace WorldPackets::Transmogrification
 {
 
+// Sanity cap: reject CMSGs with more entries than this (prevents OOM from malformed packets)
+constexpr uint32 MaxTransmogOutfitSlotCount = 256;
+// Retail sends exactly 30 entries per outfit (12 armor + 9 MH options + 9 OH options).
+// When the client accumulates entries (30→60→90→120), we process only the LAST 30.
+constexpr uint32 RetailTransmogOutfitSlotCount = 30;
+
 namespace
 {
 void CapturePayloadDebugInfo(WorldPacket const& packet, size_t& payloadSize, std::string& payloadPreviewHex)
@@ -84,7 +90,7 @@ uint16 GetServerDisplayType(uint32 itemModifiedAppearanceId)
 
 // Maps IMAID's ItemAppearance.DisplayType to server EQUIPMENT_SLOT constants.
 // The wire DT (bytes[6-7]) is the IMAID's own display category and IS the routing key.
-// byte[0] (tSlot) is a sequential ordinal (1-14), NOT a meaningful slot identifier.
+// byte[0] (tSlot) is a sequential ordinal (1-30), NOT a meaningful slot identifier.
 uint8 DisplayTypeToEquipSlot(uint16 displayType)
 {
     switch (displayType)
@@ -227,8 +233,28 @@ void TransmogOutfitNew::Read()
         else if (extraBytes > 0)
         {
             std::span<uint8 const> slotData = remaining.subspan(6, extraBytes);
-            for (std::size_t i = 0; i < slotData.size(); i += 16)
+            uint32 totalEntries = uint32(slotData.size() / 16);
+
+            // Sanity cap: reject absurdly large entry counts (malformed packet)
+            if (totalEntries > MaxTransmogOutfitSlotCount)
             {
+                ParseError = Trinity::StringFormat("too many slot entries ({} > {})", totalEntries, MaxTransmogOutfitSlotCount);
+                DiagnosticReadTrace = BuildDiagnosticReadTrace("CMSG_TRANSMOG_OUTFIT_NEW", _worldPacket);
+                _worldPacket.rfinish();
+                return;
+            }
+
+            // Client accumulation fix: when entries exceed retail count (30→60→90→120),
+            // the client appended delta groups. Only the LAST 30 entries contain the
+            // user's current choices; earlier groups are stale copies.
+            uint32 startEntry = (totalEntries > RetailTransmogOutfitSlotCount) ? (totalEntries - RetailTransmogOutfitSlotCount) : 0;
+            if (startEntry > 0)
+                TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_NEW: {} total entries, skipping first {} (stale accumulated groups), processing last {}",
+                    totalEntries, startEntry, totalEntries - startEntry);
+
+            for (uint32 idx = startEntry; idx < totalEntries; ++idx)
+            {
+                std::size_t i = std::size_t(idx) * 16;
                 // Wire format (verified via WPP sniff + Wago DB2 Feb 2026 — 16 bytes per entry):
                 //   byte[0]    = Sequential ordinal (1-30, NOT a slot identifier)
                 //   byte[1]    = Weapon option index (0 for armor/base, 1-8 for weapon type variants)
@@ -243,7 +269,7 @@ void TransmogOutfitNew::Read()
                 if (appearanceID == 0)
                 {
                     TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_NEW entry[{}]: ordinal={} wireDT={} (empty, skipped)",
-                        i / 16, ordinal, wireDisplayType);
+                        idx, ordinal, wireDisplayType);
                     continue;
                 }
 
@@ -253,7 +279,7 @@ void TransmogOutfitNew::Read()
 
                 if (serverDT != uint16(-1) && serverDT != wireDisplayType)
                     TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_NEW entry[{}]: wireDT={} overridden by serverDT={} for IMAID={}",
-                        i / 16, wireDisplayType, serverDT, appearanceID);
+                        idx, wireDisplayType, serverDT, appearanceID);
 
                 // DT=1 (Shoulder): ordinal 3 = secondary, ordinals 1-2 = primary (first wins)
                 if (equipSlot == EQUIPMENT_SLOT_SHOULDERS && ordinal == 3)
@@ -271,7 +297,7 @@ void TransmogOutfitNew::Read()
                 }
 
                 TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_NEW entry[{}]: appear={} ordinal={} wireDT={} serverDT={} equipSlot={}",
-                    i / 16, appearanceID, ordinal, wireDisplayType, serverDT, equipSlot);
+                    idx, appearanceID, ordinal, wireDisplayType, serverDT, equipSlot);
             }
         }
 
@@ -417,6 +443,15 @@ void TransmogOutfitUpdateSlots::Read()
         _worldPacket >> slotCount;
         _worldPacket >> Npc;
 
+        // Sanity cap: reject absurdly large entry counts (malformed packet)
+        if (slotCount > MaxTransmogOutfitSlotCount)
+        {
+            ParseError = Trinity::StringFormat("too many slot entries ({} > {})", slotCount, MaxTransmogOutfitSlotCount);
+            DiagnosticReadTrace = BuildDiagnosticReadTrace("CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS", _worldPacket);
+            _worldPacket.rfinish();
+            return;
+        }
+
         std::size_t rposAfterGuid = _worldPacket.rpos();
 
         std::size_t expectedSlotBytes = std::size_t(slotCount) * 16;
@@ -483,12 +518,20 @@ void TransmogOutfitUpdateSlots::Read()
             slot.WireDisplayType = ReadLE<uint16>(std::span<uint8 const>(slot.RawBytes, 16), 6);
         }
 
-        // Process all entries — retail sends up to 30 (12 armor + 18 weapon options).
-        // Use "first non-zero wins" so the earliest valid entry for each slot takes priority.
-        for (uint32 i = 0; i < slotCount; ++i)
+        // Client accumulation fix: when slotCount exceeds retail count (30→60→90→120),
+        // the client appended delta groups. Only the LAST 30 entries contain the
+        // user's current choices; earlier groups are stale copies.
+        uint32 startEntry = (slotCount > RetailTransmogOutfitSlotCount) ? (slotCount - RetailTransmogOutfitSlotCount) : 0;
+        if (startEntry > 0)
+            TC_LOG_DEBUG("network.opcode.transmog", "CMSG_TRANSMOG_OUTFIT_UPDATE_SLOTS: {} total entries, skipping first {} (stale accumulated groups), processing last {}",
+                slotCount, startEntry, slotCount - startEntry);
+
+        // Process only the last RetailTransmogOutfitSlotCount entries.
+        // Use "first non-zero wins" within this group so the earliest valid entry for each slot takes priority.
+        for (uint32 i = startEntry; i < slotCount; ++i)
         {
             TransmogOutfitSlotEntry& slot = Slots[i];
-            uint8 ordinal = slot.SlotIndex; // byte[0], sequential index (1-14)
+            uint8 ordinal = slot.SlotIndex; // byte[0], sequential index (1-30)
 
             // Empty slot = IMAID is 0 (no transmog applied) — skip, don't overwrite
             if (slot.AppearanceID == 0)
@@ -519,7 +562,7 @@ void TransmogOutfitUpdateSlots::Read()
                 continue;
             }
 
-            // First non-zero wins — earliest valid entry for each slot takes priority
+            // First non-zero wins within the last group — earliest valid entry for each slot takes priority
             if (equipSlot < EQUIPMENT_SLOT_END && !Set.Appearances[equipSlot])
                 Set.Appearances[equipSlot] = int32(slot.AppearanceID);
 
