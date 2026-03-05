@@ -1,7 +1,9 @@
 -- 2026_03_05_02_world.sql
 -- Fix: restore AIName='SmartAI' for 181 creatures that have GUID-based smart_scripts
--- but no entry-based scripts. The previous cleanup (2026_03_05_01) only checked
--- entry-based scripts (entryorguid > 0), missing per-spawn GUID scripts (entryorguid < 0).
+-- but no entry-based scripts. The original _01 only checked entry-based scripts;
+-- _01 was later patched to include GUID checks for future re-runs, but this corrective
+-- SQL was needed to undo the damage from the original application. Idempotent/no-op if
+-- _01 already includes the GUID check before first application.
 
 UPDATE `creature_template` ct
 SET ct.`AIName` = 'SmartAI'
