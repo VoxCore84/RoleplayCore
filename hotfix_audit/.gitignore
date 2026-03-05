@@ -1,0 +1,40 @@
+# Build-specific output — regenerated per audit run
+results/
+results_r2/
+results_r3/
+
+# Generated SQL cleanup scripts (build-specific, already executed)
+*.sql
+
+# Generated column mapping data (build-specific)
+table_info.json
+table_info_r2.json
+table_info_r3.json
+col_types.json
+
+# Intermediate data files (build-specific)
+tables_with_rows.json
+tables_r2.json
+matched_pairs.json
+hotfix_only.json
+groups.json
+groups_r2.json
+groups_r3.json
+csv_names.txt
+hotfix_tables.txt
+hotfix_data_hashes.txt
+hotfix_unmapped.txt
+truncate_hashes.json
+warnings.json
+hotfix_table_hashes.json
+orphan_summary.json
+
+# Reports (regenerated)
+hotfix_audit_report.md
+hotfix_audit_report_round2.md
+hotfix_inventory.md
+MAPPING_RESULTS.md
+STEP_3B_VERIFICATION.txt
+
+# Python cache
+__pycache__/

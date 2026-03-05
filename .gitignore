@@ -35,6 +35,5 @@ sql/exports/existing_smartai_entries.txt
 sql/exports/missing_smartai_entries.txt
 __pycache__/
 .cache/
-hotfix_audit/
 tools/build/
 Claude Code Prompts.txt
