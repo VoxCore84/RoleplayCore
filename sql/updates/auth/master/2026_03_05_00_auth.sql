@@ -1,0 +1,29 @@
+-- Build 66263 (12.0.1) — register build, update realmlist.
+-- Auth keys TBD — will be added when TrinityCore publishes them.
+-- Until then, WorldSocket.cpp has a temporary bypass for missing auth keys.
+
+DELETE FROM `build_info` WHERE `build` IN (66263);
+INSERT INTO `build_info` (`build`,`majorVersion`,`minorVersion`,`bugfixVersion`,`hotfixVersion`) VALUES
+(66263,12,0,1,NULL);
+
+DELETE FROM `build_auth_key` WHERE `build`=66263 AND `platform`='Mac' AND `arch`='A64' AND `type`='WoW';
+DELETE FROM `build_auth_key` WHERE `build`=66263 AND `platform`='Mac' AND `arch`='A64' AND `type`='WoWC';
+DELETE FROM `build_auth_key` WHERE `build`=66263 AND `platform`='Mac' AND `arch`='x64' AND `type`='WoW';
+DELETE FROM `build_auth_key` WHERE `build`=66263 AND `platform`='Mac' AND `arch`='x64' AND `type`='WoWC';
+DELETE FROM `build_auth_key` WHERE `build`=66263 AND `platform`='Win' AND `arch`='A64' AND `type`='WoW';
+DELETE FROM `build_auth_key` WHERE `build`=66263 AND `platform`='Win' AND `arch`='x64' AND `type`='WoW';
+DELETE FROM `build_auth_key` WHERE `build`=66263 AND `platform`='Win' AND `arch`='x64' AND `type`='WoWC';
+
+-- Keys placeholder — uncomment and fill when TC publishes:
+-- INSERT INTO `build_auth_key` (`build`,`platform`,`arch`,`type`,`key`) VALUES
+-- (66263,'Mac','A64','WoW',0x0000000000000000000000000000000),
+-- (66263,'Mac','A64','WoWC',0x0000000000000000000000000000000),
+-- (66263,'Mac','x64','WoW',0x0000000000000000000000000000000),
+-- (66263,'Mac','x64','WoWC',0x0000000000000000000000000000000),
+-- (66263,'Win','A64','WoW',0x0000000000000000000000000000000),
+-- (66263,'Win','x64','WoW',0x0000000000000000000000000000000),
+-- (66263,'Win','x64','WoWC',0x0000000000000000000000000000000);
+
+UPDATE `realmlist` SET `gamebuild`=66263 WHERE `gamebuild`=66220;
+
+ALTER TABLE `realmlist` CHANGE `gamebuild` `gamebuild` int unsigned NOT NULL DEFAULT '66263';
