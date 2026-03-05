@@ -358,8 +358,8 @@ C:/Tools/WowPacketParser/WowPacketParser.exe <file.pkt>
 C:\Python314\python.exe C:/Dev/RoleplayCore/tools/opcode_analyzer.py \
   --input World_parsed.txt --opcodes C:/Dev/RoleplayCore/src/server/game/Server/Protocol/Opcodes.h
 
-# Extract transmog packets
-C:\Python314\python.exe C:/Dev/RoleplayCore/tools/extract_transmog_packets.py
+# Run PacketScope analysis
+C:\Python314\python.exe C:/Dev/RoleplayCore/tools/packet_scope.py
 ```
 
 **Important**: Stop the server before WPP can read .pkt files

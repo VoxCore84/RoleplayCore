@@ -262,7 +262,7 @@ Untracked directory, now organized into subdirectories.
 ### `tools/` — Python Tools & Scripts (tracked)
 | File | Purpose |
 |------|---------|
-| `extract_transmog_packets.py` | WPP packet log parser — streams World_parsed.txt, extracts transmog packets/addon/UPDATE_OBJECT into report. Dynamic SQL glob, `--pkt-dir` CLI arg. Auto-called by `start-worldserver.sh` on exit |
+| `packet_scope.py` | **PacketScope** — WPP packet log analyzer. Streams World_parsed.txt, extracts transmog packets/addon/UPDATE_OBJECT, decodes 30-entry slot format, correlates CMSG/SMSG pairs, flags anomalies. Dynamic SQL glob, `--pkt-dir` CLI arg. Auto-called by `start-worldserver.sh` on exit |
 | `opcode_analyzer.py` | Packet capture cross-referencing — maps opcodes to TC handlers, identifies unhandled |
 | `parse_dberrors.py` | Parse worldserver DBErrors.log, categorize errors by type with counts |
 | `_optimize_db.bat` | MySQL OPTIMIZE/ANALYZE batch script |
@@ -367,7 +367,7 @@ GitHub: `VoxCore84/tc-packet-tools` (private). Server launcher wrapper + WPP aut
 
 | File | Purpose |
 |------|---------|
-| `start-worldserver.sh` | Full session lifecycle: (1) archives previous session (pkt, parsed txt/7z, errors, SQL, transmog_extract, all 5 logs), (2) cleans stale WPP files, (3) launches bnet+worldserver with EXIT trap (kills bnetserver on Ctrl+C), (4) auto-runs WPP on exit (pipefail, exit check, error reporting), (5) moves WPP SQL/errors to `PacketLog/`, (6) build validation (<90% parse rate warning), (7) auto-runs `extract_transmog_packets.py --pkt-dir`, (8) single-pass awk summary. Guards all `cd` commands, propagates worldserver exit code |
+| `start-worldserver.sh` | Full session lifecycle: (1) archives previous session (pkt, parsed txt/7z, errors, SQL, transmog_extract, all 5 logs), (2) cleans stale WPP files, (3) launches bnet+worldserver with EXIT trap (kills bnetserver on Ctrl+C), (4) auto-runs WPP on exit (pipefail, exit check, error reporting), (5) moves WPP SQL/errors to `PacketLog/`, (6) build validation (<90% parse rate warning), (7) auto-runs `packet_scope.py --pkt-dir`, (8) single-pass awk summary. Guards all `cd` commands, propagates worldserver exit code |
 | `wpp-add-build.sh` | Add new WoW build to WPP's 3 switch statements (`GetOpcodeDefiningBuild`, `GetUpdateFieldDictionaryBuildName`, `GetVersionDefiningBuild`). Uses contiguous-group detection to insert in correct function. Rebuilds WPP with `dotnet build`, copies output. Detects already-present builds |
 | `wpp-inspect.sh` | Quick-grep utility for `World_parsed.txt`. Commands: `visible [slot]`, `transmog` (capped at 500 lines + count), `trace <pattern>`, `summary`, `opcodes`, `search <pattern>`. Uses `set -u` (no pipefail — breaks grep no-match) |
 | `WowPacketParser.dll.config.template` | WPP config template for 12.x builds |
