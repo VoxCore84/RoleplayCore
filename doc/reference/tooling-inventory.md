@@ -62,10 +62,16 @@ All three share the same architecture: `mysql_query()`, `load_wago_csv()`, `AUDI
 | `table_hashes.py` | Auto-generated DB2 TableHash mapping (1,121 entries) |
 | `extract_table_hashes.py` | Extract TableHash values from .wdc5 file headers |
 
-### Web Scrapers
+### Web Scrapers — `C:/Users/atayl/source/wago/` (repo: `VoxCore84/wago-tooling`)
 | Script | Purpose |
 |--------|---------|
-| `wowhead_scraper.py` | Scrape Wowhead API for NPCs, items, spells, quests, vendors, talents. Enhanced quest parser (30 fields). Bracket-depth JS parsing for nested objects + single-quoted strings |
+| `wowhead_scraper.py` | Multi-entity Wowhead scraper (npc/item/spell/quest/vendor/talent/effect). curl_cffi Chrome131 TLS, 404 miss cache, WAF auto-stop, --pages-only/--tooltip-only two-phase, --randomize, --batch-size/--batch-pause. Python: `C:\Python314\python.exe` |
+| `import_quest_rewards.py` | Convert scraped quest JSON → quest_offer_reward + quest_request_items SQL. --ids-file filter, --dry-run |
+
+**Scraper quick-ref** — two-phase for speed (~2hr for 27K quests):
+1. `--tooltip-only --randomize --threads 4 --delay 0.1` (nether API, 10 req/s)
+2. `--pages-only --randomize --threads 3 --delay 0.2 --batch-size 5000 --batch-pause 120` (pages, 5 req/s)
+3. `import_quest_rewards.py --ids-file <list>` to generate SQL
 
 ### Raidbots Data Pipeline — `C:/Users/atayl/source/wago/raidbots/`
 | Script | Purpose |
@@ -282,6 +288,15 @@ Untracked directory, now organized into subdirectories.
 | `gist_changelog.md` | Published [gist](https://gist.github.com/VoxCore84/4c63baf8154753d2a89475d9a4f5b2cc) — Session changelog |
 | `gist_open_issues.md` | Published [gist](https://gist.github.com/VoxCore84/2b69757faa2a53172c7acb5bfa3ad3c4) — Open issues & roadmap |
 | `AGENTS.md` | Agent/Codex instructions |
+
+### Published Gists
+| Gist | ID | Content |
+|------|----|---------|
+| DB Report | `528e801b53f6c62ce2e5c2ffe7e63e29` | Comprehensive database engineering report (Parts 1-16) |
+| Changelog | `4c63baf8154753d2a89475d9a4f5b2cc` | Session-by-session changelog |
+| Open Issues | `2b69757faa2a53172c7acb5bfa3ad3c4` | Prioritized issue tracker + roadmap |
+| Transmog Wiki | `88ba6320d249b5758753ecb954b0ded2` | 3,487-line client Lua reference + cheatsheet |
+| Packet Analysis | `a86d3dc8c88839c5f8aafef5908a9d5f` | opcode_analyzer + transmog packet extractor |
 | `reference/` | 22 project reference files (memory mirror) — tracked in git |
 
 ### TransmogBridge/ (tracked — also has own repo)
@@ -361,6 +376,12 @@ GitHub: `VoxCore84/tc-packet-tools` (private). Server launcher wrapper + WPP aut
 
 ### code-intel — `C:/Users/atayl/source/code-intel/`
 GitHub: `VoxCore84/code-intel` (private). Hybrid ctags+clangd MCP server for C++ code intelligence. 3 files: `code_intel_server.py`, `ctags_index.py`, `clangd_client.py`. See section 6 MCP Servers for tool details.
+
+### Public Extraction Repos (read-only mirrors of wago-tooling subsets)
+
+**`VoxCore84/tc-npc-audit`** (public) — 20 Python NPC audit/validation scripts + SQL fixes. Extracted from `sql/exports/scripts/`. Contains the individual scripts like `analyze_mismatches.py`, `validate_factions.py`, etc. (328K total Python). **Not the same as `npc_audit.py`** (the 108K monolithic audit tool in wago-tooling).
+
+**`VoxCore84/wago-pipeline`** (public) — 5 Raidbots import scripts + wowhead_scraper.py + README. Extracted from `raidbots/` subdir of wago-tooling. **May be stale** — local wowhead_scraper.py is ~6KB larger than the public version.
 
 ### trinitycore-claude-skills — `C:/Users/atayl/source/trinitycore-claude-skills/`
 GitHub: `VoxCore84/trinitycore-claude-skills` (private). 17 Claude Code slash command skills for TrinityCore development. Installed to `.claude/commands/` in the project.

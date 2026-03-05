@@ -94,6 +94,7 @@
 - ACTIVE. 8 tools, 416K symbols. Ctags (instant) + clangd (precision). Config must be in BOTH `~/.claude.json` and `.claude.json`
 
 ## Recent Work — [full log](recent-work.md)
+- (Mar 5) **TDB delta + scraper hardening**: TDB 1200.26021 → +1,967 quest_offer_reward rows. Scraper: curl_cffi Chrome131, 404 cache, WAF auto-stop. 27,328 IDs ready to scrape
 - (Mar 5) **hotfix_data R3 cleanup**: 608K orphaned entries removed → 226,984 remaining. Hotfixes DB 535 MB. Gist fully corrected
 - (Mar 5) **WPP script hardening**: 20-bug QA. start-worldserver.sh: EXIT trap, cd guards, pipefail, WPP exit check, transmog extraction integration. extract_transmog_packets.py: streaming, dynamic SQL glob, --pkt-dir CLI. Commits `8584c3c2e0` + tc-packet-tools `821e74f`
 - (Mar 5) **Tools consolidation**: Moved Excluded → `C:\Tools\`, fixed WPP path (13 files/4 repos), added 7 missing tools to inventory. Pushed wago/tc-packet-tools/skills repos
