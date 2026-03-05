@@ -13,17 +13,20 @@ Standards for producing polished, professional GitHub Gist documents.
 ## Subtitle
 **Metadata line** (audience, date, project)
 
----
-
-<details> Table of Contents (collapsible) </details>
-
 > **TL;DR** — one-paragraph summary
 
-## Executive Summary (numbers table)
+---
 
-## Parts 1–N (main content)
+## Navigation (always-visible TOC table)
 
-## Appendices (reference data)
+---
+
+## Executive Summary (always open — the hook)
+
+<details> Part 1 — collapsible with summary line </details>
+<details> Part 2 — collapsible with summary line </details>
+...
+<details> Appendix A </details>
 
 ---
 *Footer: date, repo, tool repos*
@@ -48,22 +51,50 @@ One blockquote paragraph immediately before the Executive Summary. Hit every hea
 
 ---
 
-## Table of Contents
+## Navigation / Table of Contents
 
-Use a **collapsible `<details>` tag** with a summary table. This avoids consuming 70+ lines of vertical space while remaining fully navigable.
+Use an **always-visible** `## Navigation` heading with a table. Don't hide the TOC behind a `<details>` tag — it's too easy to miss. The TOC is the reader's map; it should be immediately visible.
+
+```markdown
+## Navigation
+
+| # | Section | Headline |
+|---|---------|----------|
+| — | [Executive Summary](#executive-summary) | Full numbers table |
+| 1 | [Section Name](#anchor) | Key metric |
+| 2 | [...](#...) | ... |
+| A | [Appendix Name](#anchor) | ... |
+```
+
+The three-column format (number, linked title, headline metric) gives readers both navigation and a reason to click.
+
+## Collapsible Content Sections
+
+Wrap every major section (Part 1, Part 2, etc.) in `<details>` so readers can expand only what they need. Use `<strong>` for the title and `<em>` for a one-line summary:
 
 ```html
 <details>
-<summary><strong>Table of Contents</strong> (click to expand)</summary>
+<summary><strong>Part 1: Section Title</strong> &mdash; <em>Key metric or description</em></summary>
 
-| Part | Title | Key Metric |
-|------|-------|-----------|
-| 1 | [Section Name](#anchor) | Headline number |
-| 2 | [...](#...) | ... |
-| A | [Appendix Name](#anchor) | ... |
+Section content here (regular Markdown).
+
+### 1.1 Subsection
+...
 
 </details>
 ```
+
+**Rules:**
+- `<summary>` must be a single line — no `<h2>` (GitHub strips heading tags inside summary)
+- Leave a blank line after `</summary>` for Markdown to render inside the block
+- Leave a blank line before `</details>`
+- Nest `<details>` for sub-catalogs (e.g., Part 16 subsections inside Part 16's details)
+
+**What stays open (no `<details>`):**
+- Title + metadata
+- TL;DR blockquote
+- Navigation table
+- Executive Summary (the hook — readers need to see this immediately)
 
 ### Anchor Rules (GitHub)
 
@@ -128,25 +159,22 @@ Use straight quotes (`'` and `"`) in Markdown. Curly quotes (`'`, `"`, `"`) caus
 - Right-align numbers if the renderer supports it (GitHub does not, so don't bother)
 - Empty first-column cells for continuation rows: `| | Hotfix rows | 103K |`
 
-### Collapsible Sections
+### Collapsible Sub-Catalogs
 
-Use `<details>` for:
-- Tables of contents
-- Long catalog/inventory tables (5+ rows of repetitive structure)
-- Supplementary detail that most readers will skip
+For inventory/catalog subsections nested inside a collapsible Part, use a second level of `<details>`:
 
 ```html
 <details>
-<summary><strong>Section Title</strong> (N items)</summary>
+<summary><strong>16.1 Python Data Pipeline Tools</strong> (14 tools)</summary>
 
-| Col 1 | Col 2 |
-|-------|-------|
-| ...   | ...   |
+| Tool | Purpose |
+|------|---------|
+| ...  | ...     |
 
 </details>
 ```
 
-**Important**: Leave a blank line after `<summary>` and before `</details>` for proper Markdown rendering inside the tag.
+This keeps detailed inventories accessible without overwhelming the reader when they expand the parent section.
 
 ### Cross-References
 
@@ -207,13 +235,16 @@ Every "After" bullet should have a measurable outcome.
 ## Pre-Publish Checklist
 
 1. **Encoding**: `grep 'â€' file.md` — must return zero matches
-2. **Anchors**: Click every TOC link after publishing (GitHub's preview can differ from final render)
-3. **Collapsibles**: Verify `<details>` blocks expand/collapse correctly
-4. **Cross-refs**: Search for "see Part", "see Section", "Part N)" — all should be linked
-5. **Typography**: No `--` where `—` belongs, no `->` in body text (use `→`)
-6. **Numbers**: Consistent formatting (commas, K/M abbreviations, units)
-7. **Tables**: All rows have correct pipe count, header separators present
-8. **Footer**: Date, repo link, tool repos
+2. **Tag balance**: `<details>` count == `</details>` count
+3. **Collapsibles**: Verify every `<details>` block expands/collapses correctly after publishing
+4. **Anchors**: Click every Navigation table link (GitHub's preview can differ from final render)
+5. **Summaries**: Each `<summary>` has the correct Part title and metric — watch for substring bugs (Part 1 matching Part 10)
+6. **Cross-refs**: Search for "see Part", "see Section", "Part N)" — all should be `[linked](#anchor)`
+7. **Typography**: No `--` where `—` belongs, no `->` in body text (use `→`), no `→` in headings
+8. **Numbers**: Consistent formatting (commas, K/M abbreviations, units)
+9. **Tables**: All rows have correct pipe count, header separators present
+10. **Always visible**: TL;DR, Navigation, and Executive Summary must NOT be inside `<details>`
+11. **Footer**: Date, repo link, tool repos — must be outside the last `</details>`
 
 ---
 
