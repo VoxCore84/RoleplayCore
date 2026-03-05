@@ -1,5 +1,5 @@
 -- 2026_03_05_14_world.sql
--- Wowhead gap scrape: quest starters/enders, vendor items, gossip text
+-- Wowhead gap scrape: quest starters/enders, vendor items
 
 -- === Quest starter/ender NPC + GO import ===
 
@@ -10570,3 +10570,7 @@ INSERT IGNORE INTO `npc_vendor` (`entry`,`slot`,`item`,`maxcount`,`incrtime`,`Ex
 INSERT IGNORE INTO `npc_vendor` (`entry`,`slot`,`item`,`maxcount`,`incrtime`,`ExtendedCost`,`type`,`VerifiedBuild`) VALUES (98944,4,128842,0,0,0,1,0);
 INSERT IGNORE INTO `npc_vendor` (`entry`,`slot`,`item`,`maxcount`,`incrtime`,`ExtendedCost`,`type`,`VerifiedBuild`) VALUES (98944,5,128853,0,0,0,1,0);
 INSERT IGNORE INTO `npc_vendor` (`entry`,`slot`,`item`,`maxcount`,`incrtime`,`ExtendedCost`,`type`,`VerifiedBuild`) VALUES (98944,6,138292,0,0,0,1,0);
+
+-- === Cleanup: remove GO quest entries referencing nonexistent gameobject_template ===
+DELETE FROM `gameobject_queststarter` WHERE NOT EXISTS (SELECT 1 FROM `gameobject_template` gt WHERE gt.entry = `gameobject_queststarter`.id);
+DELETE FROM `gameobject_questender` WHERE NOT EXISTS (SELECT 1 FROM `gameobject_template` gt WHERE gt.entry = `gameobject_questender`.id);
