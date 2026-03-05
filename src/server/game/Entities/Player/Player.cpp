@@ -29706,6 +29706,10 @@ void Player::ActivateTalentGroup(ChrSpecializationEntry const* spec)
         if (Item* equippedItem = GetItemByPos(INVENTORY_SLOT_BAG_0, i))
             SetVisibleItemSlot(i, equippedItem);
 
+    // Resync ViewedOutfit to reflect the new spec's per-spec appearance modifiers.
+    // Without this, the paperdoll shows stale transmog from the previous spec.
+    _SyncTransmogOutfitsToActivePlayerData("ActivateTalentGroup");
+
     for (uint32 glyphId : GetGlyphs(spec->OrderIndex))
         CastSpell(this, sGlyphPropertiesStore.AssertEntry(glyphId)->SpellID, true);
 

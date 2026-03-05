@@ -82,17 +82,29 @@ bool ValidateTransmogOutfitSet(WorldSession* session, EquipmentSetInfo::Equipmen
 
         if (set.Appearances[i])
         {
+            bool slotValid = true;
+
             if (!sItemModifiedAppearanceStore.LookupEntry(set.Appearances[i]))
             {
-                TC_LOG_ERROR("network.opcode.transmog", "Transmog outfit rejected [{}]: invalid appearance {} in slot {}", session->GetPlayerInfo(), set.Appearances[i], i);
-                return false;
+                TC_LOG_ERROR("network.opcode.transmog", "Transmog outfit slot {} invalid appearance {} [{}] — zeroing slot",
+                    i, set.Appearances[i], session->GetPlayerInfo());
+                slotValid = false;
+            }
+            else
+            {
+                auto [hasAppearance, isTemporary] = session->GetCollectionMgr()->HasItemAppearance(set.Appearances[i]);
+                if (!hasAppearance)
+                {
+                    TC_LOG_ERROR("network.opcode.transmog", "Transmog outfit slot {} uncollected appearance {} [{}] — zeroing slot",
+                        i, set.Appearances[i], session->GetPlayerInfo());
+                    slotValid = false;
+                }
             }
 
-            auto [hasAppearance, isTemporary] = session->GetCollectionMgr()->HasItemAppearance(set.Appearances[i]);
-            if (!hasAppearance)
+            if (!slotValid)
             {
-                TC_LOG_ERROR("network.opcode.transmog", "Transmog outfit rejected [{}]: uncollected appearance {} in slot {}", session->GetPlayerInfo(), set.Appearances[i], i);
-                return false;
+                set.Appearances[i] = 0;
+                set.IgnoreMask |= (1u << i);
             }
         }
         else
@@ -101,21 +113,28 @@ bool ValidateTransmogOutfitSet(WorldSession* session, EquipmentSetInfo::Equipmen
 
     if (set.SecondaryShoulderApparanceID)
     {
+        bool sh2Valid = true;
+
         if (!sItemModifiedAppearanceStore.LookupEntry(set.SecondaryShoulderApparanceID))
         {
-            TC_LOG_ERROR("network.opcode.transmog", "Transmog outfit rejected [{}]: invalid secondary shoulder appearance {}",
-                session->GetPlayerInfo(), set.SecondaryShoulderApparanceID);
-            return false;
+            TC_LOG_ERROR("network.opcode.transmog", "Transmog outfit secondary shoulder invalid appearance {} [{}] — zeroing",
+                set.SecondaryShoulderApparanceID, session->GetPlayerInfo());
+            sh2Valid = false;
         }
-
-        if (!session->GetCollectionMgr()->HasItemAppearance(set.SecondaryShoulderApparanceID).first)
+        else if (!session->GetCollectionMgr()->HasItemAppearance(set.SecondaryShoulderApparanceID).first)
         {
-            TC_LOG_ERROR("network.opcode.transmog", "Transmog outfit rejected [{}]: uncollected secondary shoulder appearance {}",
-                session->GetPlayerInfo(), set.SecondaryShoulderApparanceID);
-            return false;
+            TC_LOG_ERROR("network.opcode.transmog", "Transmog outfit secondary shoulder uncollected appearance {} [{}] — zeroing",
+                set.SecondaryShoulderApparanceID, session->GetPlayerInfo());
+            sh2Valid = false;
         }
 
-        set.SecondaryShoulderSlot = 2;
+        if (sh2Valid)
+            set.SecondaryShoulderSlot = 2;
+        else
+        {
+            set.SecondaryShoulderApparanceID = 0;
+            set.SecondaryShoulderSlot = 0;
+        }
     }
     else
         set.SecondaryShoulderSlot = 0;
@@ -998,8 +1017,12 @@ void WorldSession::FinalizeTransmogBridgePendingOutfit()
                 if (bridgeOverriddenMask & (1u << slot))
                     continue; // bridge has the correct value
 
-                // Restore server's saved value for this slot
+                // Restore server's saved value for this slot (Appearances + IgnoreMask)
                 pending.Outfit.Appearances[slot] = savedOutfit->Appearances[slot];
+                if (savedOutfit->IgnoreMask & (1u << slot))
+                    pending.Outfit.IgnoreMask |= (1u << slot);
+                else
+                    pending.Outfit.IgnoreMask &= ~(1u << slot);
                 if (savedOutfit->Appearances[slot])
                     pending.HasAnyAppearance = true;
             }
@@ -1014,12 +1037,21 @@ void WorldSession::FinalizeTransmogBridgePendingOutfit()
                 pending.Outfit.SecondaryShoulderSlot = savedOutfit->SecondaryShoulderSlot;
             }
 
+            // Restore enchants (illusions) from savedOutfit for non-bridge weapon slots.
+            // Bridge illusions are applied in the merge loop above via HasIllusion flag.
+            for (uint8 e = 0; e < 2; ++e)
+            {
+                uint8 weaponSlot = (e == 0) ? EQUIPMENT_SLOT_MAINHAND : EQUIPMENT_SLOT_OFFHAND;
+                if (!(bridgeOverriddenMask & (1u << weaponSlot)))
+                    pending.Outfit.Enchants[e] = savedOutfit->Enchants[e];
+            }
+
             uint32 bridgeSlotCount = 0;
             for (uint32 tmp = bridgeOverriddenMask; tmp; tmp &= tmp - 1)
                 ++bridgeSlotCount;
             TC_LOG_DEBUG("network.opcode.transmog",
-                "TransmogBridge [{}]: restored server baseline (bridgeMask=0x{:X}, {} bridge slots)",
-                GetPlayerInfo(), bridgeOverriddenMask, bridgeSlotCount);
+                "TransmogBridge [{}]: restored server baseline (bridgeMask=0x{:X}, {} bridge slots, IgnoreMask=0x{:X})",
+                GetPlayerInfo(), bridgeOverriddenMask, bridgeSlotCount, pending.Outfit.IgnoreMask);
         }
         else
         {

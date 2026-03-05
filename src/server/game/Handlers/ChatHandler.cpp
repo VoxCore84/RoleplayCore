@@ -614,6 +614,11 @@ void WorldSession::HandleChatAddonMessage(ChatMsg type, std::string prefix, std:
                 _transmogBridgePartialPayload.clear();
             }
         }
+        else
+        {
+            // Non-multi-part message — clear any stale partial data from interrupted multi-part
+            _transmogBridgePartialPayload.clear();
+        }
 
         _transmogBridgeOverrides.clear();
 
