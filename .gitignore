@@ -36,3 +36,4 @@ __pycache__/
 .cache/
 tools/build/
 Claude Code Prompts.txt
+build_cli.bat
