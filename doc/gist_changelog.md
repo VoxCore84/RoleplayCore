@@ -26,6 +26,12 @@ Chronological log of all database, code, and infrastructure changes. Each entry 
 
 ## Mar 5, 2026
 
+### Session 60 — Transmog Phase 2 Fixes (Mar 5 2026)
+- **H1 fix** (clear spell desync): `spell_clear_transmog.cpp` now syncs cleared state to active outfit — zeros Appearances[], Enchants[], SecondaryShoulderApparanceID, calls SetEquipmentSet() for DB persist + ViewedOutfit rebuild
+- **M4 fix** (illusion bootstrap): `fillOutfitData` bootstraps weapon enchant illusions from equipped items when outfit doesn't define them — illusions no longer vanish on relog
+- **Diagnostic probe**: TransmogBridge.lua logs all 4 API sources per slot at CommitAndApplyAllPending timing — data needed for v2 addon rewrite
+- Commits: `5d38823153` (Phase 2 fixes), `69a725cc59` (probe + docs)
+
 ### Session 59 — Transmog QA Audit + Phase 1 Fixes (Mar 5 2026)
 - **Full QA audit**: 3 parallel agents audited TransmogBridge addon, server handlers, packet parsing, UpdateField sync. Found 2 critical + 4 medium + 5 low issues
 - **Bug E fix** (single-item transmog → full rebuild): `HandleTransmogrifyItems` now calls `SetEquipmentSet()` after syncing changes — persists to DB, refreshes ViewedOutfit

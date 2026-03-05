@@ -14,16 +14,16 @@ Prioritized list of known issues, planned work, and blocked items. Updated as it
 - **Phases 1â€“5**: Arcane visual refresh, animated pipeline, tool explorer, before/after slider, interactive timeline
 
 ### Transmog: 5-Bug Investigation (session 36)
-**Status**: Bugs B + E FIXED in session 59 (commit `289677be44`). Remaining bugs need testing.
+**Status**: Bugs B + E FIXED in session 59. H1 + M4 FIXED in session 60. Remaining bugs need testing.
 - **Bug A**: Paperdoll naked on 2nd UI open
 - ~~**Bug B**: Old head/shoulder persists when outfit doesn't define them~~ — **FIXED** (session 59, commit `289677be44`): Added `_activeTransmogOutfitID` tracking; ViewedOutfit now renders the actually-applied outfit instead of always the lowest SetID
 - **Bug C**: Monster Mantle ghost appearance (item 182306)
 - **Bug D**: Draenei lower leg geometry loss
 - ~~**Bug E** (root cause confirmed): Single-item transmog â†’ SetEquipmentSet â†’ full ViewedOutfit rebuild~~ — **FIXED** (session 59, commit `289677be44`): `HandleTransmogrifyItems` now calls `SetEquipmentSet()` after syncing changes — persists to DB, refreshes ViewedOutfit
-- **Remaining medium bugs** (session 59 QA audit):
+- **Remaining medium bugs** (session 60):
   - Stale detection false positive — TransmogBridge snapshot comparison triggers unnecessary rebuilds
-  - Outfit-loaded illusions dropped — illusion data lost when loading a full outfit
-  - IgnoreMask repair one-directional — `fillOutfitData` only repairs 1→0, not 0→1
+  - ~~Outfit-loaded illusions dropped~~ — **FIXED** (session 60, commit `5d38823153`): M4 fix — `fillOutfitData` bootstraps weapon enchant illusions from equipped items when outfit doesn't define them
+  - ~~IgnoreMask repair one-directional~~ — **NOT A BUG** (session 60): analyzed, current behavior correct — explicit clears render base item via DT=0
 
 ### Transmog: Illusions + Clear Slot
 - MH enchant illusions (4-field payload) â€” deployed, never verified in-game
@@ -153,5 +153,5 @@ Prioritized list of known issues, planned work, and blocked items. Updated as it
 
 ---
 
-*Updated March 5, 2026 (session 59)*
+*Updated March 5, 2026 (session 60)*
 
