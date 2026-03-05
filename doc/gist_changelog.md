@@ -2,6 +2,13 @@ RoleplayCore â€” Session Changelog (WoW 12.x private server)
 
 
 
+### Session 63 — Transmog Audit Full Implementation (Mar 5 2026)
+- **All 4 phases implemented** from 26-item 5-agent audit action plan
+- **Phase 1+2** (commit `20c9a0ea23`): 4 server bugs fixed (per-spec appearance bootstrap, HandleTransmogOutfitNew active ID, Finalize flush, clear spell active ID reset) + 4 Bridge cleanup items (multi-part split bail-out, dead Layer 2 code, diagnostic probe removal, deterministic slot ordering)
+- **Phase 3** (commit `1dfc2eb207`): TransmogSpy v2 rewrite — 944→1,317 lines, 17 commands, 12 new events, displayType capture, IMA-to-name resolution, 6 new hooks, illusion tracking, `/tspy status/bridge/resolve/items`
+- **Phase 4** (commit `c8df50eddd`): Hardening — IgnoreMask baseline restore, stale partial payload cleanup, spec-switch ViewedOutfit resync, per-slot invalid/uncollected appearance zeroing
+- **Final fix** (commit `ab43e4823d`): `EffectEquipTransmogOutfit` was the only outfit-apply path missing `SetEquipmentSet()` → ViewedOutfit sync. Situations parser consistency (hardcoded 256→MaxTransmogOutfitSlotCount, proper error paths)
+
 ### Session 62 — Transmog 5-Agent Comprehensive Audit (Mar 5 2026)
 - 5 parallel agents audited: TransmogBridge, TransmogSpy, server handlers, Player.cpp, retail sniffer
 - Found: 9 HIGH + 19 MEDIUM + 23 LOW findings across all subsystems
@@ -268,7 +275,7 @@ Chronological log of all database, code, and infrastructure changes. Each entry 
 
 | Repo | Latest Commit | Purpose |
 |------|--------------|---------|
-| VoxCore84/RoleplayCore | `fae00afb86` | Main server |
+| VoxCore84/RoleplayCore | `ab43e4823d` | Main server |
 | VoxCore84/wago-tooling | `b1f0bd0` | Wago/LW/hotfix tools |
 | VoxCore84/tc-packet-tools | `821e74f` | WPP + packet analysis |
 | VoxCore84/code-intel | â€” | C++ MCP server |

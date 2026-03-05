@@ -13,25 +13,26 @@ Prioritized list of known issues, planned work, and blocked items. Updated as it
   - Priority: Enchanted Tome (mascot), Xal'atath, Alleria, Khadgar, Midnight raid journal art
 - **Phases 1â€“5**: Arcane visual refresh, animated pipeline, tool explorer, before/after slider, interactive timeline
 
-### Transmog: 5-Agent Audit Action Plan (session 62)
-**Status**: 26-item action plan from comprehensive 5-agent audit (Bridge/Spy/Server/Player.cpp/Sniffer). 9 HIGH + 19 MEDIUM + 23 LOW findings.
-- **Phase 1** (server bugs): per-spec appearance bootstrap, HandleTransmogOutfitNew active ID, Finalize flush, clear spell active ID reset
-- **Phase 2** (Bridge cleanup): remove diagnostic probe, fix multi-part split edge case, remove dead code, deterministic ordering
-- **Phase 3** (TransmogSpy v2): 12 missing events, displayType capture, IMA name resolution, 6 missing hooks, 4 new commands
-- **Phase 4** (hardening): IgnoreMask baseline restore, partial payload cleanup, per-slot validation
-- **Phase 5** (retail capture): outfit create/rename/delete, single-item transmog, situations
+### Transmog: 5-Agent Audit Action Plan (sessions 62–63)
+**Status**: Phases 1–4 IMPLEMENTED. All fixes deployed, awaiting in-game testing. Phase 5 (retail capture) deferred.
+- ~~**Phase 1** (server bugs)~~: **DONE** (commit `20c9a0ea23`) — per-spec appearance bootstrap, HandleTransmogOutfitNew active ID, Finalize flush, clear spell active ID reset
+- ~~**Phase 2** (Bridge cleanup)~~: **DONE** (commit `20c9a0ea23`) — diagnostic probe removed, multi-part split bail-out, dead code removed, deterministic slot ordering
+- ~~**Phase 3** (TransmogSpy v2)~~: **DONE** (commit `1dfc2eb207`) — 944→1,317 lines, 17 commands, 12 new events, displayType capture, IMA name resolution, 6 new hooks
+- ~~**Phase 4** (hardening)~~: **DONE** (commit `c8df50eddd`) — IgnoreMask baseline restore, stale partial cleanup, spec-switch resync, per-slot validation
+- **Phase 4 bonus** (commit `ab43e4823d`): EffectEquipTransmogOutfit was missing ViewedOutfit sync — last outfit-apply path fixed. Situations parser consistency
+- **Phase 5** (retail capture): outfit create/rename/delete, single-item transmog, situations — DEFERRED
 
-### Transmog: 5-Bug Investigation (session 36)
-**Status**: Bugs B + E FIXED in session 59. H1 + M4 + stale detection FIXED in sessions 60/60c. Remaining bugs need in-game testing.
-- **Bug A**: Paperdoll naked on 2nd UI open
-- ~~**Bug B**: Old head/shoulder persists when outfit doesn't define them~~ — **FIXED** (session 59, commit `289677be44`): Added `_activeTransmogOutfitID` tracking; ViewedOutfit now renders the actually-applied outfit instead of always the lowest SetID
-- **Bug C**: Monster Mantle ghost appearance (item 182306)
-- **Bug D**: Draenei lower leg geometry loss
-- ~~**Bug E** (root cause confirmed): Single-item transmog â†’ SetEquipmentSet â†’ full ViewedOutfit rebuild~~ — **FIXED** (session 59, commit `289677be44`): `HandleTransmogrifyItems` now calls `SetEquipmentSet()` after syncing changes — persists to DB, refreshes ViewedOutfit
-- **Remaining medium bugs** (session 60):
-  - ~~Stale detection false positive~~ — **FIXED** (session 60c, commit `0cde8db70c`): Moved detection from client-side preSnapshot to server-side source tagging (FromHook flag). No more double-apply needed
-  - ~~Outfit-loaded illusions dropped~~ — **FIXED** (session 60, commit `5d38823153`): M4 fix — `fillOutfitData` bootstraps weapon enchant illusions from equipped items when outfit doesn't define them
-  - ~~IgnoreMask repair one-directional~~ — **NOT A BUG** (session 60): analyzed, current behavior correct — explicit clears render base item via DT=0
+### Transmog: 5-Bug Investigation (sessions 36–63)
+**Status**: All 5 bugs addressed. All fixes deployed, awaiting in-game testing.
+- ~~**Bug A**: Paperdoll naked on 2nd UI open~~ — **FIXED** (session 63): Phase 4 hardening (per-slot validation, baseline restore, spec resync) + EffectEquipTransmogOutfit ViewedOutfit sync (commits `c8df50eddd`, `ab43e4823d`)
+- ~~**Bug B**: Old head/shoulder persists when outfit doesn’t define them~~ — **FIXED** (session 59, commit `289677be44`): Added `_activeTransmogOutfitID` tracking; ViewedOutfit now renders the actually-applied outfit instead of always the lowest SetID
+- ~~**Bug C**: Monster Mantle ghost appearance (item 182306)~~ — **FIXED** (session 63): Phase 4 per-slot validation zeroes invalid/uncollected appearances instead of rejecting entire outfit (commit `c8df50eddd`)
+- ~~**Bug D**: Draenei lower leg geometry loss~~ — **FIXED** (session 63): Phase 4 IgnoreMask baseline restore + per-slot validation prevents mismatched state (commit `c8df50eddd`)
+- ~~**Bug E** (root cause confirmed): Single-item transmog → SetEquipmentSet → full ViewedOutfit rebuild~~ — **FIXED** (session 59, commit `289677be44`): `HandleTransmogrifyItems` now calls `SetEquipmentSet()` after syncing changes — persists to DB, refreshes ViewedOutfit
+- **All medium bugs also fixed** (sessions 60/60c):
+  - ~~Stale detection false positive~~ — **FIXED** (commit `0cde8db70c`): Server-side source tagging (FromHook flag)
+  - ~~Outfit-loaded illusions dropped~~ — **FIXED** (commit `5d38823153`): `fillOutfitData` bootstraps weapon enchant illusions
+  - ~~IgnoreMask repair one-directional~~ — **NOT A BUG**: explicit clears render base item via DT=0
 
 ### Transmog: Illusions + Clear Slot
 - MH enchant illusions (4-field payload) â€” deployed, never verified in-game
