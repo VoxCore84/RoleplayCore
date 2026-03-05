@@ -639,6 +639,14 @@ void WorldSession::HandleChatAddonMessage(ChatMsg type, std::string prefix, std:
                 ov.ClientSlot = *clientSlot;
                 ov.TransmogID = *transmogID;
 
+                // 3rd field: option — 1 = from SetPendingTransmog hook (always trust), 0 = snapshot/fallback
+                if (fields.size() >= 3)
+                {
+                    Optional<uint8> option = Trinity::StringTo<uint8>(fields[2]);
+                    if (option && *option == 1)
+                        ov.FromHook = true;
+                }
+
                 // Optional 4th field: illusion (SpellItemEnchantmentID)
                 if (fields.size() >= 4)
                 {

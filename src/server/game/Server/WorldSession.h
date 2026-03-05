@@ -1842,6 +1842,7 @@ class TC_GAME_API WorldSession
             int32  TransmogID;   // IMAID, 0 = clear appearance
             int32  IllusionID = 0;   // SpellItemEnchantmentID, 0 = clear illusion
             bool   HasIllusion = false; // true if addon explicitly provided illusion data
+            bool   FromHook = false;   // true = SetPendingTransmog hook (always trust), false = snapshot/fallback
         };
         struct TransmogBridgePendingOutfit
         {

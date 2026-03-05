@@ -886,8 +886,32 @@ void WorldSession::FinalizeTransmogBridgePendingOutfit()
         TC_LOG_DEBUG("network.opcode.transmog", "TransmogBridge [{}]: merging {} overrides into pending outfit",
             GetPlayerInfo(), _transmogBridgeOverrides.size());
 
+        // Look up saved outfit for server-side stale rejection of snapshot data.
+        // Snapshot overrides (FromHook=false) for slots the saved outfit ignores are stale
+        // bootstrap echoes from GetViewedOutfitSlotInfo — reject them so baseline restore handles them.
+        EquipmentSetInfo::EquipmentSetData const* savedForStale = nullptr;
+        if (Player* stalePlayer = GetPlayer())
+            savedForStale = stalePlayer->GetTransmogOutfitBySetID(pending.Outfit.SetID);
+
         for (auto const& ov : _transmogBridgeOverrides)
         {
+            // Server-side stale rejection: skip snapshot data for slots the saved outfit ignores.
+            // Layer 1 (GetViewedOutfitSlotInfo) bootstraps current appearance for ignored slots,
+            // producing false positives. Only hook data (Layer 2, FromHook=true) is trusted.
+            if (!ov.FromHook && savedForStale && ov.TransmogID > 0)
+            {
+                uint8 equipSlot = (ov.ClientSlot == 2) ? EQUIPMENT_SLOT_SHOULDERS : MapClientSlotToEquipSlot(ov.ClientSlot);
+                if (equipSlot < EQUIPMENT_SLOT_END
+                    && savedForStale->Appearances[equipSlot] == 0
+                    && (savedForStale->IgnoreMask & (1u << equipSlot)))
+                {
+                    TC_LOG_DEBUG("network.opcode.transmog",
+                        "TransmogBridge [{}]: stale snapshot rejected clientSlot={} equipSlot={} IMAID={} (saved outfit ignores this slot)",
+                        GetPlayerInfo(), ov.ClientSlot, equipSlot, ov.TransmogID);
+                    continue;
+                }
+            }
+
             // Secondary shoulder (clientSlot 2) — routes to a separate field, not Appearances[]
             if (ov.ClientSlot == 2)
             {
