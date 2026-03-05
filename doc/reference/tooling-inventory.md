@@ -344,7 +344,9 @@ Build output where the compiled server actually runs. Configs, logs, extracted d
 
 | Tool | Path | Purpose |
 |------|------|---------|
-| **WowPacketParser** | `C:/Tools/WowPacketParser/WowPacketParser.exe` | Parse `.pkt` packet captures into SQL/text. Locally patched for build 66220 (OUTDATED — awaiting TC 66263 release). Generates `*_hotfixes.sql`, `*_world.sql`, `*_wpp.sql` output |
+| **WowPacketParser** | `C:/Tools/WowPacketParser/WowPacketParser.exe` | Parse `.pkt` packet captures into SQL/text. **Nightly build** with 66263 support. Generates `*_hotfixes.sql`, `*_world.sql`, `*_wpp.sql` output |
+| **WowPacketParser-src** | `C:/Tools/WowPacketParser-src/` | WPP C# source repo (for custom opcode patches / rebuilds). Build: `dotnet build -c Release` |
+| **WowPacketParser (66220 backup)** | `C:/Tools/WowPacketParser_66220_backup/` | Previous WPP build (locally patched for 66220) |
 | **wow.tools.local** | `C:/Tools/WoW.tools/` | v0.9.2, local web UI for browsing DB2/DBC files. Serves on `http://localhost:5000`. Config: `config.json` (wowFolder=`C:\WoW`, product=wow, region=us). Includes `WTL.db` (765MB file history) + `hotfixes.db` (193MB). Reads CASC from local WoW install (build 66263). Use for: DB2 browsing, build diffs, hotfix inspection, file extraction, map viewer. **Launcher**: `start_wtl.bat` (polls until ready, opens browser). **Python client**: `wtl_client.py` in wago repo |
 | **lua-language-server** | `C:/Tools/lua-language-server/` | Lua LSP server for addon development diagnostics |
 | **DBC2CSV** | `C:/Tools/DBC2CSV/DBC2CSV.exe` | Convert DBC/DB2 files to CSV. Canonical .dbd definitions in `definitions/` subdir |

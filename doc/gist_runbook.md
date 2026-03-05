@@ -469,7 +469,8 @@ C:\Python314\python.exe decode_dbcache.py
 | Tool | Path | Purpose |
 |------|------|---------|
 | **wow.tools.local** | `C:/Tools/WoW.tools/start_wtl.bat` | Web UI: DB2 browser, hotfix viewer, build diffs (`http://localhost:5000`) |
-| **WowPacketParser** | `C:/Tools/WowPacketParser/WowPacketParser.exe` | Parse .pkt packet captures |
+| **WowPacketParser** | `C:/Tools/WowPacketParser/WowPacketParser.exe` | Parse .pkt captures (nightly, 66263 support) |
+| **WowPacketParser-src** | `C:/Tools/WowPacketParser-src/WowPacketParser.sln` | WPP C# source (custom patches) |
 | **TACTSharp** | `C:/Tools/TACTSharp/` | CASC bulk extractor (C#). Used by `tact_extract.py`. Build: `dotnet build TACTTool -c Release` |
 | **DBC2CSV** | `C:/Tools/DBC2CSV/DBC2CSV.exe` | Convert DB2 files to CSV. 1,315 .dbd definitions. ~0.5% non-deterministic drops in large batches |
 | **DB2Query** | `C:/Tools/DB2Query/` | Interactive DB2 CLI: load, search, filter, export. Run: `dotnet run -c Release` |

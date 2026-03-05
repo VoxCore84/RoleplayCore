@@ -8,7 +8,9 @@ RoleplayCore â€” Session Changelog (WoW 12.x private server)
 - **12 Python scripts updated**: wago_common, tact_extract, merge_csv_sources, diff_builds, cross_ref_mysql, att_parse_addon, att_parse_hierarchy, att_constants, att_enrich_sqlite, audit_talent_spells, parse_vendor_scrape, phase_resolver
 - **Memory + tooling inventory refreshed** for 66263 references
 - **Key changes in 66263**: -106 ItemSparse, -107 IMA, -266 ItemAppearance, -82 SpellName, +14 SpellEffect, +8 QuestV2
-- **Ymir + WPP**: Still at 66220, awaiting TC binary releases
+- **WPP**: Updated to nightly build (66263 support). Old 66220 backed up to `WowPacketParser_66220_backup/`
+- **Ymir**: Still at 66220, awaiting TC binary release
+- **Auth keys**: TC published 66263 keys. Applied + bypass reverted in WorldSocket.cpp
 - **Hotfix repair**: Needs re-run against 66263 baseline
 
 ### Session 64 — BtWQuests + Vendor Scrape + Midnight Data (Mar 5 2026)
