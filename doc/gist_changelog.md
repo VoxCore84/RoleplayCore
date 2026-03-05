@@ -1,5 +1,16 @@
 RoleplayCore â€” Session Changelog (WoW 12.x private server)
 
+## 2026-03-05 — Silvermoon Portal Fix (Session 58)
+
+### Redirect All Silvermoon Portals to New Midnight City
+- **Root cause**: Stormwind Wizard's Sanctum portal (GO 621992, spell 1286187) sent players to old BC Silvermoon on Map 530 instead of new Midnight Silvermoon on Map 0
+- Fixed `spell_target_position` for the Stormwind portal spell
+- Added **9 missing** `spell_target_position` entries for new Midnight teleport/portal spells (1224058, 1225676, 1258128, 1259190, 1262778, 1263937, 1264716, 1271884, 1278017)
+- Fixed invisible portal: displayId 114258 (unrenderable exp11 model) → 55666 (`8fx_portalroom_silvermoon.m2`)
+- Updated `game_tele` SilvermoonCity to new Midnight coordinates
+- Legacy BC spells (32272, 121855, etc.) intentionally left pointing to old Silvermoon
+- Commit `f5fa5444`
+
 ## 2026-03-05 — ATT Mega-Parser (Session 54)
 
 ### AllTheThings Complete Data Extraction
