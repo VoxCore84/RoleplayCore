@@ -152,7 +152,9 @@ Was 2.2GB of dead batch-processing scripts/SQL from earlier hotfix repair iterat
 ### Data Directories
 | Dir | Contents |
 |-----|----------|
-| `wago_csv/major_12/12.0.1.66220/enUS/` | **Current build** CSVs (1,097 tables) — used by `wago_common.WAGO_CSV_DIR` |
+| `merged_csv/12.0.1.66263/enUS/` | **Current build** merged CSVs (1,097 tables) — used by `wago_common.WAGO_CSV_DIR` |
+| `wago_csv/major_12/12.0.1.66263/enUS/` | Raw Wago CSVs for 66263 (1,097 tables) |
+| `wago_csv/major_12/12.0.1.66220/enUS/` | Previous build CSVs (1,098 tables) |
 | `wago_csv/major_12/12.0.1.66192/enUS/` | Previous build CSVs (used as diff baseline by `diff_builds.py`) |
 | `wago_csv/major_12/12.0.1.66102/enUS/` | Older build CSVs (166K items) — preferred by transmog_debug.py for item coverage |
 | `wago_csv/major_12/12.0.1.66066/enUS/` | Oldest build (reference) |
@@ -342,11 +344,11 @@ Build output where the compiled server actually runs. Configs, logs, extracted d
 
 | Tool | Path | Purpose |
 |------|------|---------|
-| **WowPacketParser** | `C:/Tools/WowPacketParser/WowPacketParser.exe` | Parse `.pkt` packet captures into SQL/text. Locally patched for build 66220. Generates `*_hotfixes.sql`, `*_world.sql`, `*_wpp.sql` output |
-| **wow.tools.local** | `C:/Tools/WoW.tools/` | v0.9.2, local web UI for browsing DB2/DBC files. Serves on `http://localhost:5000`. Config: `config.json` (wowFolder=`C:\WoW`, product=wow, region=us). Includes `WTL.db` (765MB file history) + `hotfixes.db` (193MB). Reads CASC from local WoW install (build 66220). Use for: DB2 browsing, build diffs, hotfix inspection, file extraction, map viewer. **Launcher**: `start_wtl.bat` (polls until ready, opens browser). **Python client**: `wtl_client.py` in wago repo |
+| **WowPacketParser** | `C:/Tools/WowPacketParser/WowPacketParser.exe` | Parse `.pkt` packet captures into SQL/text. Locally patched for build 66220 (OUTDATED — awaiting TC 66263 release). Generates `*_hotfixes.sql`, `*_world.sql`, `*_wpp.sql` output |
+| **wow.tools.local** | `C:/Tools/WoW.tools/` | v0.9.2, local web UI for browsing DB2/DBC files. Serves on `http://localhost:5000`. Config: `config.json` (wowFolder=`C:\WoW`, product=wow, region=us). Includes `WTL.db` (765MB file history) + `hotfixes.db` (193MB). Reads CASC from local WoW install (build 66263). Use for: DB2 browsing, build diffs, hotfix inspection, file extraction, map viewer. **Launcher**: `start_wtl.bat` (polls until ready, opens browser). **Python client**: `wtl_client.py` in wago repo |
 | **lua-language-server** | `C:/Tools/lua-language-server/` | Lua LSP server for addon development diagnostics |
 | **DBC2CSV** | `C:/Tools/DBC2CSV/DBC2CSV.exe` | Convert DBC/DB2 files to CSV. Canonical .dbd definitions in `definitions/` subdir |
-| **Ymir** | `C:/Tools/ymir_retail_12.0.1.66220/ymir_retail.exe` | Retail sandbox binary (build 66220). Does NOT work with private server |
+| **Ymir** | `C:/Tools/ymir_retail_12.0.1.66220/ymir_retail.exe` | Retail sandbox binary (build 66220, OUTDATED — awaiting TC 66263 release). Does NOT work with private server |
 | **LoreWalkerTDB** | `C:/Tools/LoreWalkerTDB/` | LoreWalkerTDB reference DB dump — `world.sql` (897MB), `hotfixes.sql` (322MB) |
 | **TrinityCore-master** | `C:/Tools/TrinityCore-master/` | Stock TrinityCore source reference (upstream comparison) |
 | **wow-export** | `C:/Tools/wow-export/` | wow-export tool (CASC data extraction) — `installer.exe` + `data.pak` |

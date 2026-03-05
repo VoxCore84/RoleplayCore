@@ -8,13 +8,20 @@
 - Client computes same HMAC with key baked into Wow.exe — must match server's result
 - Loaded at startup via `ClientBuildInfo.cpp:135-201`
 
-## Current Status (Mar 4 2026) — RESOLVED
-- **Client**: 12.0.1.66220 (Battle.net auto-updated)
-- **Server**: All 7 auth keys for build 66220 applied (Win/Mac, x64/A64, WoW/WoWC)
-- **Bypass REVERTED**: Commit `8bbd610fc7` — WorldSocket.cpp now rejects missing auth keys
-- **DB**: `build_info` + `build_auth_key` both have 66220 rows
-- **SQL trail**: `sql/updates/auth/master/2026_03_04_00_auth.sql`
-- **Pushed**: All clean, no security bypass in remote
+## Current Status (Mar 5 2026) — BUILD 66263 BYPASS ACTIVE
+- **Client**: 12.0.1.66263 (Battle.net auto-updated from 66220)
+- **Server**: Build 66263 registered in `build_info`, realmlist updated to 66263
+- **Auth keys**: NOT YET PUBLISHED by TC — temporary bypass active in WorldSocket.cpp
+- **Bypass**: Commit `e3fc8cd9d6` — logs `TC_LOG_WARN` instead of rejecting when key missing
+- **DB**: `build_info` has 66263, `build_auth_key` has DELETE placeholders (no INSERT yet)
+- **SQL trail**: `sql/updates/auth/master/2026_03_05_00_auth.sql` (has commented-out key INSERT template)
+- **Pushed**: Yes — bypass is in remote, will be reverted when TC publishes keys
+- **Action needed**: When TC publishes 66263 keys → fill SQL, apply to DB, revert WorldSocket.cpp bypass
+
+## Previous Status (Build 66220) — RESOLVED
+- All 7 auth keys applied (Win/Mac, x64/A64, WoW/WoWC)
+- Bypass reverted: Commit `8bbd610fc7`
+- SQL: `sql/updates/auth/master/2026_03_04_00_auth.sql`
 
 ## Auth Key Extraction (for future self-service)
 - Keys are VMProtect-obfuscated in Wow.exe, can't be found statically

@@ -12,7 +12,7 @@
 - **Always propose parallelism**: Suggest agent teams, subagents, worktrees for non-trivial tasks
 - **Windows Terminal elevated**: All profiles auto-elevate (`"elevate": true` in defaults)
 - Comfortable with direct SQL and cmake commands
-- **wow.tools.local** running at `C:/Tools/WoW.tools/` → `http://localhost:5000`. Config points to `C:\WoW` (build 66220). Has WTL.db + hotfixes.db. Use for visual DB2 browsing, build diffs, hotfix inspection, file extraction
+- **wow.tools.local** running at `C:/Tools/WoW.tools/` → `http://localhost:5000`. Config points to `C:\WoW` (build 66263). Has WTL.db + hotfixes.db. Use for visual DB2 browsing, build diffs, hotfix inspection, file extraction
 
 ## Hardware Specs
 - **CPU**: AMD Ryzen 9 9950X3D — labeled "16-Core" but Windows reports 12C/24T (NumberOfEnabledCore=16, WMI quirk on X3D)
@@ -36,7 +36,7 @@
 - **Transmog_UI_LUAs**: `C:/Tools/Transmog_UI_LUAs/` — curated subset of transmog-related Blizzard Lua files (quick reference). Full UI source still at `wow-ui-source-live`
 - **clangd-lsp gotcha**: Must be in settings.json (was disabled thinking it conflicted with codeintel MCP — real issue was user-level config override)
 - **Packet logging**: Server must be stopped before WPP can read .pkt files
-- **Ymir**: `C:/Tools/ymir_retail_12.0.1.66220/ymir_retail.exe` (build 66220). Does NOT work with private server
+- **Ymir**: `C:/Tools/ymir_retail_12.0.1.66220/ymir_retail.exe` (build 66220, OUTDATED — awaiting TC 66263 release). Does NOT work with private server
 
 ## GitHub Gists (all public)
 - **DB Report**: `528e801b53f6c62ce2e5c2ffe7e63e29` — https://gist.github.com/VoxCore84/528e801b53f6c62ce2e5c2ffe7e63e29
@@ -75,16 +75,16 @@
 - **PR #760** on KamiliaBlow/RoleplayCore. Branch `pr/transmog-ui-12x`
 
 ### Hotfix Repair — [details](hotfix-repair.md)
-- **Last run: build 66220** (Mar 3 2026) — 388 tables, 103K inserts, 1.8K fixes
+- **Last run: build 66220** (Mar 3 2026) — 388 tables, 103K inserts, 1.8K fixes. **NEEDS RE-RUN AGAINST 66263**
 - **Redundancy audit COMPLETE** (Mar 4): 3 rounds removed ~10.6M redundant rows total
   - R1: 9.6M (string compare), R2: 204K (WTL DBC2CSV), R3: 768K (type-aware float32/int32/logical PK)
   - + 175K orphan hotfix_data rows cleaned
 - **Post-cleanup**: ~244K genuine content rows (8,396 override + 231,199 new). hotfix_data: 226,984 entries. DB 535 MB
 - **NOTE**: spell_name can no longer validate spells — use Wago DB2 CSVs or DBC runtime
-- **Auth keys**: TC published 66220 keys on 2026-03-04. Bypass reverted in commit `8bbd610fc7`
+- **Auth keys**: TC published 66220 keys on 2026-03-04. Bypass reverted in commit `8bbd610fc7`. **66263 bypass active** (commit `e3fc8cd9d6`)
 
 ### Build Diff Audit — [details](build-diff-audit.md)
-- **COMPLETE** (Mar 3 2026). Diffed all 5 builds: 66044→66102→66192→66198→66220 across 39 priority tables
+- **COMPLETE** (Mar 3 2026). Diffed all 5 builds: 66044→66102→66192→66198→66220→66263 across 39 priority tables
 - **Key finding**: Wago CSV exports oscillate wildly — SpellEffect swings 269K↔608K between builds (export artifact, not content)
 - Actual content delta across all builds: +77 spells, +17 items, +9 quests, ~1K modifications. **No breaking changes**
 - 40 scripted spells got new SpellEffect entries — all at higher indices, no index shifting (safe)

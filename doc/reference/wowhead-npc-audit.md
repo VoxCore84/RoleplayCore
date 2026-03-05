@@ -100,8 +100,8 @@ Reports: `faction_validation_report.txt`, `model_validation_report.txt`, `equipm
 | `validate_equipment.py` | Equipment items vs ItemSparse DB2 |
 | `zone_ct_mapping.txt` | Zone → ContentTuning reference (487 lines) |
 
-## DB2 CSV Locations (build 66220)
-- `C:/Users/atayl/source/wago/wago_csv/major_12/12.0.1.66220/enUS/`
+## DB2 CSV Locations (build 66263)
+- `C:/Users/atayl/source/wago/merged_csv/12.0.1.66263/enUS/`
 - FactionTemplate: 1,862 rows, columns: ID, Faction, Flags, FactionGroup, FriendGroup, EnemyGroup, Enemies_0-7, Friend_0-7
 - CreatureDisplayInfo: 118,493 rows
 - ItemSparse: 125,515 rows

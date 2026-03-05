@@ -4,7 +4,7 @@
 `C:/Users/atayl/source/wago/wago_csv/major_12/`
 - File naming: `TableName-enUS.csv`
 - Locale: enUS
-- Three builds available: **66220** (server build, 1,097 tables), **66102** (166K items — preferred by transmog_debug.py), **66066** (oldest reference)
+- Builds available: **66263** (current, 1,097 tables), **66220** (previous), **66102** (166K items — preferred by transmog_debug.py), **66066** (oldest reference)
 - Full table list: `C:/Users/atayl/source/wago/tables_all.txt` (1,100 tables, all available DB2s)
 - Downloader: `python wago_db2_downloader.py --major 12 --tables-file <file.txt>`
   - Use `--build 12.0.1.66066` to pin a specific build
@@ -22,7 +22,7 @@ Wago.tools CSV exports fluctuate wildly between builds in row counts. This is a 
 | SpellMisc | ~136K-404K rows | ~404K rows |
 | CriteriaTree | ~4K-115K rows | ~115K rows |
 
-**Rules**: Never diff full↔reduced builds. For SpellEffect coverage, prefer full-export builds (66102, 66198). For latest content, use newest build (66220). Detection: `wc -l SpellEffect-enUS.csv` — >500K = full, <400K = reduced.
+**Rules**: Never diff full↔reduced builds. For SpellEffect coverage, prefer full-export builds (66102, 66198). For latest content, use newest build (66263). Detection: `wc -l SpellEffect-enUS.csv` — >500K = full, <400K = reduced.
 
 ## Key Tables & Columns
 
@@ -197,5 +197,5 @@ RewardPack, RewardPackXItem, RewardPackXCurrencyType
 - For NPC customization: ChrCustomizationOption + Choice give valid pairs per race/gender
 - Python CSV parsing recommended for large lookups (e.g., `csv.DictReader`)
 - These are DB2 exports — authoritative client-side data, not server DB
-- Primary CSVs: `C:/Users/atayl/source/wago/wago_csv/major_12/12.0.1.66220/enUS/` (server build)
+- Primary CSVs: `C:/Users/atayl/source/wago/merged_csv/12.0.1.66263/enUS/` (current build, TACT+Wago merged)
 - Item-rich CSVs: `C:/Users/atayl/source/wago/wago_csv/major_12/12.0.1.66102/enUS/` (166K items)

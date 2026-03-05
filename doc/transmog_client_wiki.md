@@ -1,6 +1,6 @@
 # Transmog Client Lua Reference Wiki
 
-> **Target**: WoW 12.0.1 (Midnight) — Build 66220
+> **Target**: WoW 12.0.1 (Midnight) — Build 66263
 > **Purpose**: Server-side transmog outfit debugging reference for RoleplayCore
 > **Source Files**: 15 client Lua/XML files from the Blizzard UI source
 > **Generated**: 2026-03-04

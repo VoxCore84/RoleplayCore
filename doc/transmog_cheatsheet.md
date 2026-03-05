@@ -1,6 +1,6 @@
 # Transmog System Cheatsheet
 
-> WoW 12.0.1 (Midnight) Build 66220 — RoleplayCore Quick Reference
+> WoW 12.0.1 (Midnight) Build 66263 — RoleplayCore Quick Reference
 > Full wiki: `transmog_client_wiki.md`
 
 ---

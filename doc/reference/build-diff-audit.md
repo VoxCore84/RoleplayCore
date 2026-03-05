@@ -50,10 +50,19 @@ All at `C:\Users\atayl\source\wago\`:
 - `build_diff_data_*.json` — Raw diff data for scripting
 - `raidbots/NOTES.md` — Pipeline notes on full vs reduced builds
 
-## Wago CSV Inventory
-All at `C:\Users\atayl\source\wago\wago_csv\major_12\`:
-- `12.0.1.66044/enUS/` — 1098 CSVs
-- `12.0.1.66102/enUS/` — 1098 CSVs
-- `12.0.1.66192/enUS/` — 1098 CSVs
-- `12.0.1.66198/enUS/` — 1098 CSVs (downloaded other tab)
-- `12.0.1.66220/enUS/` — 1098 CSVs
+## Build 66263 (Mar 5 2026) — Cleanup Build
+TACT-extracted 1,094 tables from local CASC. Key changes vs 66220:
+- Items: -106 ItemSparse, -107 IMA, -266 ItemAppearance
+- Transmog: -11 TransmogSet, -97 TransmogSetItem
+- Spells: -82 SpellName, +14 SpellEffect
+- Quests: +8 QuestV2
+- Net: -813 rows across key tables. No structural changes
+
+## CSV Inventory
+- `merged_csv/12.0.1.66263/enUS/` — **Current** (TACT + Wago merged)
+- `tact_csv/12.0.1.66263/enUS/` — 1,094 tables (TACT ground truth)
+- `wago_csv/major_12/12.0.1.66263/enUS/` — Wago CSVs (downloaded)
+- `wago_csv/major_12/12.0.1.66220/enUS/` — 1098 CSVs (previous)
+- `wago_csv/major_12/12.0.1.66192/enUS/` — 1098 CSVs (diff baseline)
+- `wago_csv/major_12/12.0.1.66102/enUS/` — 1098 CSVs (transmog preferred)
+- `wago_csv/major_12/12.0.1.66044/enUS/` — 1098 CSVs (oldest)

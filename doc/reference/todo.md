@@ -6,7 +6,7 @@
 - ContentTuning enrichment: 4,820 spawned CT=0 creatures → zone/neighbor lookup (`_04` SQL)
 - Stormwind CTD rows (11), server-wide CTD rows (26,745), SmartAI orphans (5,894+181 GUID fix)
 - Stormwind SmartAI orphans (2), stacked bunny, AIName spaces, flatten C:\Tools dirs
-- Raidbots pipeline current for 66220, spell refs non-issue, gist report deleted
+- Raidbots pipeline current for 66263, spell refs non-issue, gist report deleted
 
 ## HIGH
 

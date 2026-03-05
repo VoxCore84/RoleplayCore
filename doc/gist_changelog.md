@@ -2,6 +2,15 @@ RoleplayCore â€” Session Changelog (WoW 12.x private server)
 
 
 
+### Session 64 — Build 66263 Data Pipeline Bump (Mar 5 2026)
+- **TACT extraction**: 1,094 DB2 tables from local CASC (build 66263, cleanup build: -813 rows in key tables)
+- **Wago CSVs downloaded**: 66263 CSVs merged with TACT data
+- **12 Python scripts updated**: wago_common, tact_extract, merge_csv_sources, diff_builds, cross_ref_mysql, att_parse_addon, att_parse_hierarchy, att_constants, att_enrich_sqlite, audit_talent_spells, parse_vendor_scrape, phase_resolver
+- **Memory + tooling inventory refreshed** for 66263 references
+- **Key changes in 66263**: -106 ItemSparse, -107 IMA, -266 ItemAppearance, -82 SpellName, +14 SpellEffect, +8 QuestV2
+- **Ymir + WPP**: Still at 66220, awaiting TC binary releases
+- **Hotfix repair**: Needs re-run against 66263 baseline
+
 ### Session 64 — BtWQuests + Vendor Scrape + Midnight Data (Mar 5 2026)
 - **BtWQuests addon parse**: Extracted quest starter/ender data from BtWQuests addon Lua files
   - 1,062 new `creature_queststarter` entries, 57 new `gameobject_queststarter` entries
