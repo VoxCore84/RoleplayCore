@@ -60,6 +60,17 @@ All figures are **net** â€” accounting for subsequent cleanup and deduplica
 
 ---
 
+### Midnight Expansion Data Import (Session 61)
+- **Source**: 624 Wowhead pages (38 guides + 586 entity pages) scraped via 30-worker Tor army
+- **creature_queststarter**: +58 new quest start NPC links
+- **creature_questender**: +60 new quest end NPC links
+- **creature_loot_template**: +819 loot drops across 115 NPCs
+- **creature_template_spell**: +526 boss abilities across 61 NPCs
+- **Total**: 1,463 new rows. All IDs cross-referenced against world DB + SpellName DB2
+- SQL: `2026_03_05_15_world.sql`. Commit `d81962a4d6`
+
+---
+
 <details>
 <summary><strong>Part 1: LoreWalkerTDB Integration</strong> &mdash; <em>~1M rows from LoreWalkerTDB â€” hotfixes, SmartAI, world data, loot</em></summary>
 

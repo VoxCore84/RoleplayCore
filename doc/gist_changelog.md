@@ -2,7 +2,13 @@ RoleplayCore â€” Session Changelog (WoW 12.x private server)
 
 
 
-## 2026-03-05 â€” ATT Mega-Parser (Session 54)
+### Session 61 — Midnight Expansion Data Scrape + Import
+- Scraped 38 Wowhead Midnight guide pages + 586 entity pages (44 MB raw HTML, 0 WAF blocks)
+- Extracted: 712 items, 282 NPCs, 247 spells, 154 quests, 85 achievements, 1,314 loot drops
+- Cross-referenced all data against world DB: 819 new loot entries, 526 boss abilities, 118 quest links
+- Applied `2026_03_05_15_world.sql` (1,463 rows). Commits: wago `966e0eb`, RC `d81962a4d6`
+
+## 2026-03-05 — ATT Mega-Parser (Session 54)
 
 ### AllTheThings Complete Data Extraction
 - **`att_to_sqlite.py`** â€” comprehensive SQLite extractor for ALL AllTheThings data

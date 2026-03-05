@@ -44,6 +44,11 @@ Prioritized list of known issues, planned work, and blocked items. Updated as it
 
 ## MEDIUM Priority
 
+### Midnight Vendor Items (337 new, blocked on ExtendedCost)
+- 17 NPCs with zero npc_vendor entries, 337 items ready
+- Blocked: scrape doesn't include ExtendedCost data (items would be free without it)
+- Need: cross-ref NpcVendor DB2 or ItemExtendedCost DB2 for currency costs
+
 ### Skyriding / Dragonriding
 - `spell_dragonriding.cpp:39`: `SPELL_RIDING_ABROAD = 432503` â€” TODO outside dragon isles
 - `Player.cpp:19509`: forces legacy flight instead of proper skyriding
