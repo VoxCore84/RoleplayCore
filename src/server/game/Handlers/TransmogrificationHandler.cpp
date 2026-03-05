@@ -645,6 +645,7 @@ void WorldSession::HandleTransmogOutfitNew(WorldPackets::Transmogrification::Tra
         return;
 
     GetPlayer()->SetEquipmentSet(set);
+    GetPlayer()->SetActiveTransmogOutfitID(set.SetID);
 
     if (EquipmentSetInfo::EquipmentSetData const* savedSet = GetPlayer()->GetTransmogOutfitBySetID(set.SetID))
         set.Guid = savedSet->Guid;
@@ -1086,6 +1087,12 @@ void WorldSession::FinalizeTransmogBridgePendingOutfit()
             return;
         }
     }
+
+    // Flush UpdateField changes (ViewedOutfit) to client before the response packet.
+    // Without this, the SMSG arrives first, client fires TRANSMOG_OUTFITS_CHANGED,
+    // and GetOutfitsInfo()/GetViewedOutfitSlotInfo() return stale data.
+    GetPlayer()->SendUpdateToPlayer(GetPlayer());
+    GetPlayer()->ClearUpdateMask(true);
 
     WorldPackets::Transmogrification::TransmogOutfitSlotsUpdated response;
     response.SetID = pending.Outfit.SetID;

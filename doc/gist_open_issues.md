@@ -13,8 +13,16 @@ Prioritized list of known issues, planned work, and blocked items. Updated as it
   - Priority: Enchanted Tome (mascot), Xal'atath, Alleria, Khadgar, Midnight raid journal art
 - **Phases 1â€“5**: Arcane visual refresh, animated pipeline, tool explorer, before/after slider, interactive timeline
 
+### Transmog: 5-Agent Audit Action Plan (session 62)
+**Status**: 26-item action plan from comprehensive 5-agent audit (Bridge/Spy/Server/Player.cpp/Sniffer). 9 HIGH + 19 MEDIUM + 23 LOW findings.
+- **Phase 1** (server bugs): per-spec appearance bootstrap, HandleTransmogOutfitNew active ID, Finalize flush, clear spell active ID reset
+- **Phase 2** (Bridge cleanup): remove diagnostic probe, fix multi-part split edge case, remove dead code, deterministic ordering
+- **Phase 3** (TransmogSpy v2): 12 missing events, displayType capture, IMA name resolution, 6 missing hooks, 4 new commands
+- **Phase 4** (hardening): IgnoreMask baseline restore, partial payload cleanup, per-slot validation
+- **Phase 5** (retail capture): outfit create/rename/delete, single-item transmog, situations
+
 ### Transmog: 5-Bug Investigation (session 36)
-**Status**: Bugs B + E FIXED in session 59. H1 + M4 FIXED in session 60. Remaining bugs need testing.
+**Status**: Bugs B + E FIXED in session 59. H1 + M4 + stale detection FIXED in sessions 60/60c. Remaining bugs need in-game testing.
 - **Bug A**: Paperdoll naked on 2nd UI open
 - ~~**Bug B**: Old head/shoulder persists when outfit doesn't define them~~ — **FIXED** (session 59, commit `289677be44`): Added `_activeTransmogOutfitID` tracking; ViewedOutfit now renders the actually-applied outfit instead of always the lowest SetID
 - **Bug C**: Monster Mantle ghost appearance (item 182306)

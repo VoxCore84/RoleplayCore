@@ -2,6 +2,13 @@ RoleplayCore â€” Session Changelog (WoW 12.x private server)
 
 
 
+### Session 62 — Transmog 5-Agent Comprehensive Audit (Mar 5 2026)
+- 5 parallel agents audited: TransmogBridge, TransmogSpy, server handlers, Player.cpp, retail sniffer
+- Found: 9 HIGH + 19 MEDIUM + 23 LOW findings across all subsystems
+- Key server bugs: per-spec appearance bootstrap missing, HandleTransmogOutfitNew missing SetActiveTransmogOutfitID, FinalizeTransmogBridgePendingOutfit missing UpdateField flush
+- TransmogSpy: missing 12 events, no displayType capture, no IMA name resolution
+- 26-item action plan in 5 phases (server fixes → Bridge cleanup → Spy v2 → hardening → retail capture)
+
 ### Session 60c — Transmog Stale Detection Fix (Mar 5 2026)
 - **Server-side stale rejection** replaces client-side preSnapshot/comparison detection
 - Addon now tags overrides: `option=1` (SetPendingTransmog hook = trusted), `option=0` (snapshot/fallback)

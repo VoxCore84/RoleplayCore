@@ -18164,8 +18164,10 @@ void Player::_SyncTransmogOutfitsToActivePlayerData(char const* caller)
             {
                 if (Item* equippedItem = GetItemByPos(INVENTORY_SLOT_BAG_0, mapping.equipSlot))
                 {
-                    // Prefer active transmog modifier on the item
-                    imaID = equippedItem->GetModifier(ITEM_MODIFIER_TRANSMOG_APPEARANCE_ALL_SPECS);
+                    // Prefer per-spec transmog modifier, then fall back to ALL_SPECS
+                    imaID = equippedItem->GetModifier(AppearanceModifierSlotBySpec[GetActiveTalentGroup()]);
+                    if (!imaID)
+                        imaID = equippedItem->GetModifier(ITEM_MODIFIER_TRANSMOG_APPEARANCE_ALL_SPECS);
                     // Fall back to the item's base appearance from DB2
                     if (!imaID)
                         if (ItemModifiedAppearanceEntry const* baseAppear = equippedItem->GetItemModifiedAppearance())

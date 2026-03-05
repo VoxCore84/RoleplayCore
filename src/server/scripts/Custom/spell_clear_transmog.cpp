@@ -102,6 +102,9 @@ class spell_clear_current_transmogrifications : public SpellScript
                     "spell_clear_current_transmogrifications [{}]: synced cleared state to active outfit {} + rebuilt ViewedOutfit",
                     player->GetGUID().ToString(), activeOutfitID);
             }
+
+            // Clear the active outfit ID — all transmog is gone, no outfit is "active" anymore
+            player->SetActiveTransmogOutfitID(0);
         }
     }
 

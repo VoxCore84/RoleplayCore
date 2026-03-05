@@ -87,52 +87,6 @@ end)
 
 -- Send overrides on apply (post-hook: fires after CommitAndApplyAllPending queues the CMSG)
 hooksecurefunc(C_TransmogOutfitInfo, "CommitAndApplyAllPending", function(useDiscount)
-    -- Phase 2 Diagnostic Probe: log ALL available API state at post-hook timing.
-    -- This tells us exactly which APIs are reliable for each slot, informing the v2 rewrite.
-    Log("=== DIAGNOSTIC PROBE START (CommitAndApplyAllPending post-hook) ===")
-    local hookSlotCount = 0
-    for _ in pairs(pendingOverrides) do hookSlotCount = hookSlotCount + 1 end
-    Log(string.format("SetPendingTransmog hooks captured: %d slots", hookSlotCount))
-
-    for slot = 0, 13 do
-        local viewedID, pendingSrcID, appliedSrcID, hookID = 0, 0, 0, nil
-
-        -- API 1: GetViewedOutfitSlotInfo (current Layer 1)
-        if slot ~= 2 then
-            local info = C_TransmogOutfitInfo.GetViewedOutfitSlotInfo(slot, 0, 0)
-            if info and info.transmogID then viewedID = info.transmogID end
-        else
-            local info2 = C_TransmogOutfitInfo.GetViewedOutfitSlotInfo(1, 0, 1)
-            if info2 and info2.transmogID then viewedID = info2.transmogID end
-        end
-
-        -- API 2: GetSlotVisualInfo (current Layer 3)
-        if slot ~= 2 then
-            local invName = INV_SLOT_NAMES[slot]
-            if invName and HAS_SLOT_VISUAL_INFO then
-                local ok, loc = pcall(TransmogUtil.GetTransmogLocation, invName, Enum.TransmogType.Appearance, false)
-                if ok and loc then
-                    local ok2, visInfo = pcall(C_Transmog.GetSlotVisualInfo, loc)
-                    if ok2 and visInfo then
-                        pendingSrcID = visInfo.pendingSourceID or 0
-                        appliedSrcID = visInfo.appliedSourceID or 0
-                    end
-                end
-            end
-        end
-
-        -- API 3: SetPendingTransmog hook data (current Layer 2)
-        if pendingOverrides[slot] then
-            hookID = pendingOverrides[slot].transmogID or 0
-        end
-
-        -- Log all 4 values per slot for comparison
-        Log(string.format("PROBE slot=%d viewed=%d pending=%d applied=%d hook=%s",
-            slot, viewedID, pendingSrcID, appliedSrcID,
-            hookID ~= nil and tostring(hookID) or "nil"))
-    end
-    Log("=== DIAGNOSTIC PROBE END ===")
-
     -- Hybrid merge: snapshot all slots via GetViewedOutfitSlotInfo (base layer),
     -- then overlay SetPendingTransmog accumulations on top (wins on conflict).
     -- GetViewedOutfitSlotInfo is unreliable for weapons (12, 13), secondary
@@ -225,41 +179,25 @@ hooksecurefunc(C_TransmogOutfitInfo, "CommitAndApplyAllPending", function(useDis
     -- Detect hidden appearances: slots nil across all 3 layers.
     -- HEAD (0), SECONDARY_SHOULDER (2), MH (12), OH (13) are ALWAYS nil
     -- due to client serializer bugs — defer these to server baseline.
-    -- EXCEPTION: if Layer 2 (SetPendingTransmog) captured data for an always-nil slot,
-    -- the user explicitly clicked it — send it regardless of always-nil status.
-    -- (Layer 2 processing above should have set merged[slot] already, but this is a safety
-    -- net for the case where that didn't happen. Also handles pendingOverrides with transmogID=0
-    -- which Layer 2 sets into merged but we double-check here.)
-    -- All other slots being nil means a hidden appearance — send explicit clear (slot.0.0).
+    -- Layer 2 already merged all pendingOverrides into merged[], so any slot
+    -- still nil here was not touched by any layer.
+    -- Non-always-nil slots being nil = hidden appearance — send explicit clear.
     local missing = {}
     local nilCount = 0
     local clearCount = 0
-    local layer2OverrideCount = 0
     for slot = 0, 13 do
         if not merged[slot] then
             nilCount = nilCount + 1
-            local isAlwaysNil = ALWAYS_NIL_SLOTS[slot]
-            Log(string.format("nil-detect: slot=%d isAlwaysNil=%s layer2=%s", slot, tostring(isAlwaysNil), tostring(pendingOverrides[slot] ~= nil)))
-            if isAlwaysNil then
-                -- Check if Layer 2 has explicit data for this always-nil slot.
-                -- If so, user manually clicked it — override the always-nil deferral.
-                if pendingOverrides[slot] then
-                    local tmogID = pendingOverrides[slot].transmogID or 0
-                    merged[slot] = { transmogID = tmogID, option = 1 }
-                    layer2OverrideCount = layer2OverrideCount + 1
-                    Log(string.format("always-nil OVERRIDE: slot=%d Layer2 has IMAID=%d, sending instead of deferring", slot, tmogID))
-                else
-                    missing[#missing + 1] = slot
-                end
+            if ALWAYS_NIL_SLOTS[slot] then
+                missing[#missing + 1] = slot
             else
-                -- Nil across all layers = hidden appearance, send explicit clear
                 merged[slot] = { transmogID = 0, option = 0 }
                 clearCount = clearCount + 1
                 Log(string.format("Hidden detect: slot=%d nil in all layers, sending clear", slot))
             end
         end
     end
-    Log(string.format("nil-detection found %d nil slots, generated %d clears, %d always-nil overrides", nilCount, clearCount, layer2OverrideCount))
+    Log(string.format("nil-detection: %d nil slots, %d clears", nilCount, clearCount))
     if #missing > 0 then
         Log(string.format("Deferred to server baseline: slots %s (always-nil client slots)",
             table.concat(missing, ",")))
@@ -267,12 +205,16 @@ hooksecurefunc(C_TransmogOutfitInfo, "CommitAndApplyAllPending", function(useDis
 
     -- Encode: "slot.transmogID.option[.illusionID];..."
     -- 4th field only included when illusion data was explicitly set
+    -- Deterministic slot order (0-13) for reproducible payloads
     local parts = {}
-    for slot, data in pairs(merged) do
-        if data.illusionID ~= nil then
-            parts[#parts + 1] = string.format("%d.%d.%d.%d", slot, data.transmogID, data.option, data.illusionID)
-        else
-            parts[#parts + 1] = string.format("%d.%d.%d", slot, data.transmogID, data.option)
+    for slot = 0, 13 do
+        local data = merged[slot]
+        if data then
+            if data.illusionID ~= nil then
+                parts[#parts + 1] = string.format("%d.%d.%d.%d", slot, data.transmogID, data.option, data.illusionID)
+            else
+                parts[#parts + 1] = string.format("%d.%d.%d", slot, data.transmogID, data.option)
+            end
         end
     end
 
@@ -291,9 +233,21 @@ hooksecurefunc(C_TransmogOutfitInfo, "CommitAndApplyAllPending", function(useDis
         C_ChatInfo.SendAddonMessage(ADDON_PREFIX, payload, "WHISPER", UnitName("player"))
     else
         -- Split at nearest ; boundary (253 = 255 limit minus 2-byte "1>" prefix)
-        local mid = payload:sub(1, 253):match(".*;") or payload:sub(1, 253)
+        local mid = payload:sub(1, 253):match(".*;")
+        if not mid then
+            Log("ERROR: payload exceeds 255 bytes with no semicolon boundary — cannot split safely")
+            wipe(pendingOverrides)
+            wipe(pendingIllusions)
+            return
+        end
         local part1 = mid
         local part2 = payload:sub(#mid + 1)
+        if #part2 > 253 then
+            Log(string.format("ERROR: multi-part part2 still too long (%d bytes) — payload too large", #part2))
+            wipe(pendingOverrides)
+            wipe(pendingIllusions)
+            return
+        end
         C_ChatInfo.SendAddonMessage(ADDON_PREFIX, "1>" .. part1, "WHISPER", UnitName("player"))
         C_ChatInfo.SendAddonMessage(ADDON_PREFIX, "2>" .. part2, "WHISPER", UnitName("player"))
     end
