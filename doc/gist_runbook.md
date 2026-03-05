@@ -475,7 +475,7 @@ C:\Python314\python.exe decode_dbcache.py
 | **DBC2CSV** | `C:/Tools/DBC2CSV/DBC2CSV.exe` | Convert DB2 files to CSV. 1,315 .dbd definitions. ~0.5% non-deterministic drops in large batches |
 | **DB2Query** | `C:/Tools/DB2Query/` | Interactive DB2 CLI: load, search, filter, export. Run: `dotnet run -c Release` |
 | **DBCD** | `C:/Tools/DBCD-2.2.0/` | C# library for reading DB2 files (WDC5). Used by DBC2CSV and DB2Query |
-| **Ymir** | `C:/Tools/ymir_retail_12.0.1.66220/ymir_retail.exe` | Retail sniffer (build 66220, OUTDATED — awaiting TC 66263 release) |
+| **Ymir** | `C:/Tools/ymir_retail_12.0.1.66263/ymir_retail.exe` | Retail sniffer (build 66263) |
 | **Lua LSP** | `C:/Tools/lua-language-server/bin/lua-language-server.exe` | Lua language server for IDE |
 | **LoreWalkerTDB** | `C:/Tools/LoreWalkerTDB/` | Reference SQL dumps (world 941MB, hotfixes 337MB) |
 | **ATT Database** | `C:/Tools/ATT-Database/` | AllTheThings community data (git pull to update) |

@@ -9,7 +9,7 @@ RoleplayCore â€” Session Changelog (WoW 12.x private server)
 - **Memory + tooling inventory refreshed** for 66263 references
 - **Key changes in 66263**: -106 ItemSparse, -107 IMA, -266 ItemAppearance, -82 SpellName, +14 SpellEffect, +8 QuestV2
 - **WPP**: Updated to nightly build (66263 support). Old 66220 backed up to `WowPacketParser_66220_backup/`
-- **Ymir**: Still at 66220, awaiting TC binary release
+- **Ymir**: Updated to 66263
 - **Auth keys**: TC published 66263 keys. Applied + bypass reverted in WorldSocket.cpp
 - **Hotfix repair**: Needs re-run against 66263 baseline
 

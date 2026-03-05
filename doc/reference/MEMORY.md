@@ -36,7 +36,7 @@
 - **Transmog_UI_LUAs**: `C:/Tools/Transmog_UI_LUAs/` — curated subset of transmog-related Blizzard Lua files (quick reference). Full UI source still at `wow-ui-source-live`
 - **clangd-lsp gotcha**: Must be in settings.json (was disabled thinking it conflicted with codeintel MCP — real issue was user-level config override)
 - **Packet logging**: Server must be stopped before WPP can read .pkt files
-- **Ymir**: `C:/Tools/ymir_retail_12.0.1.66220/ymir_retail.exe` (build 66220, OUTDATED — awaiting TC 66263 release). Does NOT work with private server
+- **Ymir**: `C:/Tools/ymir_retail_12.0.1.66263/ymir_retail.exe` (build 66263). Does NOT work with private server
 
 ## GitHub Gists (all public)
 - **DB Report**: `528e801b53f6c62ce2e5c2ffe7e63e29` — https://gist.github.com/VoxCore84/528e801b53f6c62ce2e5c2ffe7e63e29
