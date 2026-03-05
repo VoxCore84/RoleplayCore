@@ -26,6 +26,14 @@ Chronological log of all database, code, and infrastructure changes. Each entry 
 
 ## Mar 5, 2026
 
+### Session 59 — Transmog QA Audit + Phase 1 Fixes (Mar 5 2026)
+- **Full QA audit**: 3 parallel agents audited TransmogBridge addon, server handlers, packet parsing, UpdateField sync. Found 2 critical + 4 medium + 5 low issues
+- **Bug E fix** (single-item transmog → full rebuild): `HandleTransmogrifyItems` now calls `SetEquipmentSet()` after syncing changes — persists to DB, refreshes ViewedOutfit
+- **Bug B fix** (old head/shoulder persist): Added `_activeTransmogOutfitID` tracking. ViewedOutfit now renders the actually-applied outfit instead of always the lowest SetID
+- **IgnoreMask fix**: `HandleTransmogOutfitUpdateInfo` preserves existing IgnoreMask instead of clobbering with uninitialized value
+- **Packet hardening**: Sanity cap (256), accumulation handling (last-30), ordinal comment fix
+- Commits: `289677be44` (Phase 1), `12bc18f374` (packets), `3b8d14c7c6` (gitignore)
+
 ### Session 58 — Wowhead Gap Scraper (Mar 5 2026)
 - Built 3-script pipeline: generate_gap_targets.py → scrape_gaps_tor.py → import_scraped_gaps.py
 - Scraped 5,653 Wowhead pages via 30 Tor workers at 45K/hr (0 WAF blocks)

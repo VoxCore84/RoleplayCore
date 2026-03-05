@@ -87,6 +87,52 @@ end)
 
 -- Send overrides on apply (post-hook: fires after CommitAndApplyAllPending queues the CMSG)
 hooksecurefunc(C_TransmogOutfitInfo, "CommitAndApplyAllPending", function(useDiscount)
+    -- Phase 2 Diagnostic Probe: log ALL available API state at post-hook timing.
+    -- This tells us exactly which APIs are reliable for each slot, informing the v2 rewrite.
+    Log("=== DIAGNOSTIC PROBE START (CommitAndApplyAllPending post-hook) ===")
+    local hookSlotCount = 0
+    for _ in pairs(pendingOverrides) do hookSlotCount = hookSlotCount + 1 end
+    Log(string.format("SetPendingTransmog hooks captured: %d slots", hookSlotCount))
+
+    for slot = 0, 13 do
+        local viewedID, pendingSrcID, appliedSrcID, hookID = 0, 0, 0, nil
+
+        -- API 1: GetViewedOutfitSlotInfo (current Layer 1)
+        if slot ~= 2 then
+            local info = C_TransmogOutfitInfo.GetViewedOutfitSlotInfo(slot, 0, 0)
+            if info and info.transmogID then viewedID = info.transmogID end
+        else
+            local info2 = C_TransmogOutfitInfo.GetViewedOutfitSlotInfo(1, 0, 1)
+            if info2 and info2.transmogID then viewedID = info2.transmogID end
+        end
+
+        -- API 2: GetSlotVisualInfo (current Layer 3)
+        if slot ~= 2 then
+            local invName = INV_SLOT_NAMES[slot]
+            if invName and HAS_SLOT_VISUAL_INFO then
+                local ok, loc = pcall(TransmogUtil.GetTransmogLocation, invName, Enum.TransmogType.Appearance, false)
+                if ok and loc then
+                    local ok2, visInfo = pcall(C_Transmog.GetSlotVisualInfo, loc)
+                    if ok2 and visInfo then
+                        pendingSrcID = visInfo.pendingSourceID or 0
+                        appliedSrcID = visInfo.appliedSourceID or 0
+                    end
+                end
+            end
+        end
+
+        -- API 3: SetPendingTransmog hook data (current Layer 2)
+        if pendingOverrides[slot] then
+            hookID = pendingOverrides[slot].transmogID or 0
+        end
+
+        -- Log all 4 values per slot for comparison
+        Log(string.format("PROBE slot=%d viewed=%d pending=%d applied=%d hook=%s",
+            slot, viewedID, pendingSrcID, appliedSrcID,
+            hookID ~= nil and tostring(hookID) or "nil"))
+    end
+    Log("=== DIAGNOSTIC PROBE END ===")
+
     -- Hybrid merge: snapshot all slots via GetViewedOutfitSlotInfo (base layer),
     -- then overlay SetPendingTransmog accumulations on top (wins on conflict).
     -- GetViewedOutfitSlotInfo is unreliable for weapons (12, 13), secondary
