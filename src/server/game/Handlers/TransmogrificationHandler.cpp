@@ -1211,6 +1211,7 @@ void WorldSession::FinalizeTransmogBridgePendingOutfit()
                 rowAppearance = appearance;
                 rowEnchant = enchant;
                 adt = isHiddenAppearance(appearance) ? uint8(3) : uint8(1);
+                idt = rowEnchant ? uint8(1) : uint8(0);
             }
 
             appendSlot(slot, option, rowAppearance, rowEnchant, adt, idt);

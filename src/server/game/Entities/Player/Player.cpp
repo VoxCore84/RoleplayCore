@@ -18165,7 +18165,7 @@ void Player::_SyncTransmogOutfitsToActivePlayerData(char const* caller)
                     imaID = appearance;
                     rowEnchant = enchant;
                     adt = isHiddenAppearance(appearance) ? uint8(3) : uint8(1);
-                    idt = (isViewedOutfit && rowEnchant) ? uint8(1) : uint8(0);
+                    idt = rowEnchant ? uint8(1) : uint8(0);
                 }
 
                 addSlotRow(slot, option, imaID, rowEnchant, adt, idt);
