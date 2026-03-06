@@ -1134,34 +1134,93 @@ void WorldSession::FinalizeTransmogBridgePendingOutfit()
     WorldPackets::Transmogrification::TransmogOutfitSlotsUpdated response;
     response.SetID = pending.Outfit.SetID;
 
-    auto appendSlot = [&](uint8 slot, uint8 option, uint32 appearance, uint16 displayType)
+    static constexpr uint32 hiddenItemIDs[] = {
+        134110, 134111, 134112, 168659, 142503,
+        142504, 168665, 158329, 143539, 168664
+    };
+    auto isHiddenAppearance = [](uint32 imaID) -> bool
     {
-        WorldPackets::Transmogrification::TransmogOutfitSlotEntry entry;
-        entry.SlotIndex = slot;
-        entry.Option = option;
-        entry.AppearanceID = appearance;
-        entry.WireDisplayType = displayType;
+        if (!imaID)
+            return false;
+
+        if (ItemModifiedAppearanceEntry const* ima = sItemModifiedAppearanceStore.LookupEntry(imaID))
+            for (uint32 hiddenItemID : hiddenItemIDs)
+                if (uint32(ima->ItemID) == hiddenItemID)
+                    return true;
+
+        return false;
+    };
+
+    auto appendSlot = [&](uint8 slot, uint8 option, uint32 appearance, uint32 enchant, uint8 adt, uint8 idt)
+    {
+        WorldPackets::Transmogrification::TransmogOutfitSlotVisualData entry;
+        entry.Slot = slot;
+        entry.SlotOption = option;
+        entry.ItemModifiedAppearanceID = appearance;
+        entry.AppearanceDisplayType = adt;
+        entry.SpellItemEnchantmentID = enchant;
+        entry.IllusionDisplayType = idt;
+        entry.Flags = 0;
         response.Slots.push_back(entry);
     };
 
-    appendSlot(0, 0, pending.Outfit.Appearances[EQUIPMENT_SLOT_HEAD] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_HEAD]) : 0, 0);
-    appendSlot(1, 0, pending.Outfit.Appearances[EQUIPMENT_SLOT_SHOULDERS] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_SHOULDERS]) : 0, 1);
-    appendSlot(2, 0, pending.Outfit.SecondaryShoulderApparanceID > 0 ? uint32(pending.Outfit.SecondaryShoulderApparanceID) : 0, 1);
-    appendSlot(6, 0, pending.Outfit.Appearances[EQUIPMENT_SLOT_WAIST] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_WAIST]) : 0, 4);
-    appendSlot(4, 0, pending.Outfit.Appearances[EQUIPMENT_SLOT_CHEST] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_CHEST]) : 0, 3);
-    appendSlot(9, 0, pending.Outfit.Appearances[EQUIPMENT_SLOT_WRISTS] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_WRISTS]) : 0, 7);
-    appendSlot(10, 0, pending.Outfit.Appearances[EQUIPMENT_SLOT_HANDS] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_HANDS]) : 0, 8);
-    appendSlot(11, 0, pending.Outfit.Appearances[EQUIPMENT_SLOT_FEET] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_FEET]) : 0, 6);
-    appendSlot(7, 0, pending.Outfit.Appearances[EQUIPMENT_SLOT_LEGS] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_LEGS]) : 0, 5);
-    appendSlot(8, 0, pending.Outfit.Appearances[EQUIPMENT_SLOT_TABARD] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_TABARD]) : 0, 10);
-    appendSlot(3, 0, pending.Outfit.Appearances[EQUIPMENT_SLOT_BACK] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_BACK]) : 0, 9);
-    appendSlot(5, 0, pending.Outfit.Appearances[EQUIPMENT_SLOT_BODY] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_BODY]) : 0, 2);
+    auto appendArmorSlot = [&](uint8 slot, uint32 appearance)
+    {
+        uint8 adt = 0;
+        if (appearance)
+            adt = isHiddenAppearance(appearance) ? uint8(3) : uint8(1);
 
-    for (uint8 option : { uint8(1), uint8(6), uint8(2), uint8(3), uint8(7), uint8(8), uint8(9), uint8(10), uint8(11) })
-        appendSlot(12, option, pending.Outfit.MainHandOption == option && pending.Outfit.Appearances[EQUIPMENT_SLOT_MAINHAND] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_MAINHAND]) : 0, 11);
+        appendSlot(slot, 0, appearance, 0, adt, 0);
+    };
 
-    for (uint8 option : { uint8(1), uint8(6), uint8(7), uint8(5), uint8(4), uint8(8), uint8(9), uint8(10), uint8(11) })
-        appendSlot(13, option, pending.Outfit.OffHandOption == option && pending.Outfit.Appearances[EQUIPMENT_SLOT_OFFHAND] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_OFFHAND]) : 0, 15);
+    appendArmorSlot(0, pending.Outfit.Appearances[EQUIPMENT_SLOT_HEAD] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_HEAD]) : 0);
+    appendArmorSlot(1, pending.Outfit.Appearances[EQUIPMENT_SLOT_SHOULDERS] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_SHOULDERS]) : 0);
+    appendArmorSlot(2, pending.Outfit.SecondaryShoulderApparanceID > 0 ? uint32(pending.Outfit.SecondaryShoulderApparanceID) : 0);
+    appendArmorSlot(6, pending.Outfit.Appearances[EQUIPMENT_SLOT_WAIST] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_WAIST]) : 0);
+    appendArmorSlot(4, pending.Outfit.Appearances[EQUIPMENT_SLOT_CHEST] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_CHEST]) : 0);
+    appendArmorSlot(9, pending.Outfit.Appearances[EQUIPMENT_SLOT_WRISTS] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_WRISTS]) : 0);
+    appendArmorSlot(10, pending.Outfit.Appearances[EQUIPMENT_SLOT_HANDS] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_HANDS]) : 0);
+    appendArmorSlot(11, pending.Outfit.Appearances[EQUIPMENT_SLOT_FEET] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_FEET]) : 0);
+    appendArmorSlot(7, pending.Outfit.Appearances[EQUIPMENT_SLOT_LEGS] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_LEGS]) : 0);
+    appendArmorSlot(8, pending.Outfit.Appearances[EQUIPMENT_SLOT_TABARD] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_TABARD]) : 0);
+    appendArmorSlot(3, pending.Outfit.Appearances[EQUIPMENT_SLOT_BACK] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_BACK]) : 0);
+    appendArmorSlot(5, pending.Outfit.Appearances[EQUIPMENT_SLOT_BODY] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_BODY]) : 0);
+
+    uint32 mhAppearance = pending.Outfit.Appearances[EQUIPMENT_SLOT_MAINHAND] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_MAINHAND]) : 0;
+    uint32 ohAppearance = pending.Outfit.Appearances[EQUIPMENT_SLOT_OFFHAND] > 0 ? uint32(pending.Outfit.Appearances[EQUIPMENT_SLOT_OFFHAND]) : 0;
+    uint32 mhEnchant = pending.Outfit.Enchants[0] > 0 ? uint32(pending.Outfit.Enchants[0]) : 0;
+    uint32 ohEnchant = pending.Outfit.Enchants[1] > 0 ? uint32(pending.Outfit.Enchants[1]) : 0;
+
+    auto appendWeaponRows = [&](uint8 slot, uint8 selectedOption, uint32 appearance, uint32 enchant, std::initializer_list<uint8> options)
+    {
+        for (uint8 option : options)
+        {
+            bool pairedPlaceholder = option >= 8;
+            uint32 rowAppearance = 0;
+            uint32 rowEnchant = 0;
+            uint8 adt = 0;
+            uint8 idt = 0;
+
+            if (pairedPlaceholder)
+            {
+                adt = 4;
+                idt = 4;
+            }
+            else if (selectedOption == option && appearance)
+            {
+                rowAppearance = appearance;
+                rowEnchant = enchant;
+                adt = isHiddenAppearance(appearance) ? uint8(3) : uint8(1);
+            }
+
+            appendSlot(slot, option, rowAppearance, rowEnchant, adt, idt);
+        }
+    };
+
+    appendWeaponRows(12, pending.Outfit.MainHandOption, mhAppearance, mhEnchant,
+        { uint8(1), uint8(6), uint8(2), uint8(3), uint8(7), uint8(8), uint8(9), uint8(10), uint8(11) });
+    appendWeaponRows(13, pending.Outfit.OffHandOption, ohAppearance, ohEnchant,
+        { uint8(1), uint8(6), uint8(7), uint8(5), uint8(4), uint8(8), uint8(9), uint8(10), uint8(11) });
 
     TC_LOG_DEBUG("network.opcode.transmog", "SMSG_TRANSMOG_OUTFIT_SLOTS_UPDATED [{}]: setId={} slots={} (finalized{})",
         GetPlayerInfo(), response.SetID, response.Slots.size(),

@@ -18088,7 +18088,7 @@ void Player::_SyncTransmogOutfitsToActivePlayerData(char const* caller)
     static constexpr uint8 mainHandOptions[] = { 1, 6, 2, 3, 7, 8, 9, 10, 11 };
     static constexpr uint8 offHandOptions[] = { 1, 6, 7, 5, 4, 8, 9, 10, 11 };
 
-    auto writeOutfitRows = [this, &isHiddenAppearance](auto&& outfitSetter, EquipmentSetInfo::EquipmentSetData const* equipmentSet, uint8 emptyDisplayType)
+    auto writeOutfitRows = [this, &isHiddenAppearance](auto&& outfitSetter, EquipmentSetInfo::EquipmentSetData const* equipmentSet, bool isViewedOutfit)
     {
         SetUpdateFieldValue(outfitSetter.ModifyValue(&UF::TransmogOutfitData::Flags), uint32(0));
 
@@ -18131,11 +18131,12 @@ void Player::_SyncTransmogOutfitsToActivePlayerData(char const* caller)
             else if (equipmentSet->Appearances[mapping.equipSlot] > 0)
                 imaID = uint32(equipmentSet->Appearances[mapping.equipSlot]);
 
-            uint8 displayType = emptyDisplayType;
+            uint8 displayType = isViewedOutfit ? uint8(2) : uint8(0);
             if (imaID)
                 displayType = isHiddenAppearance(imaID) ? uint8(3) : uint8(1);
 
-            addSlotRow(mapping.slot, 0, imaID, 0, displayType, 0);
+            uint8 illusionDisplayType = (!imaID && isViewedOutfit) ? uint8(2) : uint8(0);
+            addSlotRow(mapping.slot, 0, imaID, 0, displayType, illusionDisplayType);
         }
 
         auto appendWeaponRows = [&](uint8 slot, std::initializer_list<uint8> placeholderOptions, uint8 selectedOption, uint32 appearance, uint32 enchant)
@@ -18151,8 +18152,8 @@ void Player::_SyncTransmogOutfitsToActivePlayerData(char const* caller)
 
                 uint32 imaID = 0;
                 uint32 rowEnchant = 0;
-                uint8 adt = emptyDisplayType;
-                uint8 idt = 0;
+                uint8 adt = isViewedOutfit ? uint8(2) : uint8(0);
+                uint8 idt = isViewedOutfit ? uint8(2) : uint8(0);
 
                 if (placeholderPaired)
                 {
@@ -18164,6 +18165,7 @@ void Player::_SyncTransmogOutfitsToActivePlayerData(char const* caller)
                     imaID = appearance;
                     rowEnchant = enchant;
                     adt = isHiddenAppearance(appearance) ? uint8(3) : uint8(1);
+                    idt = (isViewedOutfit && rowEnchant) ? uint8(1) : uint8(0);
                 }
 
                 addSlotRow(slot, option, imaID, rowEnchant, adt, idt);
@@ -18181,13 +18183,14 @@ void Player::_SyncTransmogOutfitsToActivePlayerData(char const* caller)
 
     auto fillStoredOutfitData = [&](auto&& outfitSetter, EquipmentSetInfo::EquipmentSetData const* equipmentSet)
     {
-        writeOutfitRows(outfitSetter, equipmentSet, 0);
+        writeOutfitRows(outfitSetter, equipmentSet, false);
     };
 
     auto fillViewedOutfitData = [&](auto&& outfitSetter, EquipmentSetInfo::EquipmentSetData const* equipmentSet)
     {
-        writeOutfitRows(outfitSetter, equipmentSet, 2);
+        writeOutfitRows(outfitSetter, equipmentSet, true);
     };
+
     uint32 firstOutfitId = 0;
     EquipmentSetInfo::EquipmentSetData const* firstOutfitData = nullptr;
     uint32 activeOutfitId = 0;

@@ -682,18 +682,15 @@ WorldPacket const* TransmogOutfitSlotsUpdated::Write()
     _worldPacket << uint32(SetID);
     _worldPacket << uint32(Slots.size());
 
-    for (TransmogOutfitSlotEntry const& slot : Slots)
+    for (TransmogOutfitSlotVisualData const& slot : Slots)
     {
-        uint8 raw[16] = {};
-        raw[0] = slot.SlotIndex;
-        raw[1] = slot.Option;
-        raw[2] = uint8(slot.AppearanceID & 0xFF);
-        raw[3] = uint8((slot.AppearanceID >> 8) & 0xFF);
-        raw[4] = uint8((slot.AppearanceID >> 16) & 0xFF);
-        raw[5] = uint8((slot.AppearanceID >> 24) & 0xFF);
-        raw[6] = uint8(slot.WireDisplayType & 0xFF);
-        raw[7] = uint8((slot.WireDisplayType >> 8) & 0xFF);
-        _worldPacket.append(raw, 16);
+        _worldPacket << uint8(slot.Slot);
+        _worldPacket << uint8(slot.SlotOption);
+        _worldPacket << uint32(slot.ItemModifiedAppearanceID);
+        _worldPacket << uint8(slot.AppearanceDisplayType);
+        _worldPacket << uint32(slot.SpellItemEnchantmentID);
+        _worldPacket << uint8(slot.IllusionDisplayType);
+        _worldPacket << uint32(slot.Flags);
     }
 
     return &_worldPacket;
