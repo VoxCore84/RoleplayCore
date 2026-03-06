@@ -13,8 +13,8 @@ Prioritized list of known issues, planned work, and blocked items. Updated as it
   - Priority: Enchanted Tome (mascot), Xal'atath, Alleria, Khadgar, Midnight raid journal art
 - **Phases 1â€“5**: Arcane visual refresh, animated pipeline, tool explorer, before/after slider, interactive timeline
 
-### Transmog: 5-Agent Audit Action Plan (sessions 62–63)
-**Status**: Phases 1–4 IMPLEMENTED. All fixes deployed, awaiting in-game testing. Phase 5 (retail capture) deferred.
+### Transmog: 5-Agent Audit Action Plan (sessions 62–73)
+**Status**: Phases 1–4 IMPLEMENTED + corrective pass (session 73). Behavioral model aligned to retail packets. Awaiting in-game testing.
 - ~~**Phase 1** (server bugs)~~: **DONE** (commit `20c9a0ea23`) — per-spec appearance bootstrap, HandleTransmogOutfitNew active ID, Finalize flush, clear spell active ID reset
 - ~~**Phase 2** (Bridge cleanup)~~: **DONE** (commit `20c9a0ea23`) — diagnostic probe removed, multi-part split bail-out, dead code removed, deterministic slot ordering
 - ~~**Phase 3** (TransmogSpy v2)~~: **DONE** (commit `1dfc2eb207`) — 944→1,317 lines, 17 commands, 12 new events, displayType capture, IMA name resolution, 6 new hooks

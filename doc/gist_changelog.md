@@ -2,6 +2,18 @@ RoleplayCore â€” Session Changelog (WoW 12.x private server)
 
 
 
+### Session 73 — Transmog Corrective Pass (Mar 5 2026)
+- **6 surgical fixes** to `fillOutfitData` in Player.cpp — retail behavioral model alignment
+  - Added `isStored` parameter to distinguish stored TransmogOutfits from live ViewedOutfit
+  - Assigned rows always ADT=1 (both contexts); viewed empty = ADT=2/IDT=2; stored empty = ADT=0/IDT=0
+  - Bootstrap from equipped items only for viewed outfits (stored keep empty slots as 0/0)
+  - SlotOption uses wire option index (mapping.option) not visual classification (0/1/3)
+  - Stamped MH/OH options use real MainHandOption/OffHandOption enums, not booleans
+  - Paired weapon placeholder threshold corrected to options >= 5 (was >= 6)
+- **CLAUDE.md**: Updated transmog authoritative rules — all confidence levels now HIGH
+- **`/transmog-correct` command**: Added to `.claude/commands/` for future corrective passes
+- Commit: `7bb510359b`
+
 ### Session 72 — Universal Scraper + Midnight Data Harvest (Mar 5 2026)
 - **Scraper v2**: Upgraded to 5 entity types (quest, npc, trainer, vendor, object), 120 Tor workers, per-batch logging
   - Added NPC page parser (vendor items, teaches, quests, gossip) and object page parser (quest starts/ends, loot)
