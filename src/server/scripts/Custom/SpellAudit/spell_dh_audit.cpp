@@ -175,7 +175,7 @@ class spell_dh_blind_fury : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff2=150.0
@@ -203,7 +203,7 @@ class spell_dh_mastery_fel_blood : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=0.0
@@ -231,7 +231,7 @@ class spell_dh_demonic_213410 : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=5000.0
@@ -258,7 +258,7 @@ class spell_dh_improved_disrupt : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff1=5.0
@@ -286,7 +286,7 @@ class spell_dh_demonic_321453 : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=5000.0
@@ -314,7 +314,7 @@ class spell_dh_unbound_chaos : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=0.0, eff1=300.0
@@ -344,7 +344,7 @@ class spell_dh_isolated_prey : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=2000.0, eff1=30.0, eff2=200.0
@@ -376,7 +376,7 @@ class spell_dh_felfire_fist : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=0.0, eff1=5000.0
@@ -406,7 +406,7 @@ class spell_dh_inertia : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=20.0, eff1=10000.0
@@ -436,7 +436,7 @@ class spell_dh_chaotic_disposition : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=3.0, eff1=777.0, eff2=17.0
@@ -468,7 +468,7 @@ class spell_dh_waste_not : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=200.0, eff1=3.0
@@ -497,7 +497,7 @@ class spell_dh_focused_ire : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=2000.0
@@ -525,7 +525,7 @@ class spell_dh_final_breath : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=300.0
@@ -553,7 +553,7 @@ class spell_dh_voidrush : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=10000.0
@@ -587,7 +587,7 @@ class spell_dh_shattered_destiny : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0, eff1=12.0
@@ -612,7 +612,7 @@ class spell_dh_reavers_mark : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0, eff1=1.0
@@ -637,7 +637,7 @@ class spell_dh_fury_of_the_aldrachi : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0, eff1=3.0
@@ -662,7 +662,7 @@ class spell_dh_screaming_brutality : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=35.0, eff1=50.0, eff2=100.0
@@ -688,7 +688,7 @@ class spell_dh_eternal_hunt_1270898 : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0
@@ -711,7 +711,7 @@ class spell_dh_bladecraft : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=6.0, eff3=100.0
@@ -738,7 +738,7 @@ class spell_dh_burning_alive : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Trigger spell on proc event
         // bp=eff0=0.0
@@ -1686,7 +1686,7 @@ class spell_dh_singular_strikes : public AuraScript
 // "You heal for $s1% of all Fire damage you deal."
 class spell_dh_charred_warblades : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -1702,7 +1702,7 @@ class spell_dh_charred_warblades : public AuraScript
 // "The chance that Chaos Strike will refund $193840s1 Fury is increased by $s2% of your critical strike chance."
 class spell_dh_critical_chaos : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -1718,7 +1718,7 @@ class spell_dh_critical_chaos : public AuraScript
 // "Gain critical strike damage equal to $s2% of your critical strike chance."
 class spell_dh_know_your_enemy : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -1734,7 +1734,7 @@ class spell_dh_know_your_enemy : public AuraScript
 // "Movement speed increased by $s1% per $s2 Fury."
 class spell_dh_pursuit_of_angriness : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=eff1=10.0
@@ -1750,7 +1750,7 @@ class spell_dh_pursuit_of_angriness : public AuraScript
 // "The effects of your demon form persist outside of it in a weakened state, increasing $?a212612[Chaos Strike and Blade Da"
 class spell_dh_enduring_torment : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -1766,7 +1766,7 @@ class spell_dh_enduring_torment : public AuraScript
 // "$?a212612[Agility][Intellect] increased by $?a212612[$452550s1][$452550s2]% while not in demon form."
 class spell_dh_monster_rising : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -1782,7 +1782,7 @@ class spell_dh_monster_rising : public AuraScript
 // "Collecting $1225789u Soul Fragments grants access to Void Metamorphosis. $@spellicon1217605 $@spellname1217605 $@spellde"
 class spell_dh_void_metamorphosis_471306 : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=eff3=100.0
@@ -1798,7 +1798,7 @@ class spell_dh_void_metamorphosis_471306 : public AuraScript
 // "$?a427775[Chaos][Fire]"
 class spell_dh_a_fire_inside_1224451 : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -1814,7 +1814,7 @@ class spell_dh_a_fire_inside_1224451 : public AuraScript
 // "Light your soul aflame, dealing $o2 Fire damage to yourself, generating ${$1242475s1*$s3} Fury and shattering $s1 Soul F"
 class spell_dh_soul_immolation : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=eff2=6.0, eff3=0.0
@@ -1830,7 +1830,7 @@ class spell_dh_soul_immolation : public AuraScript
 // "All Cosmic damage dealt increased by $s4%. Collapsing Star's critical strike damage is increased by $s3% of your critica"
 class spell_dh_midnight_1250088 : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=eff2=50.0
@@ -1846,7 +1846,7 @@ class spell_dh_midnight_1250088 : public AuraScript
 // "While in Void Metamorphosis, leaving combat or being crowd controlled will substantially reduce the rate at which you dr"
 class spell_dh_grim_focus : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -1862,7 +1862,7 @@ class spell_dh_grim_focus : public AuraScript
 // "While in combat, generate $s1 Soul $LFragment:Fragments; every $t1 sec. While out of combat, you will slowly build towar"
 class spell_dh_entropy : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=eff1=25.0
@@ -1878,7 +1878,7 @@ class spell_dh_entropy : public AuraScript
 // "$@spelldesc1266497"
 class spell_dh_first_in_last_out : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -2098,13 +2098,13 @@ class spell_dh_predators_wake : public AuraScript
 // 197125 - Chaos Strike — needs spell_proc SQL entry + possibly C++ proc filter
 class spell_dh_chaos_strike : public AuraScript
 {
-    bool CheckProc(ProcEventInfo& eventInfo)
+    bool CheckProc(ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Validate proc conditions
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
     }

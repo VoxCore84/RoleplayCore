@@ -200,7 +200,7 @@ class spell_warlock_mastery_chaotic_energies : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=0.0
@@ -227,7 +227,7 @@ class spell_warlock_wicked_maw : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=-25.0
@@ -254,7 +254,7 @@ class spell_warlock_demonic_consumption : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=1000.0
@@ -281,7 +281,7 @@ class spell_warlock_raging_demonfire : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff1=500.0
@@ -308,7 +308,7 @@ class spell_warlock_decimation : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=-5000.0, eff1=35.0
@@ -338,7 +338,7 @@ class spell_warlock_mayhem : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=35.0, eff1=60.0, eff2=5000.0
@@ -370,7 +370,7 @@ class spell_warlock_cruelty_of_kerxan : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=3000.0
@@ -398,7 +398,7 @@ class spell_warlock_infernal_machine : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=1000.0
@@ -426,7 +426,7 @@ class spell_warlock_improved_demonic_tactics : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=50.0
@@ -454,7 +454,7 @@ class spell_warlock_cull_the_weak : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=1500.0
@@ -482,7 +482,7 @@ class spell_warlock_infernal_rapidity : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=10.0, eff1=200.0
@@ -511,7 +511,7 @@ class spell_warlock_infernal_beneficiary : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=400.0
@@ -538,7 +538,7 @@ class spell_warlock_empowered_drain_life : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff1=10.0
@@ -565,7 +565,7 @@ class spell_warlock_empowered_healthstone : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff1=1.0
@@ -599,7 +599,7 @@ class spell_warlock_nightfall : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=0.0
@@ -622,7 +622,7 @@ class spell_warlock_sweet_souls : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff1=100.0, eff2=20.0
@@ -646,7 +646,7 @@ class spell_warlock_pandemic_invocation : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff2=100.0
@@ -670,7 +670,7 @@ class spell_warlock_conflagration_of_chaos : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0
@@ -694,7 +694,7 @@ class spell_warlock_diabolic_embers : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0
@@ -717,7 +717,7 @@ class spell_warlock_immutable_hatred : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0
@@ -740,7 +740,7 @@ class spell_warlock_umbral_blaze : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0, eff1=100.0
@@ -764,7 +764,7 @@ class spell_warlock_aura_of_enfeeblement : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0
@@ -788,7 +788,7 @@ class spell_warlock_demoniacs_fervor : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0
@@ -812,7 +812,7 @@ class spell_warlock_demonfire_infusion : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=4.0, eff1=25.0, eff2=100.0
@@ -837,7 +837,7 @@ class spell_warlock_sudden_onset : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff1=3.0
@@ -863,7 +863,7 @@ class spell_warlock_demonic_calling_205145 : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Trigger spell on proc event
         // bp=eff0=2.0, eff1=5.0, eff2=20.0
@@ -886,7 +886,7 @@ class spell_warlock_dread_calling : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Trigger spell on proc event
         // bp=eff0=2.0
@@ -907,7 +907,7 @@ class spell_warlock_summon_vilefiend : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Trigger spell on proc event
         // bp=eff0=0.0
@@ -928,7 +928,7 @@ class spell_warlock_demonic_calling_1276947 : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Trigger spell on proc event
         // bp=eff0=1.0
@@ -2096,7 +2096,7 @@ class spell_warlock_to_hell_and_back : public AuraScript
 // "Launches $s1 bolts of felfire over $d at random targets afflicted by your $?a445465[Wither][Immolate] within $196449A1 y"
 class spell_warlock_channel_demonfire : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -2112,7 +2112,7 @@ class spell_warlock_channel_demonfire : public AuraScript
 // "Places a phantom singularity above the target, which consumes the life of all enemies within $205246A2 yards, dealing ${"
 class spell_warlock_phantom_singularity : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -2128,7 +2128,7 @@ class spell_warlock_phantom_singularity : public AuraScript
 // "Your Soul Leech absorption now passively recharges at a rate of ${$s1/10}.1% of maximum health every $t1 sec, and may no"
 class spell_warlock_demon_skin : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -2144,7 +2144,7 @@ class spell_warlock_demon_skin : public AuraScript
 // "You passively summon a Wild Imp to fight for you every $t1 sec."
 class spell_warlock_inner_demons : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -2160,7 +2160,7 @@ class spell_warlock_inner_demons : public AuraScript
 // "$@spelldesc386244"
 class spell_warlock_summon_soulkeeper : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -2176,7 +2176,7 @@ class spell_warlock_summon_soulkeeper : public AuraScript
 // "Calls down a rain of hellfire upon your target, dealing ${$42223m1*8} Fire damage over $d to enemies in the area. |cFFFF"
 class spell_warlock_rain_of_fire : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=eff0=50.0

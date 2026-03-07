@@ -229,7 +229,7 @@ class spell_paladin_saved_by_the_light : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=300.0, eff1=9.0
@@ -258,7 +258,7 @@ class spell_paladin_mastery_lightbringer : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=0.0
@@ -286,7 +286,7 @@ class spell_paladin_crusaders_might : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=-1500.0, eff1=-1500.0
@@ -315,7 +315,7 @@ class spell_paladin_fires_of_justice_203316 : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff1=-1000.0
@@ -342,7 +342,7 @@ class spell_paladin_crusaders_judgment : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff1=3000.0
@@ -369,7 +369,7 @@ class spell_paladin_gift_of_the_golden_valkyr_378279 : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=1000.0, eff2=4.0
@@ -398,7 +398,7 @@ class spell_paladin_sanctuary_379021 : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=4000.0
@@ -425,7 +425,7 @@ class spell_paladin_divine_revelations : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=500.0, eff1=20.0
@@ -454,7 +454,7 @@ class spell_paladin_zealots_paragon : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=500.0
@@ -482,7 +482,7 @@ class spell_paladin_tirions_devotion : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=1000.0
@@ -509,7 +509,7 @@ class spell_paladin_improved_cleanse : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=0.0
@@ -537,7 +537,7 @@ class spell_paladin_dawnlight : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=2.0, eff1=8000.0, eff2=20.0, eff3=3.0
@@ -571,7 +571,7 @@ class spell_paladin_lingering_radiance : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=6000.0
@@ -599,7 +599,7 @@ class spell_paladin_laying_down_arms : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=15000.0
@@ -627,7 +627,7 @@ class spell_paladin_valiance : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=3000.0
@@ -655,7 +655,7 @@ class spell_paladin_steed_of_liberty : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=3000.0
@@ -682,7 +682,7 @@ class spell_paladin_lead_the_charge : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=4.0, eff1=-3000.0, eff2=12.0
@@ -714,7 +714,7 @@ class spell_paladin_solace : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=300.0
@@ -742,7 +742,7 @@ class spell_paladin_valiant_crusade_1245979 : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=4000.0
@@ -770,7 +770,7 @@ class spell_paladin_divine_exaction : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=2.0, eff1=150.0
@@ -800,7 +800,7 @@ class spell_paladin_endless_gleam : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=500.0, eff1=300.0, eff2=300.0
@@ -831,7 +831,7 @@ class spell_paladin_fear_no_evil : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff1=-60.0, eff2=-20.0
@@ -867,7 +867,7 @@ class spell_paladin_infusion_of_light_53576 : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=10.0
@@ -890,7 +890,7 @@ class spell_paladin_first_avenger : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff1=100.0
@@ -913,7 +913,7 @@ class spell_paladin_glimmer_of_light_287269 : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff1=8.0, eff2=4.0, eff3=100.0
@@ -939,7 +939,7 @@ class spell_paladin_word_of_glory : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=300.0, eff1=100.0
@@ -964,7 +964,7 @@ class spell_paladin_hand_of_the_protector : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0
@@ -988,7 +988,7 @@ class spell_paladin_healing_hands : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=60.0, eff1=30.0, eff2=100.0
@@ -1014,7 +1014,7 @@ class spell_paladin_light_of_the_titans : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=40.0, eff1=100.0
@@ -1039,7 +1039,7 @@ class spell_paladin_seal_of_charity : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0
@@ -1062,7 +1062,7 @@ class spell_paladin_imbued_infusions : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=-1000.0
@@ -1086,7 +1086,7 @@ class spell_paladin_art_of_war : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=15.0, eff1=10.0
@@ -1110,7 +1110,7 @@ class spell_paladin_righteous_judgment : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0
@@ -1134,7 +1134,7 @@ class spell_paladin_hammer_and_anvil : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0, eff1=100.0, eff2=5.0, eff3=5.0
@@ -1160,7 +1160,7 @@ class spell_paladin_worthy_sacrifice : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0
@@ -1184,7 +1184,7 @@ class spell_paladin_tempered_in_battle : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0
@@ -1208,7 +1208,7 @@ class spell_paladin_refining_fire : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0
@@ -1232,7 +1232,7 @@ class spell_paladin_authoritative_rebuke : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=1000.0, eff1=100.0, eff2=1000.0
@@ -1257,7 +1257,7 @@ class spell_paladin_ringing_of_the_heavens : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0
@@ -1281,7 +1281,7 @@ class spell_paladin_undying_embers : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0
@@ -1305,7 +1305,7 @@ class spell_paladin_searing_sunlight : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0
@@ -1329,7 +1329,7 @@ class spell_paladin_vision_of_sanctity : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0
@@ -1353,7 +1353,7 @@ class spell_paladin_light_within_1261159 : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0
@@ -1377,7 +1377,7 @@ class spell_paladin_walk_into_light : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0, eff1=2.0, eff2=100.0
@@ -1403,7 +1403,7 @@ class spell_paladin_resounding_strike : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0
@@ -1429,7 +1429,7 @@ class spell_paladin_bulwark_of_righteous_fury : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Trigger spell on proc event
         // bp=eff0=0.0
@@ -1450,7 +1450,7 @@ class spell_paladin_glory_of_the_vanguard_1267203 : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Trigger spell on proc event
         // bp=eff0=0.0
@@ -2471,7 +2471,7 @@ class spell_paladin_armory_of_light : public AuraScript
 // "Mark a second target as a Beacon, mimicking the effects of Beacon of Light. Your heals will now heal both of your Beacon"
 class spell_paladin_beacon_of_faith : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=eff0=50.0
@@ -2487,7 +2487,7 @@ class spell_paladin_beacon_of_faith : public AuraScript
 // "Apply a Beacon of Light to your target and $s2 injured allies within $A2 yds for $d. All affected allies will be healed "
 class spell_paladin_beacon_of_virtue : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=eff0=0.0, eff1=4.0
@@ -2503,7 +2503,7 @@ class spell_paladin_beacon_of_virtue : public AuraScript
 // "You gain a stack of Light's Deliverance when you call down an Empyrean Hammer. While $?a137028[Divine Toll][Wake of Ashe"
 class spell_paladin_lights_deliverance_425518 : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -2519,7 +2519,7 @@ class spell_paladin_lights_deliverance_425518 : public AuraScript
 // "Movement speed increased by $431462s1% while above $s1% health. When your health is brought below $s3%, your movement sp"
 class spell_paladin_will_of_the_dawn_431406 : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -2535,7 +2535,7 @@ class spell_paladin_will_of_the_dawn_431406 : public AuraScript
 // "Every ${$t1}.1 sec, your next Dawnlight's damage or healing is increased by $431539s1%, stacking up to $431539u times. M"
 class spell_paladin_morning_star : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -2551,7 +2551,7 @@ class spell_paladin_morning_star : public AuraScript
 // "$s1% of all healing done to you from other sources heals up to $s2 nearby allies, divided evenly among them."
 class spell_paladin_lightbearer : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=eff1=4.0
@@ -2567,7 +2567,7 @@ class spell_paladin_lightbearer : public AuraScript
 // "Damage taken reduced by up to $s1%, increasing as your health decreases."
 class spell_paladin_blessing_of_dusk : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -2583,7 +2583,7 @@ class spell_paladin_blessing_of_dusk : public AuraScript
 // "While in combat, apply a Beacon of the Savior to the lowest health ally within $s1 yds that causes your direct healing o"
 class spell_paladin_beacon_of_the_savior_1244878 : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=eff0=30.0, eff1=10.0
@@ -2599,7 +2599,7 @@ class spell_paladin_beacon_of_the_savior_1244878 : public AuraScript
 // "Every $t1 sec or when Beacon of the Savior transfers to a new injured target, they are granted an absorb shield that pre"
 class spell_paladin_beacon_of_the_savior_1245368 : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -2615,7 +2615,7 @@ class spell_paladin_beacon_of_the_savior_1245368 : public AuraScript
 // "Your healing is increased by up to $s2%, based on the average health percentage of allies with your Beacon of Light."
 class spell_paladin_rising_sunlight : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -3233,13 +3233,13 @@ class spell_paladin_templar_strikes : public AuraScript
 // 402912 - Righteous Cause — needs spell_proc SQL entry + possibly C++ proc filter
 class spell_paladin_righteous_cause : public AuraScript
 {
-    bool CheckProc(ProcEventInfo& eventInfo)
+    bool CheckProc(ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Validate proc conditions
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
     }
@@ -3254,13 +3254,13 @@ class spell_paladin_righteous_cause : public AuraScript
 // 403530 - Punishment — needs spell_proc SQL entry + possibly C++ proc filter
 class spell_paladin_punishment : public AuraScript
 {
-    bool CheckProc(ProcEventInfo& eventInfo)
+    bool CheckProc(ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Validate proc conditions
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
     }
@@ -3275,13 +3275,13 @@ class spell_paladin_punishment : public AuraScript
 // 404357 - Guided Prayer — needs spell_proc SQL entry + possibly C++ proc filter
 class spell_paladin_guided_prayer : public AuraScript
 {
-    bool CheckProc(ProcEventInfo& eventInfo)
+    bool CheckProc(ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Validate proc conditions
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
     }
@@ -3296,13 +3296,13 @@ class spell_paladin_guided_prayer : public AuraScript
 // 431533 - Shake the Heavens — needs spell_proc SQL entry + possibly C++ proc filter
 class spell_paladin_shake_the_heavens : public AuraScript
 {
-    bool CheckProc(ProcEventInfo& eventInfo)
+    bool CheckProc(ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Validate proc conditions
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
     }
@@ -3317,13 +3317,13 @@ class spell_paladin_shake_the_heavens : public AuraScript
 // 431551 - Wrathful Descent — needs spell_proc SQL entry + possibly C++ proc filter
 class spell_paladin_wrathful_descent : public AuraScript
 {
-    bool CheckProc(ProcEventInfo& eventInfo)
+    bool CheckProc(ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Validate proc conditions
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
     }
@@ -3338,13 +3338,13 @@ class spell_paladin_wrathful_descent : public AuraScript
 // 431687 - Higher Calling — needs spell_proc SQL entry + possibly C++ proc filter
 class spell_paladin_higher_calling : public AuraScript
 {
-    bool CheckProc(ProcEventInfo& eventInfo)
+    bool CheckProc(ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Validate proc conditions
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
     }
@@ -3359,13 +3359,13 @@ class spell_paladin_higher_calling : public AuraScript
 // 432463 - Hammerfall — needs spell_proc SQL entry + possibly C++ proc filter
 class spell_paladin_hammerfall : public AuraScript
 {
-    bool CheckProc(ProcEventInfo& eventInfo)
+    bool CheckProc(ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Validate proc conditions
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
     }
@@ -3380,13 +3380,13 @@ class spell_paladin_hammerfall : public AuraScript
 // 432977 - Sanctification — needs spell_proc SQL entry + possibly C++ proc filter
 class spell_paladin_sanctification : public AuraScript
 {
-    bool CheckProc(ProcEventInfo& eventInfo)
+    bool CheckProc(ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Validate proc conditions
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
     }
@@ -3401,13 +3401,13 @@ class spell_paladin_sanctification : public AuraScript
 // 433674 - Light's Deliverance — needs spell_proc SQL entry + possibly C++ proc filter
 class spell_paladin_lights_deliverance_433674 : public AuraScript
 {
-    bool CheckProc(ProcEventInfo& eventInfo)
+    bool CheckProc(ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Validate proc conditions
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
     }
@@ -3422,13 +3422,13 @@ class spell_paladin_lights_deliverance_433674 : public AuraScript
 // 1241358 - Empyrean Legacy — needs spell_proc SQL entry + possibly C++ proc filter
 class spell_paladin_empyrean_legacy_1241358 : public AuraScript
 {
-    bool CheckProc(ProcEventInfo& eventInfo)
+    bool CheckProc(ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Validate proc conditions
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
     }

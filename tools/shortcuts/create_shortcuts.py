@@ -35,6 +35,7 @@ CHROME   = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
 FOLDERS = [
     "VC Server", "VC Build", "VC Pipeline",
     "VC Packets", "VC Audits", "VC Web", "VC Tools",
+    "VC Data",  # legacy duplicate folder — included so clean_all() removes it
 ]
 
 # ═══════════════════════════════════════════════════════════════════
@@ -355,9 +356,9 @@ def create_all():
     d = make_folder("VC Web", "spell_arcane_portaldalaran.png")
 
     make_shortcut(d, "VoxCore Docs",
-        CHROME, '--app="file:///C:/Users/atayl/VoxCore/website/site/index.html"',
+        CHROME, "https://voxcore84.github.io/roleplaycore-report/index.html",
         None,
-        "VoxCore project documentation website — 11 pages covering framework, pipeline, tooling, AI workflow, status, and results. Opens in a clean Chrome window (no address bar).",
+        "VoxCore project documentation — framework, pipeline, tooling, AI workflow, status, and results. Hosted on GitHub Pages.",
         "inv_misc_book_05.png")
 
     make_shortcut(d, "Task Tracker",
@@ -367,9 +368,9 @@ def create_all():
         "achievement_guildperk_workingovertime.png")
 
     make_shortcut(d, "ATT Browser",
-        "cmd.exe", f'/k python "{WAGO}\\att_browser\\app.py"',
+        "cmd.exe", '/k python app.py --port 5051',
         os.path.join(WAGO, "att_browser"),
-        "AllTheThings database browser — Flask web UI backed by SQLite (att.db). Mirrors the in-game addon: tree navigation, search, detail views. Starts on localhost, open the URL shown in the console.",
+        "AllTheThings database browser — Flask web UI backed by SQLite (att.db). Mirrors the in-game addon: tree navigation, search, detail views. Opens on localhost:5051.",
         "achievement_guildperk_mobilebanking.png")
 
     make_shortcut(d, "WebTerm",
@@ -390,6 +391,24 @@ def create_all():
         "Claude AI toolkit reference documentation — covers all MCP servers, slash commands, skills, and automation used in this project.",
         "inv_misc_book_03.png")
 
+    make_shortcut(d, "GitHub Repo",
+        CHROME, "https://github.com/VoxCore84/RoleplayCore",
+        None,
+        "VoxCore84/RoleplayCore — main GitHub repository. Issues, PRs, commits, CI.",
+        "achievement_guildperk_ladyluck.png")
+
+    make_shortcut(d, "Discord (Dev Channel)",
+        CHROME, "https://discord.com/channels/1231835263861395487/1231843017732788265",
+        None,
+        "VoxCore development Discord channel — chat, coordination, and announcements.",
+        "ui_chat.png")
+
+    make_shortcut(d, "Wago.tools",
+        CHROME, "https://wago.tools/db2",
+        None,
+        "Wago.tools DB2 browser — online reference for all 1,097 WoW DB2 tables. Use for column lookups, data verification, and hotfix comparisons.",
+        "inv_enchant_formulagood_01.png")
+
     # ── 7. VC TOOLS ────────────────────────────────────────────────
     # Miscellaneous utilities and quick access.
     d = make_folder("VC Tools", "inv_misc_wrench_01.png")
@@ -406,10 +425,10 @@ def create_all():
         "GUI tool to convert raw .db2/.dbc files to CSV format. Drag-and-drop or browse for files. Used by TACT Extract internally, but useful standalone for one-off conversions.",
         "inv_datacrystal06.png")
 
-    make_shortcut(d, "SpellCreator",
-        os.path.join(ROOT, r"addons\SpellCreator\SpellCreator.exe"), None,
-        os.path.join(ROOT, r"addons\SpellCreator"),
-        "Spell visual effect creator GUI (141 MB standalone app). Create and preview SpellVisualKit effects for custom spells and NPC abilities.",
+    make_shortcut(d, "Spell Creator",
+        "cmd.exe", f'/k python "{TOOLS}\\spell_creator.py"',
+        ROOT,
+        "Interactive spell creation CLI - templates, cloning, CSV lookup, hotfix SQL generation, SOAP reload. 11 templates, 1888 spell DB. Replaces old .NET SpellCreator.",
         "inv_wand_07.png")
 
     make_shortcut(d, "Restart Cowork",
@@ -429,6 +448,12 @@ def create_all():
         None,
         "Open the VoxCore project root (C:\\Users\\atayl\\VoxCore) in Explorer.",
         "inv_misc_head_dragon_bronze.png")
+
+    make_shortcut(d, "CC Sync Report",
+        "cmd.exe", f'/k python "{TOOLS}\\command-center\\sync_from_desktop.py"',
+        TOOLS,
+        "Compare desktop VC folder shortcuts against Command Center cards. Shows missing, extra, and matched items.",
+        "ability_monk_roll.png")
 
     # ── Summary ────────────────────────────────────────────────────
     total = sum(len([f for f in os.listdir(os.path.join(DESKTOP, d))

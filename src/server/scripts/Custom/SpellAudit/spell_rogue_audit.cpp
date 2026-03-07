@@ -167,7 +167,7 @@ class spell_rogue_subterfuge : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff3=2000.0
@@ -194,7 +194,7 @@ class spell_rogue_deeper_stratagem : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff2=5.0
@@ -221,7 +221,7 @@ class spell_rogue_mastery_potent_assassin : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=0.0
@@ -248,7 +248,7 @@ class spell_rogue_improved_backstab : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=10.0
@@ -275,7 +275,7 @@ class spell_rogue_improved_shuriken_storm : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=10.0
@@ -303,7 +303,7 @@ class spell_rogue_improved_adrenaline_rush : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=0.0
@@ -331,7 +331,7 @@ class spell_rogue_unseen_blade : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=10000.0
@@ -359,7 +359,7 @@ class spell_rogue_shadewalker : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=-3000.0
@@ -392,7 +392,7 @@ class spell_rogue_seal_fate : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0
@@ -416,7 +416,7 @@ class spell_rogue_silent_storm : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0
@@ -439,7 +439,7 @@ class spell_rogue_sudden_demise : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff1=150.0, eff2=35.0
@@ -464,7 +464,7 @@ class spell_rogue_shuriken_storm : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0
@@ -490,7 +490,7 @@ class spell_rogue_relentless_strikes : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Trigger spell on proc event
         // bp=eff0=0.0
@@ -511,7 +511,7 @@ class spell_rogue_venom_rush : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Trigger spell on proc event
         // bp=eff0=0.0
@@ -1608,7 +1608,7 @@ class spell_rogue_umbral_edge : public AuraScript
 // "Finishing move that tears open the target, dealing Bleed damage over time. Lasts longer per combo point.    1 point  : $"
 class spell_rogue_rupture : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -1624,7 +1624,7 @@ class spell_rogue_rupture : public AuraScript
 // "Designer Note: The only purpose of this aura is to mark a player who just cast Marked for Death."
 class spell_rogue_marked_for_death : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -1640,7 +1640,7 @@ class spell_rogue_marked_for_death : public AuraScript
 // "Every $t1 sec, gain $270070s1% increased damage for your next Fan of Knives, stacking up to $270070u times."
 class spell_rogue_hidden_blades : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -1656,7 +1656,7 @@ class spell_rogue_hidden_blades : public AuraScript
 // "Slice and Dice grants additional attack speed equal to $s2% of your Haste."
 class spell_rogue_swift_slasher : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -1672,7 +1672,7 @@ class spell_rogue_swift_slasher : public AuraScript
 // "Your finishing moves heal you for $s1% of damage done. At full health gain shielding instead, absorbing up to $s2% of yo"
 class spell_rogue_exhilarating_execution : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=eff1=10.0
@@ -1688,7 +1688,7 @@ class spell_rogue_exhilarating_execution : public AuraScript
 // "You have a $s2% chance to absorb $s1% of any damage taken."
 class spell_rogue_tempted_fate : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=eff0=10.0, eff1=30.0, eff2=0.0
@@ -1704,7 +1704,7 @@ class spell_rogue_tempted_fate : public AuraScript
 // "$@spelldesc185314"
 class spell_rogue_deepening_shadows : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none

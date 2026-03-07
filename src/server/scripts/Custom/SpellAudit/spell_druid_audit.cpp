@@ -208,7 +208,7 @@ class spell_druid_mastery_razor_claws : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff2=200.0
@@ -235,7 +235,7 @@ class spell_druid_mastery_harmony : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=0.0
@@ -263,7 +263,7 @@ class spell_druid_improved_regrowth : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=40.0
@@ -290,7 +290,7 @@ class spell_druid_lingering_healing : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff1=3000.0
@@ -318,7 +318,7 @@ class spell_druid_scintillating_moonlight : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=-1.0
@@ -345,7 +345,7 @@ class spell_druid_after_the_wildfire_371905 : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff1=300.0, eff2=5.0
@@ -374,7 +374,7 @@ class spell_druid_wellhoned_instincts : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=120.0
@@ -402,7 +402,7 @@ class spell_druid_improved_natures_cure : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=0.0
@@ -429,7 +429,7 @@ class spell_druid_ursocs_guidance : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff3=-60000.0, eff4=25.0, eff5=1.0
@@ -460,7 +460,7 @@ class spell_druid_elunes_guidance : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff3=-60000.0
@@ -488,7 +488,7 @@ class spell_druid_incarnation_chosen_of_elune : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=102560.0
@@ -516,7 +516,7 @@ class spell_druid_improved_prowl : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=0.0
@@ -544,7 +544,7 @@ class spell_druid_the_light_of_elune : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=12.0, eff1=3000.0
@@ -574,7 +574,7 @@ class spell_druid_lunation : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=-1500.0, eff1=-1000.0, eff2=-3000.0
@@ -606,7 +606,7 @@ class spell_druid_entangling_vortex : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=3000.0
@@ -634,7 +634,7 @@ class spell_druid_implant : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=4000.0, eff1=6000.0
@@ -664,7 +664,7 @@ class spell_druid_aggravate_wounds : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=600.0, eff1=600.0, eff2=8.0
@@ -696,7 +696,7 @@ class spell_druid_stellar_amplification : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=20000.0
@@ -724,7 +724,7 @@ class spell_druid_hail_of_stars : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=3000.0
@@ -752,7 +752,7 @@ class spell_druid_elunes_challenge : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=400.0
@@ -779,7 +779,7 @@ class spell_druid_wild_guardian_1269619 : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=2.0, eff2=2.0, eff3=8000.0
@@ -811,7 +811,7 @@ class spell_druid_star_cascade : public AuraScript
         return true;
     }
 
-    void HandleApply(AuraEffect const* aurEff, AuraEffectHandleModes /*mode*/)
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
     {
         // TODO: Apply modifier from aurEff->GetAmount()
         // Effect stores: bp=eff0=40.0, eff1=50.0, eff2=70.0, eff3=120.0
@@ -851,7 +851,7 @@ class spell_druid_predatory_swiftness : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=50.0, eff1=80.0, eff2=20.0
@@ -877,7 +877,7 @@ class spell_druid_dream_of_cenarius : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0, eff1=50.0, eff2=200.0
@@ -902,7 +902,7 @@ class spell_druid_reinvigoration : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff2=100.0
@@ -926,7 +926,7 @@ class spell_druid_rampant_ferocity : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=5.0, eff1=100.0
@@ -951,7 +951,7 @@ class spell_druid_verdant_infusion : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=8.0
@@ -975,7 +975,7 @@ class spell_druid_blooming_infusion : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=5.0
@@ -999,7 +999,7 @@ class spell_druid_thriving_growth : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0, eff1=135.0, eff2=85.0, eff3=85.0, eff4=155.0, eff5=52.0, eff6=75.0
@@ -1028,7 +1028,7 @@ class spell_druid_killing_blow : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff1=100.0
@@ -1051,7 +1051,7 @@ class spell_druid_harnessed_rage : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=80.0, eff1=100.0
@@ -1076,7 +1076,7 @@ class spell_druid_gift_of_the_wild : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=100.0
@@ -1100,7 +1100,7 @@ class spell_druid_rampancy : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Implement proc behavior
         // DUMMY bp=eff0=30.0, eff1=20.0, eff2=100.0, eff3=100.0
@@ -1129,7 +1129,7 @@ class spell_druid_feline_adept : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Trigger spell on proc event
         // bp=eff0=0.0
@@ -1150,7 +1150,7 @@ class spell_druid_call_of_the_elder_druid_426784 : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Trigger spell on proc event
         // bp=eff0=15.0
@@ -1171,7 +1171,7 @@ class spell_druid_sylvan_beckoning : public AuraScript
         return true;
     }
 
-    void HandleProc(AuraEffect* aurEff, ProcEventInfo& eventInfo)
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& /*eventInfo*/)
     {
         // TODO: Trigger spell on proc event
         // bp=eff0=10.0, eff1=200.0
@@ -2289,7 +2289,7 @@ class spell_druid_panthers_guile : public AuraScript
 // "Finishing move that increases damage by $62071s1% and energy regeneration rate by $62071s3% while in Cat Form. Lasts lon"
 class spell_druid_savage_roar : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=eff1=10.0
@@ -2305,7 +2305,7 @@ class spell_druid_savage_roar : public AuraScript
 // "Heals you for $s1% of your maximum health every $t1 sec. If you are at full health, an injured party or raid member will"
 class spell_druid_yseras_gift : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -2321,7 +2321,7 @@ class spell_druid_yseras_gift : public AuraScript
 // "Moonfire and Sunfire damage over time has a chance to call down a falling star, dealing $202497s1 Astral damage and gene"
 class spell_druid_shooting_stars : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -2337,7 +2337,7 @@ class spell_druid_shooting_stars : public AuraScript
 // "Shift into Cat Form and increase your movement speed by $s1%, reducing gradually over $d."
 class spell_druid_tiger_dash : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -2353,7 +2353,7 @@ class spell_druid_tiger_dash : public AuraScript
 // "Unleash a furious frenzy, clawing your target $m2 times for ${$274838s1*$m2} Physical damage and an additional ${$m2*$27"
 class spell_druid_feral_frenzy : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -2369,7 +2369,7 @@ class spell_druid_feral_frenzy : public AuraScript
 // "Abilities not associated with your specialization are substantially empowered for $d.$?!s137013[ |cFFFFFFFFBalance:|r Ca"
 class spell_druid_call_of_the_elder_druid_319454 : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
@@ -2385,7 +2385,7 @@ class spell_druid_call_of_the_elder_druid_319454 : public AuraScript
 // "Call upon the spirits for an eruption of energy, channeling a rapid flurry of $s2 Druid spells and abilities over $d.$?s"
 class spell_druid_convoke_the_spirits : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=eff1=16.0
@@ -2401,7 +2401,7 @@ class spell_druid_convoke_the_spirits : public AuraScript
 // "$@spelldesc202021"
 class spell_druid_predator : public AuraScript
 {
-    void HandlePeriodic(AuraEffect const* aurEff)
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
     {
         // TODO: Implement periodic tick behavior
         // bp=none
