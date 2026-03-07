@@ -82,10 +82,10 @@ def make_shortcut(folder_path, name, target, args=None, work_dir=None,
     if work_dir:
         s.WorkingDirectory = work_dir
     if desc:
-        s.Description = desc
+        s.Description = desc[:259]
     if icon_png:
         ico = png_to_ico(icon_png)
-        s.IconLocation = ico
+        s.IconLocation = f"{ico},0"
     s.Save()
     print(f"    {name}")
 
@@ -173,9 +173,9 @@ def create_all():
         "spell_nature_lightning.png")
 
     make_shortcut(d, "Start MySQL (solo)",
-        "cmd.exe", f'/k "{SC_DIR}\\start_mysql.bat"',
-        ROOT,
-        "Start the MySQL80 Windows service only. Needs admin. Use this when you want the database without starting the game servers.",
+        "cmd.exe", f'/k "{SC_DIR}\\start_mysql_uniserverz.bat"',
+        RUNTIME,
+        "Start UniServerZ MySQL 9.5.0 with game databases. No admin needed. Use this when you want the database without starting the game servers.",
         "inv_datacrystal06.png")
 
     # ── 2. VC BUILD ────────────────────────────────────────────────
@@ -212,43 +212,43 @@ def create_all():
     d = make_folder("VC Pipeline", "inv_misc_treasurechest04b.png")
 
     make_shortcut(d, "1. DB Snapshot (backup)",
-        "cmd.exe", f'/k python "{WAGO}\\db_snapshot.py" snapshot --label pre-pipeline',
+        "cmd.exe", '/k python db_snapshot.py snapshot --label pre-pipeline',
         WAGO,
         "STEP 1 — ALWAYS DO THIS FIRST. Creates a mysqldump backup of all 5 databases (auth, characters, world, hotfixes, roleplay) with a timestamped label. Use 'db_snapshot.py rollback' to undo if anything goes wrong.",
         "inv_misc_book_01.png")
 
     make_shortcut(d, "2. TACT Extract (DB2 to CSV)",
-        "cmd.exe", f'/k python "{WAGO}\\tact_extract.py" --verify',
+        "cmd.exe", '/k python tact_extract.py --verify',
         WAGO,
         "STEP 2 — Extracts raw DB2 files from your local WoW CASC install and converts them to CSV via DBC2CSV. The --verify flag compares row counts against existing CSVs. Takes ~50s. Output goes to wago_csv/ dir.",
         "inv_datacrystal01.png")
 
     make_shortcut(d, "3. Merge CSV Sources",
-        "cmd.exe", f'/k python "{WAGO}\\merge_csv_sources.py"',
+        "cmd.exe", '/k python merge_csv_sources.py',
         WAGO,
         "STEP 3 — Combines TACT-extracted CSVs (client ground truth) with Wago CSVs (CDN hotfix content). For tables where Wago has MORE rows, appends the extras. Output: merged_csv/{build}/enUS/ — the single source of truth for all downstream scripts.",
         "inv_datacrystal03.png")
 
     make_shortcut(d, "4. Hotfix Repair (batch 1-5)",
-        "cmd.exe", f'/k python "{WAGO}\\repair_hotfix_tables.py" --batch 1',
+        "cmd.exe", '/k python repair_hotfix_tables.py --batch 1',
         WAGO,
         "STEP 4 — Compares hotfix DB tables against merged CSVs and fixes mismatches. Run with --batch 1 through --batch 5 (change the number). Each batch covers different table ranges. Generates ~71 MB SQL total across all 5 batches.",
         "ability_repair.png")
 
     make_shortcut(d, "5. Raidbots Import (8 steps)",
-        "cmd.exe", f'/k python "{WAGO}\\raidbots\\run_all_imports.py"',
+        "cmd.exe", r'/k python raidbots\run_all_imports.py',
         WAGO,
-        "STEP 5 — Runs the 8-step Raidbots SQL import pipeline: quest chains, fix chains, quest objectives, quest POI, POI points, item locale (6 languages), search name locale, fix orphans. Verifies zero quest chain cycles at end. Use --regenerate after downloading new Raidbots JSONs.",
+        "STEP 5 — 8-step Raidbots import: quest chains, objectives, POI, locales (6 langs), vendors, orphan fix. Use --regenerate after new JSONs.",
         "inv_misc_coin_02.png")
 
     make_shortcut(d, "6. World Health Check",
-        "cmd.exe", f'/k python "{WAGO}\\world_health_check.py"',
+        "cmd.exe", '/k python world_health_check.py',
         WAGO,
         "STEP 6 — Validates referential integrity of the world DB after imports. Checks for orphaned creature/GO references, missing templates, broken loot chains, invalid spell IDs, and other cross-table consistency issues.",
         "spell_holy_divinepurpose.png")
 
     make_shortcut(d, "7. DB Error Parser",
-        "cmd.exe", f'/k python "{TOOLS}\\parse_dberrors.py"',
+        "cmd.exe", r'/k python tools\parse_dberrors.py',
         ROOT,
         "STEP 7 — Parses DBErrors.log from the last server run and categorizes ALL error patterns by system (hotfix, spell_proc, creature, SmartAI, etc.) with counts and fix descriptions. Run after server startup to see what data issues remain.",
         "ability_creature_cursed_01.png")
@@ -260,13 +260,13 @@ def create_all():
         "ability_rogue_sprint.png")
 
     make_shortcut(d, "Wago DB2 Download (web)",
-        "cmd.exe", f'/k python "{WAGO}\\wago_db2_downloader.py"',
+        "cmd.exe", '/k python wago_db2_downloader.py',
         WAGO,
         "ALTERNATIVE to TACT Extract — downloads DB2 CSVs directly from wago.tools website. Slower but doesn't need a local WoW install. Use when TACT extract is unavailable or for a specific table.",
         "inv_misc_questionmark.png")
 
     make_shortcut(d, "DB Snapshot List-Rollback",
-        "cmd.exe", f'/k python "{WAGO}\\db_snapshot.py" list',
+        "cmd.exe", '/k python db_snapshot.py list',
         WAGO,
         "View all database snapshots with timestamps and labels. To rollback: db_snapshot.py rollback --id N --confirm. To prune old ones: db_snapshot.py prune --keep 5.",
         "inv_misc_book_03.png")
@@ -276,7 +276,7 @@ def create_all():
     d = make_folder("VC Packets", "inv_misc_spyglass_02.png")
 
     make_shortcut(d, "Dev Session (auto-archive + WPP)",
-        "cmd.exe", f'/k bash "{ROOT}\\tools-dev\\tc-packet-tools\\start-worldserver.sh"',
+        "cmd.exe", f'/k bash {ROOT}/tools-dev/tc-packet-tools/start-worldserver.sh',
         RUNTIME,
         "THE SMART LAUNCHER — archives previous session (packets, logs, SQL into timestamped folder), starts bnet+world with EXIT trap, auto-runs WPP on World.pkt when you Ctrl+C, then runs Packet Scope analysis. Best for debugging sessions.",
         "inv_hearthstone_gold.png")
@@ -294,13 +294,13 @@ def create_all():
         "inv_misc_spyglass_03.png")
 
     make_shortcut(d, "3. Packet Scope",
-        "cmd.exe", f'/k python "{TOOLS}\\packet_scope.py"',
+        "cmd.exe", r'/k python tools\packet_scope.py',
         ROOT,
         "STEP 3 — Analyzes WPP output with transmog-specific decoding. Finds CMSG/SMSG_TRANSMOG packets, decodes outfit data, extracts ViewedOutfit UpdateObject fields, checks for addon messages (TMOG_LOG, TSPY_LOG). Reads from default PacketLog/ dir.",
         "ability_rogue_bloodyeye.png")
 
     make_shortcut(d, "4. Opcode Analyzer",
-        "cmd.exe", f'/k python "{TOOLS}\\opcode_analyzer.py"',
+        "cmd.exe", r'/k python tools\opcode_analyzer.py',
         ROOT,
         "STEP 4 — Builds a complete opcode dictionary from Opcodes.h/cpp, then cross-references with WPP parsed output to find unhandled, unknown, and filtered opcodes. Use --lookup TRANSMOG to search, --top 20 for most-seen.",
         "inv_letter_02.png")
@@ -310,43 +310,43 @@ def create_all():
     d = make_folder("VC Audits", "inv_misc_questionmark.png")
 
     make_shortcut(d, "NPC Audit (27 checks)",
-        "cmd.exe", f'/k python "{WAGO}\\npc_audit.py" --help',
+        "cmd.exe", '/k python npc_audit.py --help',
         WAGO,
         "27 NPC audits: levels, flags, faction, classification, type, duplicates, phases, missing, display, names, scale, speed, equipment, gossip, waypoints, SmartAI, loot, auras, family, unitclass, title, and more. Use: npc_audit.py all --report",
         "ability_hunter_pet_assist.png")
 
     make_shortcut(d, "Quest Audit (15 checks)",
-        "cmd.exe", f'/k python "{WAGO}\\quest_audit.py" --help',
+        "cmd.exe", '/k python quest_audit.py --help',
         WAGO,
         "15 quest audits: broken chains, exclusive groups, missing givers/enders, invalid objectives/rewards/start items, missing quests, orphaned data, POI, questline cross-ref, addon sync, duplicates. Use: quest_audit.py all --report",
         "inv_misc_scrollrolled01c.png")
 
     make_shortcut(d, "GO Audit (15 checks)",
-        "cmd.exe", f'/k python "{WAGO}\\go_audit.py" --help',
+        "cmd.exe", '/k python go_audit.py --help',
         WAGO,
         "15 GameObject audits: duplicates, phases, display, type, scale, loot, quest refs, pools, events, names, SmartAI, spawntime, addon orphans, missing templates, faction. Use: go_audit.py all --report",
         "inv_misc_gear_03.png")
 
     make_shortcut(d, "Transmog Validate (7 checks)",
-        "cmd.exe", f'/k python "{WAGO}\\validate_transmog.py"',
+        "cmd.exe", '/k python validate_transmog.py',
         WAGO,
         "Cross-references wow.tools.local DB2 exports against MySQL hotfixes. Finds missing server rows, FK violations, value mismatches, TransmogSet resolution issues, orphaned entries, illusion IDs. Runs in <1s across 155K IMAIDs.",
         "inv_chest_plate01.png")
 
     make_shortcut(d, "Transmog Debug",
-        "cmd.exe", f'/k python "{WAGO}\\transmog_debug.py" --help',
+        "cmd.exe", '/k python transmog_debug.py --help',
         WAGO,
         "Full transmog state viewer. Cross-refs character DB, outfit DB, and Wago DB2 CSVs. Use: --char Hexandchill (full state), --imaid 304252 (resolve one), --outfit 7 (outfit table), --diff 7 (equipped vs saved), --log (Debug.log), --spy (addon data).",
         "inv_chest_plate05.png")
 
     make_shortcut(d, "Transmog Lookup",
-        "cmd.exe", f'/k python "{WAGO}\\transmog_lookup.py" --help',
+        "cmd.exe", '/k python transmog_lookup.py --help',
         WAGO,
         "DB2 cross-reference tool. Use: imaid <id> (full lookup), search <name> (item search), dt (DisplayType table), reverse <itemid> (find all IMAIDs), analyze <logfile> (Debug.log session summary), batch <strings> (batch lookups).",
         "inv_chest_plate03.png")
 
     make_shortcut(d, "Scraper v3 (Tor Army)",
-        "cmd.exe", f'/k python "{WAGO}\\scraper_v3.py" --help',
+        "cmd.exe", '/k python scraper_v3.py --help',
         WAGO,
         "Async swarm scraper — 400 Tor instances, 600K-1M pages/hr. Targets: npc, quest, item, spell. Features: jittered backoff, WAF auto-stop, live dashboard, resumable. Use: --smoke 50 --targets npc --workers 10 --start-tor for testing.",
         "inv_misc_web_01.png")
@@ -432,7 +432,7 @@ def create_all():
         "inv_datacrystal06.png")
 
     make_shortcut(d, "Spell Creator",
-        "cmd.exe", f'/k python "{TOOLS}\\spell_creator.py"',
+        "cmd.exe", r'/k python tools\spell_creator.py',
         ROOT,
         "Interactive spell creation CLI - templates, cloning, CSV lookup, hotfix SQL generation, SOAP reload. 11 templates, 1888 spell DB. Replaces old .NET SpellCreator.",
         "inv_wand_07.png")
@@ -456,7 +456,7 @@ def create_all():
         "inv_misc_head_dragon_bronze.png")
 
     make_shortcut(d, "CC Sync Report",
-        "cmd.exe", f'/k python "{TOOLS}\\command-center\\sync_from_desktop.py"',
+        "cmd.exe", r'/k python command-center\sync_from_desktop.py',
         TOOLS,
         "Compare desktop VC folder shortcuts against Command Center cards. Shows missing, extra, and matched items.",
         "ability_monk_roll.png")

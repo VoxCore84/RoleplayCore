@@ -103,10 +103,10 @@ CATEGORIES = [
         "desc": "Launch and manage the game server stack",
         "shortcuts": [
             {"name": "Play (Start All)", "icon": "inv_hearthstone_gold.png",
-             "desc": "ONE CLICK TO PLAY — starts MySQL, bnetserver, worldserver, and Arctium Game Launcher in sequence. Needs admin for MySQL service.",
+             "desc": "ONE CLICK TO PLAY — starts UniServerZ MySQL, bnetserver, worldserver, and Arctium Game Launcher in sequence.",
              "cmd": ["cmd.exe", "/k", f"{SC_DIR}\\start_all.bat"], "cwd": RUNTIME},
             {"name": "Stop All", "icon": "ability_creature_cursed_02.png",
-             "desc": "Clean shutdown — kills worldserver + bnetserver processes and stops the MySQL80 Windows service.",
+             "desc": "Clean shutdown — kills worldserver, bnetserver, and MySQL (UniServerZ + MySQL80 service).",
              "cmd": ["cmd.exe", "/k", f"{SC_DIR}\\stop_all.bat"], "cwd": RUNTIME},
             {"name": "Worldserver (solo)", "icon": "inv_misc_head_dragon_blue.png",
              "desc": "Launch ONLY worldserver.exe (RelWithDebInfo). Assumes MySQL and bnetserver are already running. Console stays open for server commands.",
@@ -114,12 +114,9 @@ CATEGORIES = [
             {"name": "Bnetserver (solo)", "icon": "spell_nature_lightning.png",
              "desc": "Launch ONLY bnetserver.exe. Handles account auth and realm list. Must be running before worldserver.",
              "cmd": [os.path.join(RUNTIME, "bnetserver.exe")], "cwd": RUNTIME},
-            {"name": "Start MySQL (UniServerZ)", "icon": "inv_datacrystal06.png",
-             "desc": "Start UniServerZ MySQL 9.5.0 with game databases (world, auth, characters, hotfixes, roleplay). Listens on port 3306.",
+            {"name": "Start MySQL", "icon": "inv_datacrystal06.png",
+             "desc": "Start UniServerZ MySQL 9.5.0 with game databases (world, auth, characters, hotfixes, roleplay). No admin needed. Listens on port 3306.",
              "cmd": ["cmd.exe", "/k", f"{SC_DIR}\\start_mysql_uniserverz.bat"], "cwd": RUNTIME},
-            {"name": "Start MySQL (Service)", "icon": "inv_datacrystal04.png",
-             "desc": "Start MySQL80 Windows service (8.0.45, system databases only). Needs admin.",
-             "cmd": ["cmd.exe", "/k", f"{SC_DIR}\\start_mysql.bat"], "cwd": ROOT},
         ]
     },
     {
