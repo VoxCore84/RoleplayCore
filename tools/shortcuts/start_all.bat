@@ -1,6 +1,7 @@
 @echo off
 setlocal
 set "RUNTIME=C:\Users\atayl\VoxCore\out\build\x64-RelWithDebInfo\bin\RelWithDebInfo"
+set "MYSQL_DIR=%RUNTIME%\UniServerZ\core\mysql"
 set "ARCTIUM=C:\WoW\_retail_\Arctium Game Launcher.exe"
 
 echo ============================================
@@ -8,18 +9,24 @@ echo   VoxCore — Starting All Servers
 echo ============================================
 echo.
 
-:: 1. Start MySQL
-echo [1/4] Starting MySQL...
-net start MySQL80 >nul 2>&1
+:: 1. Start MySQL (UniServerZ)
+echo [1/4] Starting MySQL (UniServerZ 9.5.0)...
+netstat -ano | findstr ":3306 " | findstr "LISTENING" >nul 2>&1
 if %ERRORLEVEL%==0 (
-    echo        MySQL80 service started.
+    echo        MySQL already running on port 3306.
 ) else (
-    sc query MySQL80 | findstr "RUNNING" >nul 2>&1
+    start "UniServerZ MySQL" "%MYSQL_DIR%\bin\mysqld_z.exe" ^
+        "--defaults-file=%MYSQL_DIR%\my.ini" ^
+        "--basedir=%MYSQL_DIR%" ^
+        "--datadir=%MYSQL_DIR%\data" ^
+        --port=3306 ^
+        --console
+    timeout /t 5 /nobreak >nul
+    netstat -ano | findstr ":3306 " | findstr "LISTENING" >nul 2>&1
     if %ERRORLEVEL%==0 (
-        echo        MySQL80 already running.
+        echo        UniServerZ MySQL started.
     ) else (
-        echo        WARNING: Could not start MySQL80 service.
-        echo        Try running as Administrator.
+        echo        WARNING: MySQL failed to start on port 3306.
         pause
         exit /b 1
     )

@@ -161,13 +161,13 @@ def create_all():
         "ability_creature_cursed_02.png")
 
     make_shortcut(d, "Worldserver (solo)",
-        os.path.join(RUNTIME, "worldserver.exe"), None,
+        "cmd.exe", "/k worldserver.exe",
         RUNTIME,
         "Launch ONLY worldserver.exe (RelWithDebInfo build). Assumes MySQL and bnetserver are already running. Console stays open — type server commands directly.",
         "inv_misc_head_dragon_blue.png")
 
     make_shortcut(d, "Bnetserver (solo)",
-        os.path.join(RUNTIME, "bnetserver.exe"), None,
+        "cmd.exe", "/k bnetserver.exe",
         RUNTIME,
         "Launch ONLY bnetserver.exe (RelWithDebInfo build). Handles account auth and realm list. Must be running before worldserver.",
         "spell_nature_lightning.png")

@@ -15,8 +15,10 @@ if %ERRORLEVEL%==0 (echo        Stopped.) else (echo        Not running.)
 echo.
 
 echo [3/3] Stopping MySQL...
+taskkill /IM mysqld_z.exe /F >nul 2>&1
+if %ERRORLEVEL%==0 (echo        UniServerZ MySQL stopped.) else (echo        UniServerZ not running.)
 net stop MySQL80 >nul 2>&1
-if %ERRORLEVEL%==0 (echo        MySQL80 stopped.) else (echo        Already stopped or not a service.)
+if %ERRORLEVEL%==0 (echo        MySQL80 service stopped.) else (echo        MySQL80 not running.)
 echo.
 
 echo ============================================
