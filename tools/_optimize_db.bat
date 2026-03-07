@@ -5,7 +5,7 @@ setlocal enabledelayedexpansion
 :: actual disk savings by comparing .ibd file sizes before/after.
 :: Run after large imports, bulk deletes, or data audits.
 
-set "MYSQL=C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe"
+set "MYSQL=C:\Users\atayl\VoxCore\out\build\x64-RelWithDebInfo\bin\RelWithDebInfo\UniServerZ\core\mysql\bin\mysql.exe"
 set "USER=root"
 set "PASS=admin"
 set "MIN_SIZE_MB=10"

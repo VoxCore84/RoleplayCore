@@ -14,11 +14,9 @@ taskkill /IM bnetserver.exe /F >nul 2>&1
 if %ERRORLEVEL%==0 (echo        Stopped.) else (echo        Not running.)
 echo.
 
-echo [3/3] Stopping MySQL...
+echo [3/3] Stopping MySQL (UniServerZ)...
 taskkill /IM mysqld_z.exe /F >nul 2>&1
 if %ERRORLEVEL%==0 (echo        UniServerZ MySQL stopped.) else (echo        UniServerZ not running.)
-net stop MySQL80 >nul 2>&1
-if %ERRORLEVEL%==0 (echo        MySQL80 service stopped.) else (echo        MySQL80 not running.)
 echo.
 
 echo ============================================

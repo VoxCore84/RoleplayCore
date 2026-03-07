@@ -10,11 +10,9 @@ import argparse
 import os
 import subprocess
 import sys
-import threading
-import time
 from pathlib import Path
 
-from flask import Flask, jsonify, render_template, request, send_from_directory
+from flask import Flask, jsonify, render_template, request
 from PIL import Image
 
 # ═══════════════════════════════════════════════════════════════════
@@ -110,10 +108,10 @@ CATEGORIES = [
              "cmd": ["cmd.exe", "/k", f"{SC_DIR}\\stop_all.bat"], "cwd": RUNTIME},
             {"name": "Worldserver (solo)", "icon": "inv_misc_head_dragon_blue.png",
              "desc": "Launch ONLY worldserver.exe (RelWithDebInfo). Assumes MySQL and bnetserver are already running. Console stays open for server commands.",
-             "cmd": [os.path.join(RUNTIME, "worldserver.exe")], "cwd": RUNTIME},
+             "cmd": ["cmd.exe", "/k", "worldserver.exe"], "cwd": RUNTIME},
             {"name": "Bnetserver (solo)", "icon": "spell_nature_lightning.png",
              "desc": "Launch ONLY bnetserver.exe. Handles account auth and realm list. Must be running before worldserver.",
-             "cmd": [os.path.join(RUNTIME, "bnetserver.exe")], "cwd": RUNTIME},
+             "cmd": ["cmd.exe", "/k", "bnetserver.exe"], "cwd": RUNTIME},
             {"name": "Start MySQL", "icon": "inv_datacrystal06.png",
              "desc": "Start UniServerZ MySQL 9.5.0 with game databases (world, auth, characters, hotfixes, roleplay). No admin needed. Listens on port 3306.",
              "cmd": ["cmd.exe", "/k", f"{SC_DIR}\\start_mysql_uniserverz.bat"], "cwd": RUNTIME},
@@ -252,7 +250,7 @@ CATEGORIES = [
              "cwd": os.path.join(WAGO, "att_browser")},
             {"name": "WebTerm", "icon": "trade_engineering.png",
              "desc": "Web-based terminal on localhost:7681. Opens in Chrome app mode. Cowork can access this to run commands remotely.",
-             "cmd": [os.path.join(EXTTOOLS, "launch-webterm.bat")], "cwd": EXTTOOLS},
+             "cmd": ["cmd.exe", "/k", os.path.join(EXTTOOLS, "launch-webterm.bat")], "cwd": EXTTOOLS},
             {"name": "Update Website", "icon": "inv_letter_01.png",
              "desc": "Rebuild VoxCore docs site from local sources, then git add + commit + push. Deploys to GitHub Pages in ~30 seconds.",
              "cmd": ["cmd.exe", "/k", f"{ROOT}\\website\\update_site.bat"],
@@ -328,6 +326,8 @@ def launch():
         return jsonify({"ok": False, "error": "Invalid shortcut"}), 400
 
     item = cat["shortcuts"][item_idx]
+    if "url" in item:
+        return jsonify({"ok": False, "error": "URL shortcut — open in browser"}), 400
     cmd = item.get("cmd", [])
     cwd = item.get("cwd")
 
