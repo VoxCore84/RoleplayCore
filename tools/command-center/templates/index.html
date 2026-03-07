@@ -356,10 +356,11 @@
       <div class="cards">
         {% for item in cat.shortcuts %}
         <div class="card" data-cat="{{ cat.id }}" data-idx="{{ loop.index0 }}"
-             {% if item.step is defined %}data-step="{{ item.step }}"{% endif %}>
+             {% if item.step is defined %}data-step="{{ item.step }}"{% endif %}
+             {% if item.url is defined %}data-url="{{ item.url }}"{% endif %}>
           <img class="card-icon" src="/static/icons/{{ item.icon }}" alt="">
           <div class="card-info">
-            <div class="card-name">{{ item.name }}</div>
+            <div class="card-name">{{ item.name }}{% if item.url is defined %} <span style="font-size:0.65rem;color:var(--text-dim);font-family:Inter,sans-serif;font-weight:400">&#8599;</span>{% endif %}</div>
             <div class="card-desc">{{ item.desc }}</div>
           </div>
         </div>
@@ -383,9 +384,19 @@ document.querySelectorAll('.tab').forEach(tab => {
   });
 });
 
-// Card click → launch
+// Card click → launch or open URL
 document.querySelectorAll('.card').forEach(card => {
   card.addEventListener('click', async () => {
+    // URL cards open in browser directly
+    const url = card.dataset.url;
+    if (url) {
+      window.open(url, '_blank');
+      card.classList.add('launched');
+      showToast('Opened: ' + card.querySelector('.card-name').textContent.trim());
+      setTimeout(() => card.classList.remove('launched'), 3000);
+      return;
+    }
+
     const cat = card.dataset.cat;
     const idx = parseInt(card.dataset.idx);
 
