@@ -8,7 +8,7 @@
 
 ## Triad Coordination — READ FIRST (all agents)
 
-**Last updated**: 2026-03-22 -- Session 210: Full C++ custom code audit. 4 parallel agents across ~40 files found 12 HIGH/14 MEDIUM/20+ LOW issues. All 11 HIGH fixed + build verified (725/725 zero errors). Commit `3274d30362`. Fixes: use-after-move UB, null crashes, div-by-zero, dangling pointer, companion oscillation/spam. Handoff: `doc/handoff_cpp_audit.md`. x64-Debug build env freshly configured. Next: 14 MEDIUM fixes, in-game verification, RelWithDebInfo build
+**Last updated**: 2026-03-31 -- Session 213: Build 66709 full migration complete. LoreWalkerTDB imported (world+hotfixes), all custom SQL re-applied (190 updates + 4 schema fixes), hotfix repair 5 batches (225K entries), 14 directory junctions (~13GB dedup), ~30 Python refs updated. Commit `361f5b3f2e`. Next: build, start server, in-game verification, gist update
 
 ### Architecture (as of session 160)
 
