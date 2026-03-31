@@ -305,7 +305,7 @@ INSERT INTO `scrapping_loot_template` (`Entry`, `Item`, `Reference`, `Chance`, `
 	(63, 152668, 0, 16, 0, 1, 0, 1, 1, ''),
 	(63, 160298, 0, 100, 0, 1, 0, 1, 1, '');
 	
-ALTER TABLE `scrapping_loot_template` ADD `ItemType` tinyint NOT NULL DEFAULT 0 AFTER `Entry`;
+ALTER TABLE IF EXISTS `scrapping_loot_template` ADD COLUMN IF NOT EXISTS `ItemType` tinyint NOT NULL DEFAULT 0 AFTER `Entry`;
 
 REPLACE INTO `creature_model_info` VALUES (105540, 0, 0, 0, 0);
 REPLACE INTO `creature_model_info` VALUES (105328, 0, 0, 0, 0);
@@ -452,8 +452,8 @@ REPLACE INTO `spell_script_names` VALUES (359073, 'spell_evo_eternity_surge');
 -- ----------------------------
 -- Hunter spell fixes
 -- ----------------------------
-REPLACE INTO `areatrigger_create_properties` VALUES (4424, 0, 9170, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 60000, 4, 3, 3, 4, 4, 1, 1, 0, 0, 'at_hunter_freezing_trap', 48999);
-REPLACE INTO `areatrigger_create_properties` VALUES (510, 0, 3678, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 20000, 4, 10, 10, 7, 7, 3, 3, 0, 0, 'at_hun_flare', 40120);
+REPLACE INTO `areatrigger_create_properties` (`Id`,`IsCustom`,`AreaTriggerId`,`IsAreatriggerCustom`,`Flags`,`MoveCurveId`,`ScaleCurveId`,`MorphCurveId`,`FacingCurveId`,`AnimId`,`AnimKitId`,`DecalPropertiesId`,`SpellForVisuals`,`TimeToTargetScale`,`Speed`,`SpeedIsTime`,`Shape`,`ShapeData0`,`ShapeData1`,`ShapeData2`,`ShapeData3`,`ShapeData4`,`ShapeData5`,`ShapeData6`,`ShapeData7`,`ScriptName`,`VerifiedBuild`) VALUES (4424, 0, 9170, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 60000, 0, 0, 4, 3, 3, 4, 4, 1, 1, 0, 0, 'at_hunter_freezing_trap', 48999);
+REPLACE INTO `areatrigger_create_properties` (`Id`,`IsCustom`,`AreaTriggerId`,`IsAreatriggerCustom`,`Flags`,`MoveCurveId`,`ScaleCurveId`,`MorphCurveId`,`FacingCurveId`,`AnimId`,`AnimKitId`,`DecalPropertiesId`,`SpellForVisuals`,`TimeToTargetScale`,`Speed`,`SpeedIsTime`,`Shape`,`ShapeData0`,`ShapeData1`,`ShapeData2`,`ShapeData3`,`ShapeData4`,`ShapeData5`,`ShapeData6`,`ShapeData7`,`ScriptName`,`VerifiedBuild`) VALUES (510, 0, 3678, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 20000, 0, 0, 4, 10, 10, 7, 7, 3, 3, 0, 0, 'at_hun_flare', 40120);
 
 REPLACE INTO `spell_script_names` VALUES (34026, 'spell_hun_kill_command');
 REPLACE INTO `spell_script_names` VALUES (259489, 'spell_hun_kill_command');
@@ -467,7 +467,7 @@ REPLACE INTO `spell_script_names` VALUES (321530, 'spell_hun_bloodshed');
 REPLACE INTO `spell_script_names` VALUES (260243, 'spell_hun_volley');
 REPLACE INTO `spell_script_names` VALUES (186387, 'spell_bursting_shot');
 
-REPLACE INTO `areatrigger_create_properties` VALUES (2392, 0, 6966, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 60000, 4, 3, 3, 4, 4, 1, 1, 0, 0, 'at_hun_steel_trap', 48999);
+REPLACE INTO `areatrigger_create_properties` (`Id`,`IsCustom`,`AreaTriggerId`,`IsAreatriggerCustom`,`Flags`,`MoveCurveId`,`ScaleCurveId`,`MorphCurveId`,`FacingCurveId`,`AnimId`,`AnimKitId`,`DecalPropertiesId`,`SpellForVisuals`,`TimeToTargetScale`,`Speed`,`SpeedIsTime`,`Shape`,`ShapeData0`,`ShapeData1`,`ShapeData2`,`ShapeData3`,`ShapeData4`,`ShapeData5`,`ShapeData6`,`ShapeData7`,`ScriptName`,`VerifiedBuild`) VALUES (2392, 0, 6966, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 60000, 0, 4, 3, 3, 4, 4, 1, 1, 0, 0, 'at_hun_steel_trap', 48999);
 
 REPLACE INTO `spell_script_names` VALUES (120361, 'spell_hun_barrage');
 REPLACE INTO `spell_script_names` VALUES (269751, 'spell_hun_flanking_strike');
@@ -480,7 +480,7 @@ REPLACE INTO `areatrigger_scripts` VALUES (12863, 'at_hunter_wildfire_bomb');
 
 REPLACE INTO `areatrigger_template` VALUES (265163, 0, 0, 0, 0, 0);
 
-REPLACE INTO `areatrigger_create_properties` VALUES (12863, 0, 265163, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 'at_hunter_wildfire_bomb', 0);
+REPLACE INTO `areatrigger_create_properties` (`Id`,`IsCustom`,`AreaTriggerId`,`IsAreatriggerCustom`,`Flags`,`MoveCurveId`,`ScaleCurveId`,`MorphCurveId`,`FacingCurveId`,`AnimId`,`AnimKitId`,`DecalPropertiesId`,`SpellForVisuals`,`TimeToTargetScale`,`Speed`,`SpeedIsTime`,`Shape`,`ShapeData0`,`ShapeData1`,`ShapeData2`,`ShapeData3`,`ShapeData4`,`ShapeData5`,`ShapeData6`,`ShapeData7`,`ScriptName`,`VerifiedBuild`) VALUES (12863, 0, 265163, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 0, 0, 0, 0, 'at_hunter_wildfire_bomb', 0);
 
 REPLACE INTO `spell_script_names` VALUES (3355, 'spell_hunter_freezing_trap_aura');
 
@@ -517,7 +517,7 @@ REPLACE INTO `spell_script_names` VALUES (421453, 'spell_ultimate_penitence');
 REPLACE INTO `spell_script_names` VALUES (421434, 'spell_ultimate_penitence_effect');
 REPLACE INTO `spell_script_names` VALUES (432154, 'spell_ultimate_penitence_jump');
 
-REPLACE INTO `areatrigger_create_properties` VALUES (1489, 0, 5802, 0, 0, 0, 0, 0, 0, -256, 255, 0, NULL, 10000, 1, 0 ,0 ,8 ,8 ,0 ,0 ,0 ,0 ,0 ,0 ,'at_pri_power_word_barrier', 53040);
+REPLACE INTO `areatrigger_create_properties` (`Id`,`IsCustom`,`AreaTriggerId`,`IsAreatriggerCustom`,`Flags`,`MoveCurveId`,`ScaleCurveId`,`MorphCurveId`,`FacingCurveId`,`AnimId`,`AnimKitId`,`DecalPropertiesId`,`SpellForVisuals`,`TimeToTargetScale`,`Speed`,`SpeedIsTime`,`Shape`,`ShapeData0`,`ShapeData1`,`ShapeData2`,`ShapeData3`,`ShapeData4`,`ShapeData5`,`ShapeData6`,`ShapeData7`,`ScriptName`,`VerifiedBuild`) VALUES (1489, 0, 5802, 0, 0, 0, 0, 0, 0, -256, 255, 0, NULL, 10000, 1, 0, 0, 8, 8, 0, 0, 0, 0, 0, 0, 'at_pri_power_word_barrier', 53040);
 REPLACE INTO `areatrigger_scripts` VALUES (1489, 'at_pri_power_word_barrier');
 
 -- ----------------------------
@@ -546,8 +546,8 @@ REPLACE INTO `spell_script_names` VALUES (122280, 'spell_monk_healing_elixirs_au
 REPLACE INTO `areatrigger_scripts` VALUES (3983, 'at_monk_ring_of_peace');
 REPLACE INTO `areatrigger_scripts` VALUES (5484, 'at_monk_song_of_chi_ji');
 
-REPLACE INTO `areatrigger_create_properties` VALUES (718, 0, 3983, 0, 0, 0, 0, 0, 0, -256, 255, 0, 0, 0, 5000, 0, 8, 8, 0, 0, 0, 0, 0, 0, 'at_monk_ring_of_peace', 40120);
-REPLACE INTO `areatrigger_create_properties` VALUES (5484, 0, 10191, 0, 0, 0, 1656, 0, 0, -1, 0, 0, 0, 5716, 5000, 0, 5, 5, 0, 0, 0, 0, 0, 0, 'at_monk_song_of_chi_ji', 48838);
+REPLACE INTO `areatrigger_create_properties` (`Id`,`IsCustom`,`AreaTriggerId`,`IsAreatriggerCustom`,`Flags`,`MoveCurveId`,`ScaleCurveId`,`MorphCurveId`,`FacingCurveId`,`AnimId`,`AnimKitId`,`DecalPropertiesId`,`SpellForVisuals`,`TimeToTargetScale`,`Speed`,`SpeedIsTime`,`Shape`,`ShapeData0`,`ShapeData1`,`ShapeData2`,`ShapeData3`,`ShapeData4`,`ShapeData5`,`ShapeData6`,`ShapeData7`,`ScriptName`,`VerifiedBuild`) VALUES (718, 0, 3983, 0, 0, 0, 0, 0, 0, -256, 255, 0, 0, 0, 5000, 0, 0, 8, 8, 0, 0, 0, 0, 0, 0, 'at_monk_ring_of_peace', 40120);
+REPLACE INTO `areatrigger_create_properties` (`Id`,`IsCustom`,`AreaTriggerId`,`IsAreatriggerCustom`,`Flags`,`MoveCurveId`,`ScaleCurveId`,`MorphCurveId`,`FacingCurveId`,`AnimId`,`AnimKitId`,`DecalPropertiesId`,`SpellForVisuals`,`TimeToTargetScale`,`Speed`,`SpeedIsTime`,`Shape`,`ShapeData0`,`ShapeData1`,`ShapeData2`,`ShapeData3`,`ShapeData4`,`ShapeData5`,`ShapeData6`,`ShapeData7`,`ScriptName`,`VerifiedBuild`) VALUES (5484, 0, 10191, 0, 0, 0, 1656, 0, 0, -1, 0, 0, 0, 5716, 5000, 0, 0, 5, 5, 0, 0, 0, 0, 0, 0, 'at_monk_song_of_chi_ji', 48838);
 
 REPLACE INTO `spell_script_names` VALUES (115098, 'spell_monk_chi_wave');
 REPLACE INTO `spell_script_names` VALUES (132467, 'spell_monk_chi_wave_damage_missile');
@@ -556,7 +556,7 @@ REPLACE INTO `spell_script_names` VALUES (132464, 'spell_monk_chi_wave_healing_b
 
 REPLACE INTO `areatrigger_scripts` VALUES (5300, 'at_monk_chi_burst');
 
-REPLACE INTO `areatrigger_create_properties` VALUES (1316, 0, 5300, 0, 0, 392, 0, 0, 0, -1, 0, 0, 0, 931, 1000, 0, 5, 5, 0, 0, 0, 0, 0, 0, 'at_monk_chi_burst', 40120);
+REPLACE INTO `areatrigger_create_properties` (`Id`,`IsCustom`,`AreaTriggerId`,`IsAreatriggerCustom`,`Flags`,`MoveCurveId`,`ScaleCurveId`,`MorphCurveId`,`FacingCurveId`,`AnimId`,`AnimKitId`,`DecalPropertiesId`,`SpellForVisuals`,`TimeToTargetScale`,`Speed`,`SpeedIsTime`,`Shape`,`ShapeData0`,`ShapeData1`,`ShapeData2`,`ShapeData3`,`ShapeData4`,`ShapeData5`,`ShapeData6`,`ShapeData7`,`ScriptName`,`VerifiedBuild`) VALUES (1316, 0, 5300, 0, 0, 392, 0, 0, 0, -1, 0, 0, 0, 931, 1000, 0, 0, 5, 5, 0, 0, 0, 0, 0, 0, 'at_monk_chi_burst', 40120);
 
 REPLACE INTO `spell_script_names` VALUES (130654, 'spell_monk_chi_burst_heal');
 REPLACE INTO `spell_script_names` VALUES (115399, 'spell_monk_black_ox_brew');
@@ -675,7 +675,7 @@ REPLACE INTO `areatrigger_scripts` VALUES (6615, 'at_dh_darkness');
 REPLACE INTO `areatrigger_scripts` VALUES (9695, 'at_demon_hunter_mana_rift');
 REPLACE INTO `areatrigger_scripts` VALUES (6482, 'at_demon_hunter_demonic_trample');
 
-REPLACE INTO `areatrigger_create_properties` VALUES (6482, 1, 11107, 1, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'at_demon_hunter_demonic_trample', 40120);
+REPLACE INTO `areatrigger_create_properties` (`Id`,`IsCustom`,`AreaTriggerId`,`IsAreatriggerCustom`,`Flags`,`MoveCurveId`,`ScaleCurveId`,`MorphCurveId`,`FacingCurveId`,`AnimId`,`AnimKitId`,`DecalPropertiesId`,`SpellForVisuals`,`TimeToTargetScale`,`Speed`,`SpeedIsTime`,`Shape`,`ShapeData0`,`ShapeData1`,`ShapeData2`,`ShapeData3`,`ShapeData4`,`ShapeData5`,`ShapeData6`,`ShapeData7`,`ScriptName`,`VerifiedBuild`) VALUES (6482, 1, 11107, 1, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'at_demon_hunter_demonic_trample', 40120);
 
 -- ----------------------------
 -- Druid spell fixes
@@ -699,7 +699,7 @@ REPLACE INTO `spell_script_names` VALUES (83958, 'spell_gen_guild_chest');
 REPLACE INTO `creature_template` VALUES (102199, 0, 0, 'Stampede', '', '', NULL, '',	0, 0, 35, 0, 1, 1.14286, 1, 0, 0, 1028, 2000, 1, 1, 1, 33554944, 0, 16777216, 0, 0, 10, 0, '', 0, 1, 0, 0, 0, 0, 1, 0, 0, '', NULL, 53040);
 REPLACE INTO `creature_template` VALUES (73967, 0, 0, 'Niuzao', '', '', NULL, '', 0, 0, 35, 0, 1, 0.857143, 1, 0, 0, 1989, 2000, 1, 1, 1, 32768, 2048, 0, 0, 0, 1, 0, '', 0, 1, 0, 121, 0, 0, 1, 0, 0, '', NULL, 53040);
 
-ALTER TABLE `scrapping_loot_template` ADD `ItemType` tinyint NOT NULL DEFAULT 0 AFTER `Entry`;
+ALTER TABLE IF EXISTS `scrapping_loot_template` ADD COLUMN IF NOT EXISTS `ItemType` tinyint NOT NULL DEFAULT 0 AFTER `Entry`;
 
 -- ----------------------------
 -- Toys fix

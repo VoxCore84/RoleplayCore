@@ -3,7 +3,7 @@
 **Read this FIRST in any new Claude Code tab.**
 This is the single source of truth for what all tabs are doing, what's done, what's blocked, and what to pick up next. Updated by whichever tab finishes work.
 
-**Last updated**: March 22, 2026 -- Session 210: Full C++ audit of custom code. 4 parallel agents, ~40 files, 11 HIGH severity bugs fixed. Build verified 725/725 zero errors. Commit `3274d30362`. Handoff: `doc/handoff_cpp_audit.md`. Next: 14 MEDIUM fixes, in-game verification
+**Last updated**: March 29, 2026 -- Build 66709 migration COMPLETE. LoreWalkerTDB imported (world+hotfixes). All custom SQL re-applied. Hotfix repair batches 1-5 applied. Directory junctions created. 8 slow orphan cleanup files running. Python refs updated 66666→66709.
 
 ---
 
@@ -111,7 +111,7 @@ Custom agent types (`app-reviewer`, `grep-auditor`, `doc-auditor`) require Claud
 
 - **Build**: Current (VS build done). Includes transmog fail-open + bridge grace + BestiaryForge hooks
 - **Server**: NOT RUNNING
-- **Client**: 12.0.1.66263
+- **Client**: 12.0.1.66709
 - **DB**: world ~1,200 MB (712K creatures, +101K from LoreWalker) | hotfixes 811 MB (400K spells) | characters 4 MB
 - **Logs**: Clean — zero crashes/fatals. SmartAI warnings + unhandled 12.x opcodes only.
 - **LoreWalker TDB import**: APPLIED (session 118) — 7 files + _00_ Stormwind fix. Restart worldserver to load.
