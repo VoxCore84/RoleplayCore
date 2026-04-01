@@ -5444,7 +5444,7 @@ void ActivePlayerData::WriteCreate(EnumFlag<UpdateFieldFlag> fieldVisibilityFlag
     data << uint32(HouseThemes.size());
     data << uint32(HouseRoomComponentTextures.size());
     data << uint32(HouseTypes.size());
-    data << uint32(Field_1980.size());
+    data << uint32(UnlockedTransmogOutfits.size());
     data << uint32(CharacterRestrictions.size());
     data << uint32(SpellPctModByLabel.size());
     data << uint32(SpellFlatModByLabel.size());
@@ -5563,9 +5563,9 @@ void ActivePlayerData::WriteCreate(EnumFlag<UpdateFieldFlag> fieldVisibilityFlag
     {
         data << uint32(HouseTypes[i]);
     }
-    for (uint32 i = 0; i < Field_1980.size(); ++i)
+    for (uint32 i = 0; i < UnlockedTransmogOutfits.size(); ++i)
     {
-        data << int32(Field_1980[i]);
+        data << int32(UnlockedTransmogOutfits[i]);
     }
     for (uint32 i = 0; i < SpellPctModByLabel.size(); ++i)
     {
@@ -5979,9 +5979,9 @@ void ActivePlayerData::WriteUpdate(Mask const& changesMask, ByteBuffer& data, Pl
         if (changesMask[29])
         {
             if (!ignoreNestedChangesMask)
-                Field_1980.WriteUpdateMask(data);
+                UnlockedTransmogOutfits.WriteUpdateMask(data);
             else
-                WriteCompleteDynamicFieldUpdateMask(Field_1980.size(), data);
+                WriteCompleteDynamicFieldUpdateMask(UnlockedTransmogOutfits.size(), data);
         }
         if (changesMask[30])
         {
@@ -6321,11 +6321,11 @@ void ActivePlayerData::WriteUpdate(Mask const& changesMask, ByteBuffer& data, Pl
         }
         if (changesMask[29])
         {
-            for (uint32 i = 0; i < Field_1980.size(); ++i)
+            for (uint32 i = 0; i < UnlockedTransmogOutfits.size(); ++i)
             {
-                if (Field_1980.HasChanged(i) || ignoreNestedChangesMask)
+                if (UnlockedTransmogOutfits.HasChanged(i) || ignoreNestedChangesMask)
                 {
-                    data << int32(Field_1980[i]);
+                    data << int32(UnlockedTransmogOutfits[i]);
                 }
             }
         }
@@ -7158,7 +7158,7 @@ void ActivePlayerData::ClearChangesMask()
     Base::ClearChangesMask(HouseThemes);
     Base::ClearChangesMask(HouseRoomComponentTextures);
     Base::ClearChangesMask(HouseTypes);
-    Base::ClearChangesMask(Field_1980);
+    Base::ClearChangesMask(UnlockedTransmogOutfits);
     Base::ClearChangesMask(SpellPctModByLabel);
     Base::ClearChangesMask(SpellFlatModByLabel);
     Base::ClearChangesMask(SpellPctModPVPByLabel);

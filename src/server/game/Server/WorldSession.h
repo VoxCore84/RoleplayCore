@@ -842,6 +842,7 @@ namespace WorldPackets
         class ClearNewAppearance;
         class TransmogOutfitNew;
         class TransmogOutfitUpdateInfo;
+        class TransmogOutfitUpdateSituations;
         class TransmogOutfitUpdateSlots;
     }
 
@@ -1824,34 +1825,11 @@ class TC_GAME_API WorldSession
 
         // Transmogrification
         void HandleTransmogrifyItems(WorldPackets::Transmogrification::TransmogrifyItems& transmogrifyItems);
-        void HandleTransmogOutfitUpdateSlots(WorldPackets::Transmogrification::TransmogOutfitUpdateSlots& packet);
-        void HandleTransmogOutfitNew(WorldPackets::Transmogrification::TransmogOutfitNew& packet);
-        void HandleTransmogOutfitUpdateInfo(WorldPackets::Transmogrification::TransmogOutfitUpdateInfo& packet);
+        void HandleTransmogOutfitNew(WorldPackets::Transmogrification::TransmogOutfitNew const& transmogOutfitNew);
+        void HandleTransmogOutfitUpdateInfo(WorldPackets::Transmogrification::TransmogOutfitUpdateInfo const& transmogOutfitUpdateInfo);
+        void HandleTransmogOutfitUpdateSituations(WorldPackets::Transmogrification::TransmogOutfitUpdateSituations const& transmogOutfitUpdateSituations);
+        void HandleTransmogOutfitUpdateSlots(WorldPackets::Transmogrification::TransmogOutfitUpdateSlots const& transmogOutfitUpdateSlots);
         void HandleClearNewAppearance(WorldPackets::Transmogrification::ClearNewAppearance& packet);
-        // TransmogBridge: addon-message-based workaround for 12.x client serializer bug.
-        // The client's CommitAndApplyAllPending C++ serializer omits HEAD/MH/OH/enchants
-        // and sends stale IMAIDs for all other slots. A client addon sends correct IMAIDs
-        // via hybrid snapshot (GetViewedOutfitSlotInfo) + hook overlay (SetPendingTransmog).
-        // HandleTransmogOutfitUpdateSlots defers finalization so the addon message can
-        // merge overrides before save/apply.
-        struct TransmogBridgeOverride
-        {
-            uint8  ClientSlot;   // Client API slot index (0=HEAD, 1=SHOULDER, ..., 13=OH)
-            int32  TransmogID;   // IMAID, 0 = clear appearance
-            int32  IllusionID = 0;   // SpellItemEnchantmentID, 0 = clear illusion
-            bool   HasIllusion = false; // true if addon explicitly provided illusion data
-            bool   FromHook = false;   // true = SetPendingTransmog hook (always trust), false = snapshot/fallback
-        };
-        struct TransmogBridgePendingOutfit
-        {
-            EquipmentSetInfo::EquipmentSetData Outfit;
-            bool HasAnyAppearance = false;
-        };
-        void FinalizeTransmogBridgePendingOutfit();
-        std::vector<TransmogBridgeOverride> _transmogBridgeOverrides;
-        std::string _transmogBridgePartialPayload;
-        Optional<TransmogBridgePendingOutfit> _transmogBridgePendingOutfit;
-        bool _transmogBridgeWaitOneUpdate = false;
 
         // Miscellaneous
         void HandleSpellClick(WorldPackets::Spells::SpellClick& spellClick);

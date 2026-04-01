@@ -1096,6 +1096,17 @@ bool CollectionMgr::HasTransmogIllusion(uint32 transmogIllusionId) const
     return transmogIllusionId < _transmogIllusions->size() && _transmogIllusions->test(transmogIllusionId);
 }
 
+void CollectionMgr::AddTransmogOutfit(int32 transmogOutfitId)
+{
+    if (_transmogOutfits.insert(transmogOutfitId).second)
+        _owner->GetPlayer()->AddUnlockedTransmogOutfit(transmogOutfitId);
+}
+
+bool CollectionMgr::HasTransmogOutfit(int32 transmogOutfitId) const
+{
+    return _transmogOutfits.contains(transmogOutfitId);
+}
+
 void CollectionMgr::LoadWarbandScenes()
 {
     Player* owner = _owner->GetPlayer();
