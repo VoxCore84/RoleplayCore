@@ -56,7 +56,7 @@ REPLACE INTO `npc_text` VALUES (42798, 1, 0, 0, 0, 0, 0, 0, 0, 208986, 0, 0, 0, 
 
 UPDATE `creature_template` SET `ScriptName` = 'npc_dance_battle_simon_sezdans' WHERE `entry` = 181097;
 
-REPLACE INTO `scene_template` VALUES (2709, 17, 3193, 0, 'scene_darkmoon_dance_battle', NULL);
+REPLACE INTO `scene_template` (`SceneId`, `Flags`, `ScriptPackageID`, `Encrypted`, `ScriptName`) VALUES (2709, 17, 3193, 0, 'scene_darkmoon_dance_battle');
 
 -- ----------------------------
 -- Firebird Challenge fixes

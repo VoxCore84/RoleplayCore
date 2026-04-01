@@ -305,7 +305,11 @@ INSERT INTO `scrapping_loot_template` (`Entry`, `Item`, `Reference`, `Chance`, `
 	(63, 152668, 0, 16, 0, 1, 0, 1, 1, ''),
 	(63, 160298, 0, 100, 0, 1, 0, 1, 1, '');
 	
-ALTER TABLE IF EXISTS `scrapping_loot_template` ADD COLUMN IF NOT EXISTS `ItemType` tinyint NOT NULL DEFAULT 0 AFTER `Entry`;
+SET @col_exists = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='world' AND TABLE_NAME='scrapping_loot_template' AND COLUMN_NAME='ItemType');
+SET @sql = IF(@col_exists = 0, 'ALTER TABLE `scrapping_loot_template` ADD COLUMN `ItemType` tinyint NOT NULL DEFAULT 0 AFTER `Entry`', 'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 -- Removed: 16 REPLACE INTO creature_model_info with all-zero values (BoundingRadius/CombatReach/etc).
 -- These were overwriting TDB data with zeros, causing targeting/collision issues.
@@ -685,7 +689,11 @@ REPLACE INTO `spell_script_names` VALUES (83958, 'spell_gen_guild_chest');
 -- Removed: REPLACE INTO creature_template for Stampede (102199) and Niuzao (73967)
 -- These had empty ScriptNames and were overwriting TDB data with stale build 53040 values.
 
-ALTER TABLE IF EXISTS `scrapping_loot_template` ADD COLUMN IF NOT EXISTS `ItemType` tinyint NOT NULL DEFAULT 0 AFTER `Entry`;
+SET @col_exists = (SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA='world' AND TABLE_NAME='scrapping_loot_template' AND COLUMN_NAME='ItemType');
+SET @sql = IF(@col_exists = 0, 'ALTER TABLE `scrapping_loot_template` ADD COLUMN `ItemType` tinyint NOT NULL DEFAULT 0 AFTER `Entry`', 'SELECT 1');
+PREPARE stmt FROM @sql;
+EXECUTE stmt;
+DEALLOCATE PREPARE stmt;
 
 -- ----------------------------
 -- Toys fix
