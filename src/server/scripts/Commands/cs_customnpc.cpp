@@ -21,7 +21,7 @@ class customnpc_commandscript : public CommandScript
 public:
     customnpc_commandscript() : CommandScript("customnpc_commandscript") { }
 
-    ChatCommandTable GetCommands() const override
+    std::span<ChatCommandBuilder const> GetCommands() const override
     {
         static ChatCommandTable customNpcSetCommandTable =
         {

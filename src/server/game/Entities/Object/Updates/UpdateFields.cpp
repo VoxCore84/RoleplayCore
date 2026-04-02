@@ -882,7 +882,7 @@ void VisibleItem::WriteCreate(ByteBuffer& data, Player const* receiver, Unit con
     data << uint16(ItemAppearanceModID);
     data << uint16(ItemVisual);
     data << uint32(ItemModifiedAppearanceID);
-    data << uint8(Field_18);
+    data << uint8(TransmogSlotOption);
     data.WriteBit(HasTransmog);
     data.WriteBit(HasIllusion);
     data.FlushBits();
@@ -936,7 +936,7 @@ void VisibleItem::WriteUpdate(bool ignoreChangesMask, ByteBuffer& data, Player c
         }
         if (changesMask[9])
         {
-            data << uint8(Field_18);
+            data << uint8(TransmogSlotOption);
         }
     }
     data.FlushBits();
@@ -952,7 +952,7 @@ void VisibleItem::ClearChangesMask()
     Base::ClearChangesMask(ItemAppearanceModID);
     Base::ClearChangesMask(ItemVisual);
     Base::ClearChangesMask(ItemModifiedAppearanceID);
-    Base::ClearChangesMask(Field_18);
+    Base::ClearChangesMask(TransmogSlotOption);
     _changesMask.ResetAll();
 }
 

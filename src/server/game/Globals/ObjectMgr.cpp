@@ -4024,14 +4024,14 @@ void ObjectMgr::LoadPlayerInfo()
                 Field* fields = result->Fetch();
 
                 uint32 current_race = fields[0].GetUInt8();
-                if (!sChrRacesStore.HasRecord(current_race))
+                if (current_race && !sChrRacesStore.HasRecord(current_race))
                 {
                     TC_LOG_ERROR("sql.sql", "Wrong race {} in `playercreateinfo_item` table, ignoring.", current_race);
                     continue;
                 }
 
                 uint32 current_class = fields[1].GetUInt8();
-                if (!sChrClassesStore.HasRecord(current_class))
+                if (current_class && !sChrClassesStore.HasRecord(current_class))
                 {
                     TC_LOG_ERROR("sql.sql", "Wrong class {} in `playercreateinfo_item` table, ignoring.", current_class);
                     continue;
@@ -9142,9 +9142,23 @@ void ObjectMgr::LoadCreatureOutfits()
     {
         auto* maleModel = sDB2Manager.GetChrModel(e->ID, GENDER_MALE);
         auto* femaleModel = sDB2Manager.GetChrModel(e->ID, GENDER_FEMALE);
-        ASSERT(maleModel && femaleModel, "Dress NPCs cannot find male or female model from DBC with race %s", e->Name[DEFAULT_LOCALE]);
-        ASSERT(GetCreatureModelInfo(maleModel->DisplayID), "Dress NPCs requires an entry in creature_model_info for modelid %u (%s Male)", maleModel->DisplayID, e->Name[DEFAULT_LOCALE]);
-        ASSERT(GetCreatureModelInfo(femaleModel->DisplayID), "Dress NPCs requires an entry in creature_model_info for modelid %u (%s Female)", femaleModel->DisplayID, e->Name[DEFAULT_LOCALE]);
+        if (!maleModel || !femaleModel)
+        {
+            TC_LOG_WARN("server.loading", "Dress NPCs: skipping race {} ({}) - missing male or female ChrModel", e->ID, e->Name[DEFAULT_LOCALE]);
+            continue;
+        }
+        if (!GetCreatureModelInfo(maleModel->DisplayID))
+        {
+            TC_LOG_WARN("server.loading", "Dress NPCs: inserting default creature_model_info for modelid {} ({} Male)", maleModel->DisplayID, e->Name[DEFAULT_LOCALE]);
+            CreatureModelInfo defaultInfo = { .bounding_radius = 0.383f, .combat_reach = 1.5f, .gender = 0, .displayId_other_gender = 0, .is_trigger = false };
+            _creatureModelStore[maleModel->DisplayID] = defaultInfo;
+        }
+        if (!GetCreatureModelInfo(femaleModel->DisplayID))
+        {
+            TC_LOG_WARN("server.loading", "Dress NPCs: inserting default creature_model_info for modelid {} ({} Female)", femaleModel->DisplayID, e->Name[DEFAULT_LOCALE]);
+            CreatureModelInfo defaultInfo = { .bounding_radius = 0.383f, .combat_reach = 1.5f, .gender = 0, .displayId_other_gender = 0, .is_trigger = false };
+            _creatureModelStore[femaleModel->DisplayID] = defaultInfo;
+        }
     }
 
     QueryResult result = WorldDatabase.Query("SELECT entry, npcsoundsid, race, class, gender, spellvisualkitid, customizations, "

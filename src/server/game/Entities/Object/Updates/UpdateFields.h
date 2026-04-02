@@ -262,7 +262,7 @@ struct VisibleItem : public IsUpdateFieldStructureTag, public HasChangesMask<10>
     UpdateField<uint16, 0, 6> ItemAppearanceModID;
     UpdateField<uint16, 0, 7> ItemVisual;
     UpdateField<uint32, 0, 8> ItemModifiedAppearanceID;
-    UpdateField<uint8, 0, 9> Field_18;
+    UpdateField<uint8, 0, 9> TransmogSlotOption;
 
     using OwnerObject = Unit;
     void WriteCreate(ByteBuffer& data, Player const* receiver, Unit const* owner) const;
