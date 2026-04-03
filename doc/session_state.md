@@ -11,7 +11,8 @@ This is the single source of truth for what all tabs are doing, what's done, wha
 
 | Tab | Assignment | Status | Notes |
 |-----|-----------|--------|-------|
-| Antigravity (Current) | Triad Limits Tuning & Wrap-up | COMPLETE | Pushed optimized Triad execution rules and config limits for 128GB RAM. |
+| Main (Current) | TRIAD-DATA-MIGRATION-V1 — Baltic + LoreWalker gap-fill | IN PROGRESS | Phase 1 DONE (inventory). Phase 2 running (staging import). Spec: `AI_Studio/2_Active_Specs/TRIAD-DATA-MIGRATION-V1.md`. Staging DBs: `world_lorewalker_staging`, `hotfixes_lorewalker_staging`. |
+| Antigravity (past) | Triad Limits Tuning & Wrap-up | COMPLETE | Pushed optimized Triad execution rules and config limits for 128GB RAM. |
 | Main (session 107) | Meta infrastructure, gist updates, coordination | COMPLETE | Commit `8aa10362ad`. Created session_state, bug tracker, skills, report |
 | Main (session 108) | Consolidation — review all transmog docs, fix errors, update gists/memory | COMPLETE | Slot ordering fix, sniffing docs tracked |
 | Main (session 109) | ImageMagick install + sniffing guide updates | COMPLETE | `8150cf3dd5` |

@@ -93,7 +93,7 @@ Potentially actionable specs remaining in `1_Inbox/`:
 ## Infrastructure State
 - **Build**: Current (VS build done)
 - **Server**: NOT RUNNING
-- **Client**: 12.0.1.66263
+- **Client**: 12.0.1.66709
 - **DB**: world ~1,200 MB | hotfixes 811 MB | characters 4 MB
 - **31 slash commands** (+12 case management skills session 178)
 - **Cowork**: OPERATIONAL with 5 scheduled tasks
