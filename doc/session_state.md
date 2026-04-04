@@ -3,7 +3,7 @@
 **Read this FIRST in any new Claude Code tab.**
 This is the single source of truth for what all tabs are doing, what's done, what's blocked, and what to pick up next. Updated by whichever tab finishes work.
 
-**Last updated**: April 4, 2026 -- Session 228 Tab A: RoleplayCore SQL re-applied (18 files) + DB Error Cleanup Phase 4 (32K world orphans + 20K hotfix blobs). Tab 1 (228): Warlock extraction COMPLETE.
+**Last updated**: April 4, 2026 -- Session 229 Main: Warlock Phase 4 DONE (13 SpellScriptLoaders + 2 CreatureScripts modernized) + Tier B triage (147 TC-native, 22 real TODO). Spawning 6 tabs for remaining implementation.
 
 ---
 
@@ -11,9 +11,13 @@ This is the single source of truth for what all tabs are doing, what's done, wha
 
 | Tab | Assignment | Status | Notes |
 |-----|-----------|--------|-------|
-| Main (Past) | TRIAD-DATA-MIGRATION-V1 — Baltic + LoreWalker gap-fill | IN PROGRESS | Phase 1 DONE (inventory). Phase 2 running (staging import). Spec: `AI_Studio/2_Active_Specs/TRIAD-DATA-MIGRATION-V1.md`. Staging DBs: `world_lorewalker_staging`, `hotfixes_lorewalker_staging`. |
-| Tab 1 (Session 228) | TRIAD-WARLOCK-FULLCLASS-V1 — Phase 0-2 extraction pipeline | COMPLETE | 6 Python scripts in `tools/warlock/`, 12 files in `doc/classes/warlock/`. 199 nodes extracted, 24 HAS_HANDLER, 174 NEEDS_HANDLER. Validation PASSED (13/13, 8 warnings). Ready for Phase 3+ (C++ implementation). |
-| Antigravity (past) | Triad Limits Tuning & Wrap-up | COMPLETE | Pushed optimized Triad execution rules and config limits for 128GB RAM. |
+| Main (229) | Warlock Phase 4 modernization + Tier B triage | COMPLETE | 15 old-style handlers → RegisterSpellScript. Triage: 147 TC-native / 22 real TODO. Handoffs below. |
+| **Warlock-A1** | Tier A: Summon Demonic Tyrant (265187) | READY | Demonology. PetAI done, spell handler needed. See handoff below. |
+| **Warlock-A2** | Tier A: Mayhem (387506) | READY | Destruction. Spell duplication to secondary target. See handoff below. |
+| **Warlock-A3** | Tier A: Demonic Soul (449614) | READY | Soul Harvester. Resource-spend tracking + spec-dependent procs. See handoff below. |
+| **Warlock-B** | Tier B: 6 Summon spells | READY | Demonology/Destruction summons. See handoff below. |
+| **Warlock-C** | Tier C: 5 Class utilities | READY | Demon Skin, Mortal Coil, Soul Link, Soulburn, Ichor of Devils. See handoff below. |
+| **Warlock-D** | Tier D: 8 MAYBE spells | READY | Manual review + classify/implement. See handoff below. |
 | Main (session 107) | Meta infrastructure, gist updates, coordination | COMPLETE | Commit `8aa10362ad`. Created session_state, bug tracker, skills, report |
 | Main (session 108) | Consolidation — review all transmog docs, fix errors, update gists/memory | COMPLETE | Slot ordering fix, sniffing docs tracked |
 | Main (session 109) | ImageMagick install + sniffing guide updates | COMPLETE | `8150cf3dd5` |
@@ -66,12 +70,161 @@ This is the single source of truth for what all tabs are doing, what's done, wha
 | Tab 2 (228) | DB Cleanup & Housekeeping — drop staging DBs, loot error fix, gist update | COMPLETE | Dropped 2 staging DBs, cleared 428 orphan LootIDs (1.78M DBErrors eliminated), pushed 3 gists (sessions 214-228). SQL: `2026_04_04_03_world.sql` |
 | Tab A (228) | RoleplayCore Re-Apply + DB Error Cleanup Phase 4 | COMPLETE | Re-applied 18 RoleplayCore SQL files (hotfixes/world/roleplay/characters/auth). Phase 4 cleanup: 32K world orphans (10 tables) + 20K hotfix_blob/data entries. SQL: `2026_04_04_04_world.sql`, `2026_04_04_01_hotfixes.sql` |
 | Main (227) | VoxSniffer Combat Audit v1 implementation | COMPLETE | CombatAudit.lua + ProcExpectations.lua + audit_report.py. Gemini audit PASS (4 HIGH fixes). Commit `5cd63fdd3f`. Needs in-game test |
-| Tab 1 (227) | Warlock Full Class — Phase 0-2 extraction pipeline | IN PROGRESS | Data extraction from DB2 + registry scaffolding. Spec: `AI_Studio/2_Active_Specs/TRIAD-WARLOCK-FULLCLASS-V1` |
-| Tab 2 (227) | DB error cleanup + TC TDB backfill | COMPLETE | Phase 1-2a cleanup (886K rows), TC TDB INSERT IGNORE. Commit `eef19fe221` |
-| Tab 3 (227) | Memory & coordination sync | COMPLETE | Updated session_state, Central Brain, MEMORY.md, recent-work.md, todo.md. Memory audit: 4 orphans, 7 broken transmog links, 4 missing index entries. recent-work.md needs archival (1,577 lines) |
 | -- | -- | -- | Add rows as tabs are opened |
 
 **Rule**: Before starting work, check this file. If another tab owns a file or task, don't touch it. Update your row when you start and when you finish.
+
+---
+
+## Warlock Tab Handoffs (Session 229)
+
+All tabs edit `src/server/scripts/Spells/spell_warlock.cpp`. Coordinate: each tab adds NEW classes at the end of the file (before `AddSC_warlock_spell_scripts`) and adds registration lines inside it. Do NOT modify existing classes — only add new ones.
+
+**Shared context**: Registry at `doc/classes/warlock/generated/warlock_registry.json`. Status at `doc/classes/warlock/generated/warlock_implementation_status.json`. Spec docs at `doc/classes/warlock/generated/*.md`.
+
+### Tab Warlock-A1: Summon Demonic Tyrant (265187)
+
+```
+Warlock Phase 5 — implement Summon Demonic Tyrant spell handler (265187).
+
+CONTEXT: Read doc/session_state.md first. You own ONLY this spell. The PetAI (npc_pet_warlock_demonic_tyrant) is already registered at line ~3100 of spell_warlock.cpp. What's missing is the SPELL HANDLER that:
+1. Summons the Tyrant (Effect 0: SUMMON creature 135002) — this part likely works via DB
+2. Extends duration of all active demons by 15s (Effect 1: ENERGIZE type 7)
+3. EFFECT_4 is DUMMY aura — may track Tyrant buff state
+
+DB2 effects for 265187:
+- EFFECT_0: SUMMON (28), creature 135002
+- EFFECT_1: ENERGIZE (30), misc 7 (soul shards?)
+- EFFECT_2: NONE
+- EFFECT_3: SUMMON (28), creature 250289
+- EFFECT_4: APPLY_AURA DUMMY
+
+The key behavior: on cast, iterate all warlock temporary summons (Wild Imps, Dreadstalkers, Vilefiend, Felguard) and extend their duration by the amount from the spell data. Also check for Reign of Tyranny (1276748) which scales Tyrant damage per demon.
+
+File: src/server/scripts/Spells/spell_warlock.cpp
+Pattern: Add new class before AddSC_warlock_spell_scripts(), add RegisterSpellScript() inside it.
+Convention: class spell_warl_summon_demonic_tyrant : public SpellScript
+Spell constants: Add to WarlockSpells enum if needed.
+Build: powershell.exe -ExecutionPolicy Bypass -File "_build_ps.ps1" rel scripts 2>&1
+DB binding: INSERT INTO spell_script_names VALUES (265187, 'spell_warl_summon_demonic_tyrant');
+```
+
+### Tab Warlock-A2: Mayhem (387506)
+
+```
+Warlock Phase 5 — implement Mayhem talent handler (387506).
+
+CONTEXT: Read doc/session_state.md first. You own ONLY this spell. Mayhem is the Destruction Havoc variant.
+
+BEHAVIOR: When talented, your single-target Chaos Bolt and Rain of Fire have a chance to also hit a nearby second enemy. The 3 DUMMY auras store:
+- EFFECT_0: DUMMY bp=35 (proc chance %)
+- EFFECT_1: DUMMY bp=60 (Havoc duration ms?)
+- EFFECT_2: DUMMY bp=5000 (some tracking value)
+
+Implementation approach: This is an AuraScript on 387506 that procs when the player casts Chaos Bolt (116858) or Rain of Fire (5740). On proc, find a nearby second valid target and cast a copy of the spell on it. Similar to how Havoc (80240) works — Havoc is the choice-node alternative.
+
+Check existing code: search spell_warlock.cpp for any Havoc references or SPELL_WARLOCK_HAVOC constants that might exist.
+
+File: src/server/scripts/Spells/spell_warlock.cpp
+Pattern: class spell_warl_mayhem : public AuraScript (proc handler)
+Build: powershell.exe -ExecutionPolicy Bypass -File "_build_ps.ps1" rel scripts 2>&1
+DB: INSERT INTO spell_script_names VALUES (387506, 'spell_warl_mayhem');
+```
+
+### Tab Warlock-A3: Demonic Soul (449614)
+
+```
+Warlock Phase 5 — implement Demonic Soul talent handler (449614).
+
+CONTEXT: Read doc/session_state.md first. You own ONLY this spell. Demonic Soul is the Soul Harvester hero talent keystone.
+
+DB2 effects for 449614 — 5x PROC_TRIGGER_SPELL_COPY (aura 396):
+- EFFECT_0: trigger 450510, misc 7, bp=10
+- EFFECT_1: trigger 450510, misc 7, bp=20
+- EFFECT_2: trigger 450510, misc 7, bp=30
+- EFFECT_3: trigger 450510, misc 7, bp=40
+- EFFECT_4: trigger 450510, misc 7, bp=50
+
+BEHAVIOR: Every 10 Soul Shards spent, trigger Demonic Soul effect (450510). The effect empowers your next few casts based on your spec:
+- Affliction: empowers Malefic Rapture
+- Demonology: empowers Demonbolt
+- Destruction: empowers Chaos Bolt
+
+The 5 effects with increasing bp (10/20/30/40/50) likely scale the power with consecutive triggers.
+
+Implementation: AuraScript that tracks soul shard expenditure via OnProc, counting shards spent. When threshold reached, cast 450510. Needs to detect player spec for the right empowerment.
+
+File: src/server/scripts/Spells/spell_warlock.cpp
+Pattern: class spell_warl_demonic_soul : public AuraScript
+Build: powershell.exe -ExecutionPolicy Bypass -File "_build_ps.ps1" rel scripts 2>&1
+DB: INSERT INTO spell_script_names VALUES (449614, 'spell_warl_demonic_soul');
+```
+
+### Tab Warlock-B: Tier B Summons (6 spells)
+
+```
+Warlock Phase 5 — implement 6 summon-related spell handlers.
+
+CONTEXT: Read doc/session_state.md first. You own these 6 spells ONLY.
+
+SPELLS:
+1. Summon Felguard (30146) — SUMMON_PET effect. May Just Work if creature_template entry 17252 exists with proper AI. Verify creature exists, has PetAI, and spell binding works.
+2. Inner Demons (267216) — PERIODIC_DUMMY (aura 226) every 5s. Spawns a Wild Imp periodically. Needs AuraScript with OnEffectPeriodic that casts SPELL_WARLOCK_WILD_IMP_SUMMON.
+3. Grimoire: Imp Lord (1276452) — DUMMY(3) + SUMMON(28) creature 258584. Replaces standard imp with Imp Lord. Needs SpellScript.
+4. Summon Vilefiend (1251778) — DUMMY aura only. Likely needs a summon spell cast + creature AI. Check if 1251778 has a linked summon spell.
+5. Summon Doomguard (1276672) — SUMMON(28) creature 250785 + DUMMY(3). Needs creature_template + PetAI.
+6. Summon Infernal (1122) — SUMMON(28) creature 47319 + TRIGGER_SPELL(32) 22703 + TRIGGER(148) 111685. The infernal creature likely exists from TC baseline. Check if AI works, add spell handler for the crash-landing damage.
+
+Pattern: Each gets its own class. Use existing npc_pet_warlock_wild_imp as reference for PetAI pattern.
+File: src/server/scripts/Spells/spell_warlock.cpp
+Build: powershell.exe -ExecutionPolicy Bypass -File "_build_ps.ps1" rel scripts 2>&1
+```
+
+### Tab Warlock-C: Tier C Class Utilities (5 spells)
+
+```
+Warlock Phase 5 — implement 5 class utility spell handlers.
+
+CONTEXT: Read doc/session_state.md first. You own these 5 spells ONLY.
+
+SPELLS:
+1. Demon Skin (219272) — PERIODIC_DUMMY every 2s (aura 226). Passively regenerates Soul Leech shield. AuraScript: OnEffectPeriodic, apply/refresh absorb shield based on max HP %. Also has ADD_FLAT_MODIFIER effects (107) for armor/leech.
+2. Mortal Coil (6789) — FEAR(7) + DUMMY(3) + TRIGGER(32) 108396. The FEAR component works natively. The DUMMY effect heals the caster for % max HP. SpellScript: OnEffectHitTarget for the DUMMY heal.
+3. Soul Link (108415) — DUMMY(3) bp=50 + ADD_FLAT_MODIFIER(107) + MOD_TOTAL_STAT(137). Redirects damage to pet. The DUMMY cast effect likely transfers damage — needs SpellScript + AuraScript for the damage redirect.
+4. Soulburn (385899) — LEARN_SPELL(64) trigger 387626. Teaches an empowered spell variant on use. May work natively via the LEARN_SPELL effect, or may need a handler to manage the buff/empowerment window.
+5. Ichor of Devils (386664) — ADD_PCT_MODIFIER_BY_SPELL_LABEL(219) + ADD_FLAT_MODIFIER_BY_SPELL_LABEL(218) + DUMMY(3) cast effect. The modifiers work natively. The DUMMY cast effect (bp=5) may need a handler for additional logic.
+
+File: src/server/scripts/Spells/spell_warlock.cpp
+Build: powershell.exe -ExecutionPolicy Bypass -File "_build_ps.ps1" rel scripts 2>&1
+```
+
+### Tab Warlock-D: Tier D MAYBE Spells (8 spells)
+
+```
+Warlock Phase 5 — triage and implement 8 ambiguous spell handlers.
+
+CONTEXT: Read doc/session_state.md first. You own these 8 spells ONLY.
+
+These were classified as MAYBE during triage — they have DUMMY auras mixed with modifiers and need manual review to determine if they're TC-native (passive data storage) or need C++ handlers.
+
+TASK: For each spell, look up its tooltip (use /lookup-spell), examine the DB2 effects, and determine:
+- [TC] = No handler needed, mark as TC_NATIVE in the registry
+- [TODO] = Write the handler
+
+SPELLS:
+1. Empowered Drain Life (1271689) — class — ADD_FLAT_MODIFIER(107) + DUMMY(4). Tooltip will clarify if DUMMY is passive.
+2. Demonic Gateway (111771) — class — ALREADY HAS HANDLER (spell_warl_demonic_gateway). Registry is stale. Just mark as HAS_HANDLER.
+3. Cunning Cruelty (453172) — affliction — DUMMY(4) bp=5. Likely passive data for Shadow Bolt crit bonus.
+4. Summoner's Embrace (453105) — affliction/destruction — ADD_PCT_MODIFIER(108) x2 + ADD_PCT_MODIFIER_BY_SPELL_LABEL(429). Looks purely passive — verify and mark [TC].
+5. Eye Contract (1279521) — affliction — ADD_FLAT_MODIFIER(107) + ADD_PCT_MODIFIER_BY_SPELL_LABEL(219). Looks passive.
+6. Sacrolash's Dark Strike (386986) — affliction — ADD_PCT_MODIFIER(108) + DUMMY(3) + ADD_PCT_MODIFIER(108). The DUMMY cast effect may apply a slow.
+7. Infernal Rapidity (1263941) — demonology — DUMMY(4) x2. Likely passive data (pet haste values).
+8. Summoner's Embrace (453105) — destruction — same spell as #4, shared.
+
+File: src/server/scripts/Spells/spell_warlock.cpp (if handlers needed)
+Registry: doc/classes/warlock/generated/warlock_registry.json (update handlerStatus)
+Build: powershell.exe -ExecutionPolicy Bypass -File "_build_ps.ps1" rel scripts 2>&1
+```
 
 ---
 

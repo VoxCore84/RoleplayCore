@@ -1,90 +1,104 @@
 {
   "summary": {
     "total": 199,
-    "hasHandler": 24,
+    "hasHandler": 29,
+    "tcNative": 147,
+    "needsHandler": 22,
     "disabled": 1,
-    "needsHandler": 174,
-    "dbOnly": 0
+    "dbOnly": 0,
+    "note": "Post-triage (session 229): 147 passive modifier talents classified as TC_NATIVE via DB2 spell effect analysis. Real remaining work: 22 nodes."
   },
   "byTree": {
     "affliction": {
       "total": 37,
-      "hasHandler": 7,
-      "needsHandler": 30
+      "hasHandler": 8,
+      "tcNative": 24,
+      "needsHandler": 5,
+      "note": "4 MAYBE + 1 handled(Agony). Nightfall classified as TC (DUMMY stores proc chance)."
     },
     "class": {
       "total": 42,
-      "hasHandler": 3,
-      "needsHandler": 39
+      "hasHandler": 4,
+      "tcNative": 30,
+      "needsHandler": 8,
+      "note": "5 definite TODO (Mortal Coil, Demon Skin, Soul Link, Soulburn, Ichor of Devils) + 3 MAYBE"
     },
     "demonology": {
       "total": 39,
-      "hasHandler": 1,
-      "needsHandler": 37
+      "hasHandler": 4,
+      "tcNative": 26,
+      "needsHandler": 9,
+      "note": "Call Dreadstalkers + Implosion + Demonic Calling now handled. 5 summon spells + Inner Demons need C++."
     },
     "destruction": {
       "total": 39,
       "hasHandler": 10,
-      "needsHandler": 29
+      "tcNative": 27,
+      "needsHandler": 2,
+      "note": "Mayhem (Tier A) + Summon Infernal need C++. Rest are modifiers."
     },
     "hero_diabolist": {
       "total": 14,
       "hasHandler": 3,
-      "needsHandler": 11
+      "tcNative": 11,
+      "needsHandler": 0,
+      "note": "All non-handled nodes are TC-native modifiers."
     },
     "hero_hellcaller": {
       "total": 14,
-      "hasHandler": 0,
-      "needsHandler": 14
+      "hasHandler": 1,
+      "tcNative": 13,
+      "needsHandler": 0,
+      "note": "Wither handled (Phase 3). All others are modifier auras."
     },
     "hero_soul_harvester": {
       "total": 14,
       "hasHandler": 0,
-      "needsHandler": 14
+      "tcNative": 13,
+      "needsHandler": 1,
+      "note": "Only Demonic Soul (449614) needs C++ — PROC_TRIGGER_SPELL_COPY with resource tracking."
     }
   },
-  "tierAMissing": [
-    {
-      "nodeId": 71933,
-      "name": "Soul Leech",
-      "tree": "class",
-      "spellId": 108370
-    },
-    {
-      "nodeId": 72049,
-      "name": "Agony",
-      "tree": "affliction",
-      "spellId": 980
-    },
-    {
-      "nodeId": 101894,
-      "name": "Call Dreadstalkers",
-      "tree": "demonology",
-      "spellId": 104316
-    },
-    {
-      "nodeId": 101905,
-      "name": "Summon Demonic Tyrant",
-      "tree": "demonology",
-      "spellId": 265187
-    },
-    {
-      "nodeId": 71979,
-      "name": "Mayhem",
-      "tree": "destruction",
-      "spellId": 387506
-    },
-    {
-      "nodeId": 94840,
-      "name": "Wither",
-      "tree": "hero_hellcaller",
-      "spellId": 445465
-    },
-    {
-      "nodeId": 94851,
-      "name": "Demonic Soul",
-      "tree": "hero_soul_harvester",
-      "spellId": 449614
+  "realTodo": {
+    "tierA": [
+      {"name": "Summon Demonic Tyrant", "spellId": 265187, "tree": "demonology", "complexity": "HIGH", "note": "PetAI done, spell handler (demon duration extension) missing"},
+      {"name": "Mayhem", "spellId": 387506, "tree": "destruction", "complexity": "HIGH", "note": "Spell duplication to secondary target (Havoc variant). 3x DUMMY auras."},
+      {"name": "Demonic Soul", "spellId": 449614, "tree": "hero_soul_harvester", "complexity": "HIGH", "note": "PROC_TRIGGER_SPELL_COPY x5 — resource-spend tracking + spec-dependent procs"}
+    ],
+    "tierB_summons": [
+      {"name": "Summon Felguard", "spellId": 30146, "tree": "demonology", "note": "SUMMON_PET — may work if creature_template + pet AI exist"},
+      {"name": "Inner Demons", "spellId": 267216, "tree": "demonology", "note": "PERIODIC_DUMMY — periodic Wild Imp summoning"},
+      {"name": "Grimoire: Imp Lord", "spellId": 1276452, "tree": "demonology", "note": "DUMMY + SUMMON — new summon variant"},
+      {"name": "Summon Vilefiend", "spellId": 1251778, "tree": "demonology", "note": "DUMMY only — summon variant, may need handler"},
+      {"name": "Summon Doomguard", "spellId": 1276672, "tree": "demonology", "note": "SUMMON + DUMMY — needs creature + AI"},
+      {"name": "Summon Infernal", "spellId": 1122, "tree": "destruction", "note": "SUMMON + TRIGGER — already has creature entry, needs handler for infernal bolt"}
+    ],
+    "tierC_class": [
+      {"name": "Demon Skin", "spellId": 219272, "tree": "class", "note": "PERIODIC_DUMMY — passive Soul Leech shield regen every 2s"},
+      {"name": "Mortal Coil", "spellId": 6789, "tree": "class", "note": "FEAR + DUMMY (heal) — needs handler for self-heal component"},
+      {"name": "Ichor of Devils", "spellId": 386664, "tree": "class", "note": "219 + 218 + DUMMY(3) cast effect"},
+      {"name": "Soul Link", "spellId": 108415, "tree": "class", "note": "DUMMY(3) + pet damage redirect"},
+      {"name": "Soulburn", "spellId": 385899, "tree": "class", "note": "LEARN_SPELL — teaches empowered spell variant"}
+    ],
+    "maybe": [
+      {"name": "Empowered Drain Life", "spellId": 1271689, "tree": "class"},
+      {"name": "Demonic Gateway", "spellId": 111771, "tree": "class", "note": "Already has handler, registry stale"},
+      {"name": "Cunning Cruelty", "spellId": 453172, "tree": "affliction"},
+      {"name": "Summoner's Embrace", "spellId": 453105, "tree": "affliction"},
+      {"name": "Eye Contract", "spellId": 1279521, "tree": "affliction"},
+      {"name": "Sacrolash's Dark Strike", "spellId": 386986, "tree": "affliction"},
+      {"name": "Infernal Rapidity", "spellId": 1263941, "tree": "demonology"},
+      {"name": "Summoner's Embrace (Destro)", "spellId": 453105, "tree": "destruction"}
+    ]
+  },
+  "triageLog": {
+    "session229": {
+      "date": "2026-04-04",
+      "method": "DB2 SpellEffect query — classified by effect type and aura type",
+      "tcNativeCount": 147,
+      "needsHandlerCount": 22,
+      "maybeCount": 8,
+      "note": "Conservative classification. DUMMY auras classified as TC_NATIVE when combined with numeric modifiers (data storage pattern). Standalone DUMMY/PERIODIC_DUMMY/SUMMON marked as NEEDS_HANDLER."
     }
-  ]
+  }
 }
