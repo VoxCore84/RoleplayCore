@@ -163,6 +163,8 @@ enum WarlockSpells
     SPELL_WARLOCK_CONFLAGRATE_FIRE_AND_BRIMSTONE    = 108685,
     SPELL_WARLOCK_IMMOLATE_FIRE_AND_BRIMSTONE       = 108686,
     SPELL_WARLOCK_SOUL_FIRE                         = 6353,
+    SPELL_WARLOCK_SOUL_LEECH                        = 108370,
+    SPELL_WARLOCK_SOUL_LEECH_ABSORB                 = 108366,
     SPELL_WARLOCK_SOUL_CONDUIT_REFUND               = 215942,
     SPELL_SHADOW_EMBRACE                            = 32388,
     SPELL_SHADOW_EMBRACE_TARGET_DEBUFF              = 32390,
@@ -1560,6 +1562,62 @@ class spell_warl_siphon_life : public AuraScript
     }
 };
 
+// 108370 - Soul Leech
+class spell_warl_soul_leech : public AuraScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_WARLOCK_SOUL_LEECH_ABSORB });
+    }
+
+    bool CheckProc(ProcEventInfo& eventInfo)
+    {
+        DamageInfo const* damageInfo = eventInfo.GetDamageInfo();
+        if (!damageInfo || !damageInfo->GetDamage())
+            return false;
+
+        SpellInfo const* spellInfo = damageInfo->GetSpellInfo();
+        if (!spellInfo)
+            return false;
+
+        // Only proc from single-target spells (no AoE)
+        if (spellInfo->HasAreaAuraEffect() || spellInfo->IsTargetingArea())
+            return false;
+
+        return true;
+    }
+
+    void HandleProc(AuraEffect const* aurEff, ProcEventInfo const& eventInfo) const
+    {
+        DamageInfo const* damageInfo = eventInfo.GetDamageInfo();
+        if (!damageInfo || !damageInfo->GetDamage())
+            return;
+
+        Unit* caster = GetTarget();
+
+        // Calculate absorb: BasePoints% of damage dealt
+        int32 absorb = CalculatePct(damageInfo->GetDamage(), aurEff->GetAmount());
+
+        // Cap at MaxHealth * Effect1 BasePoints / 100 (default ~5% from EFFECT_1)
+        int32 cap = CalculatePct(caster->GetMaxHealth(), GetEffectInfo(EFFECT_1).CalcValue(caster));
+        absorb = std::min(absorb, cap);
+
+        // Stack with existing shield
+        if (Aura const* existing = caster->GetAura(SPELL_WARLOCK_SOUL_LEECH_ABSORB))
+            if (AuraEffect const* existingAbsorb = existing->GetEffect(EFFECT_0))
+                absorb = std::min(absorb + existingAbsorb->GetAmount(), cap);
+
+        caster->CastSpell(caster, SPELL_WARLOCK_SOUL_LEECH_ABSORB, CastSpellExtraArgs(aurEff)
+            .AddSpellMod(SPELLVALUE_BASE_POINT0, absorb));
+    }
+
+    void Register() override
+    {
+        DoCheckProc += AuraCheckProcFn(spell_warl_soul_leech::CheckProc);
+        OnEffectProc += AuraEffectProcFn(spell_warl_soul_leech::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+    }
+};
+
 // 6353 - Soul Fire
 class spell_warl_soul_fire : public SpellScript
 {
@@ -1966,6 +2024,32 @@ class spell_warl_volatile_agony : public SpellScript
     }
 };
 
+// 445474 - Wither (Periodic)
+// Hellcaller keystone — replaces Immolate/Corruption. DoT ramps damage with each tick.
+class spell_warl_wither_periodic : public AuraScript
+{
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
+    {
+        ++_tickCount;
+    }
+
+    void CalcDamage(AuraEffect const* /*aurEff*/, Unit const* /*victim*/, int32& /*damage*/, int32& /*flatMod*/, float& pctMod) const
+    {
+        // Each tick increases damage by 10%, up to 8 stacks (80% max)
+        if (_tickCount > 0)
+            AddPct(pctMod, std::min(_tickCount, 8u) * 10);
+    }
+
+    void Register() override
+    {
+        OnEffectPeriodic += AuraEffectPeriodicFn(spell_warl_wither_periodic::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
+        DoEffectCalcDamageAndHealing += AuraEffectCalcDamageFn(spell_warl_wither_periodic::CalcDamage, EFFECT_0, SPELL_AURA_PERIODIC_DAMAGE);
+    }
+
+private:
+    uint32 _tickCount = 0;
+};
+
 //5782 - Fear
 class spell_warl_fear : public SpellScriptLoader
 {
@@ -2193,24 +2277,6 @@ class aura_warl_phantomatic_singularity : public AuraScript
     void Register() override
     {
         OnEffectPeriodic += AuraEffectPeriodicFn(aura_warl_phantomatic_singularity::OnTick, EFFECT_0, SPELL_AURA_PERIODIC_LEECH);
-    }
-};
-
-// 48181 - Haunt
-class aura_warl_haunt : public AuraScript
-{
-    void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/)
-    {
-        Unit* caster = GetCaster();
-        if (!caster || GetTargetApplication()->GetRemoveMode() != AURA_REMOVE_BY_DEATH)
-            return;
-
-        caster->GetSpellHistory()->ResetCooldown(SPELL_WARLOCK_HAUNT, true);
-    }
-
-    void Register() override
-    {
-        OnEffectRemove += AuraEffectApplyFn(aura_warl_haunt::HandleRemove, EFFECT_1, SPELL_AURA_MOD_SCHOOL_MASK_DAMAGE_FROM_CASTER, AURA_EFFECT_HANDLE_REAL_OR_REAPPLY_MASK);
     }
 };
 
@@ -2767,36 +2833,6 @@ public:
     };
 };
 
-// 264178 - Demonbolt
-class spell_warlock_demonbolt_new : public SpellScriptLoader
-{
-public:
-    spell_warlock_demonbolt_new() : SpellScriptLoader("spell_warlock_demonbolt_new") { }
-
-    class spell_warlock_demonbolt_new_SpellScript : public SpellScript
-    {
-
-        void HandleHit(SpellEffIndex /*effIndex*/)
-        {
-            if (GetCaster())
-            {
-                GetCaster()->CastSpell(GetCaster(), SPELL_DEMONBOLT_ENERGIZE, true);
-                GetCaster()->CastSpell(GetCaster(), SPELL_DEMONBOLT_ENERGIZE, true);
-            }
-        }
-
-        void Register() override
-        {
-            OnEffectHit += SpellEffectFn(spell_warlock_demonbolt_new_SpellScript::HandleHit, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
-        }
-    };
-
-    SpellScript* GetSpellScript() const override
-    {
-        return new spell_warlock_demonbolt_new_SpellScript();
-    }
-};
-
 // Demonic Calling - 205145
 class spell_warl_demonic_calling : public SpellScriptLoader
 {
@@ -2939,36 +2975,6 @@ public:
 };
 #endif
 
-// 6353 - Soul Fire
-class spell_warlock_soul_fire : public SpellScriptLoader
-{
-public:
-    spell_warlock_soul_fire() : SpellScriptLoader("spell_warlock_soul_fire") { }
-
-    class spell_warlock_soul_fire_SpellScript : public SpellScript
-    {
-
-        void HandleHit(SpellEffIndex /*effIndex*/)
-        {
-            if (GetCaster())
-                GetCaster()->ModifyPower(POWER_SOUL_SHARDS, +40);
-
-            //TODO: Improve it later
-            GetCaster()->GetSpellHistory()->ModifyCooldown(SPELL_WARLOCK_SOUL_FIRE, Seconds(-2000));
-        }
-
-        void Register() override
-        {
-            OnEffectHit += SpellEffectFn(spell_warlock_soul_fire_SpellScript::HandleHit, EFFECT_0, SPELL_EFFECT_SCHOOL_DAMAGE);
-        }
-    };
-
-    SpellScript* GetSpellScript() const override
-    {
-        return new spell_warlock_soul_fire_SpellScript();
-    }
-};
-
 // Soul Conduit - 215941
 class spell_warl_soul_conduit : public SpellScriptLoader
 {
@@ -3026,7 +3032,7 @@ public:
 };
 
 //232670
-class spell_warr_shadowbolt_affliction : public SpellScript
+class spell_warl_shadowbolt_affliction : public SpellScript
 {
 
     void HandleOnHit()
@@ -3042,7 +3048,7 @@ class spell_warr_shadowbolt_affliction : public SpellScript
 
     void Register() override
     {
-        OnHit += SpellHitFn(spell_warr_shadowbolt_affliction::HandleOnHit);
+        OnHit += SpellHitFn(spell_warl_shadowbolt_affliction::HandleOnHit);
     }
 };
 
@@ -3139,25 +3145,6 @@ private:
     }
 
     ObjectGuid _targetGUID;
-};
-
-// Inquisitor's Gaze - 386344
-class spell_warlock_inquisitors_gaze : public SpellScript
-{
-
-    void HandleOnHit(SpellEffIndex /*effIndex*/)
-    {
-        if (Unit* target = GetHitUnit())
-        {
-            int32 damage = (GetCaster()->SpellBaseDamageBonusDone(GetSpellInfo()->GetSchoolMask()) * 15 * 16) / 100;
-            GetCaster()->CastSpell(target, SPELL_INQUISITORS_GAZE, &damage);
-        }
-    }
-
-    void Register() override
-    {
-        OnEffectHitTarget += SpellEffectFn(spell_warlock_inquisitors_gaze::HandleOnHit, EFFECT_0, SPELL_EFFECT_DUMMY);
-    }
 };
 
 // Incinerate - 29722
@@ -4552,6 +4539,7 @@ void AddSC_warlock_spell_scripts()
     RegisterSpellScript(spell_warl_shadow_bolt);
     RegisterSpellScript(spell_warl_shadow_invocation);
     RegisterSpellScript(spell_warl_siphon_life);
+    RegisterSpellScript(spell_warl_soul_leech);
     RegisterSpellScript(spell_warl_soul_fire);
     RegisterSpellScript(spell_warl_soul_swap);
     RegisterSpellScript(spell_warl_soul_swap_dot_marker);
@@ -4566,6 +4554,7 @@ void AddSC_warlock_spell_scripts()
     RegisterSpellScript(spell_warl_unstable_affliction);
     RegisterSpellScript(spell_warl_vile_taint);
     RegisterSpellScript(spell_warl_volatile_agony);
+    RegisterSpellScript(spell_warl_wither_periodic);
 
     // Diabolist
     RegisterSpellScript(spell_warl_diabolic_ritual_passive);
@@ -4604,7 +4593,6 @@ void AddSC_warlock_spell_scripts()
     RegisterSpellScript(spell_warl_corruption_effect);
     RegisterSpellScript(spell_warl_drain_life);
     RegisterSpellScript(aura_warl_phantomatic_singularity);
-    RegisterSpellScript(aura_warl_haunt);
     RegisterSpellScript(spell_warlock_summon_darkglare);
     RegisterCreatureAI(npc_pet_warlock_darkglare);
     RegisterSpellScript(spell_warl_darkglare_eye_laser);
@@ -4615,16 +4603,14 @@ void AddSC_warlock_spell_scripts()
     new spell_warl_hand_of_guldan_damage();
     new spell_warlock_call_dreadstalkers();
     new npc_warlock_dreadstalker();
-    new spell_warlock_demonbolt_new();
     new spell_warl_demonic_calling();
     new spell_warl_implosion();
     //new spell_warlock_doom(); // Midnight 12.0.1: disabled, EFFECT_0 is DUMMY not PERIODIC_DAMAGE
-    new spell_warlock_soul_fire();
     new spell_warl_soul_conduit();
-    RegisterSpellScript(spell_warr_shadowbolt_affliction);
+    RegisterSpellScript(spell_warl_shadowbolt_affliction);
     new spell_warlock_fel_firebolt_wild_imp();
     RegisterCreatureAI(npc_pet_warlock_wild_imp);
-    new spell_warlock_inquisitors_gaze();
+    RegisterCreatureAI(npc_pet_warlock_demonic_tyrant);
     RegisterSpellScript(spell_warl_incinerate);
     new spell_warlock_agony();
     new spell_warlock_imp_firebolt();
