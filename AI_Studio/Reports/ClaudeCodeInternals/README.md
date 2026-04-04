@@ -58,23 +58,23 @@ Status: Active research -- Tier 1 + Tier 2 COMPLETE, building cumulative experti
 | [11_skills_system.md](11_skills_system.md) | Skill Loading & Execution | 8 sources, 17 bundled skills. Dynamic discovery from file edits. Conditional `paths` activation. 6 cache layers |
 | [12_mcp_client.md](12_mcp_client.md) | MCP Server Integration | 7 config scopes, 8 transports. OAuth PKCE. Channel push system with 6-layer gating. ~27.8h tool timeout |
 
-### Tier 3 -- Hidden Features (3 of 5 COMPLETE)
+### Tier 3 -- Hidden Features (4 of 5 COMPLETE)
 | Report | System | Key Finding |
 |--------|--------|-------------|
 | [13_computer_use.md](13_computer_use.md) | Computer Use ("Chicago") | macOS-only, triple-layer gating (compile+GrowthBook+subscription). 23 tools via in-process MCP. Rust/enigo input + Swift screenshots. CFRunLoop pump every 1ms for libuv compat |
 | 14_voice_mode.md | Voice / Push-to-Talk | PENDING |
 | [15_buddy_system.md](15_buddy_system.md) | Tamagotchi Pet | 18 species, deterministic gacha from hash(userId). 1% shiny, 1% legendary. Anti-cheat: bones regenerated on read, only soul persists. April 1 2026 launch |
-| 16_ultraplan.md | UltraPlan | PENDING |
+| [16_ultraplan.md](16_ultraplan.md) | UltraPlan | Internal-only remote planning via CCR. Opus 4.6, 30-min timeout, 3 entry points (slash/keyword/plan-upgrade), 27 files. Keyword rainbow animation. Not usable externally |
 | [17_bridge.md](17_bridge.md) | IDE Integration / Remote Control | Cloud-mediated (not direct IDE-CLI). Two protocols: v1 (WS+POST via Environments API) and v2 (SSE+CCRClient, env-less). Permission delegation, crash recovery, multi-session spawn |
 
-### Tier 4 -- Infrastructure (PENDING)
-| Report | System | Source Dirs |
+### Tier 4 -- Infrastructure (2 of 5 COMPLETE)
+| Report | System | Key Finding |
 |--------|--------|-------------|
-| 18_commands_catalog.md | All Slash Commands (80+) | `src/commands/` (189 files) |
-| 19_api_layer.md | API Calls & Streaming | `services/api/` |
-| 20_messages_pipeline.md | Message Assembly | `utils/messages/` |
-| 21_feature_flags.md | Feature Flags & "Tengu" | grep across codebase |
-| 22_ui_renderer.md | Ink/React Terminal | `src/ink/`, `src/components/` |
+| [18_commands_catalog.md](18_commands_catalog.md) | All Slash Commands (~90) | 55 active, 18 stubbed, ~14 feature-gated, ~25 internal-only. /insights is 119KB analytics platform. /security-review has 3-step parallel analysis. Kairos appears in 6 flags |
+| 19_api_layer.md | API Calls & Streaming | PENDING |
+| 20_messages_pipeline.md | Message Assembly | PENDING |
+| [21_feature_flags.md](21_feature_flags.md) | Feature Flags & "Tengu" | ~175+ total gates (92 build-time + 60+ runtime + 25+ env). GrowthBook replacing Statsig. Kairos = unreleased scheduling platform. Chicago = Computer Use. Anti-distillation fake tool injection |
+| 22_ui_renderer.md | Ink/React Terminal | PENDING |
 
 ### Installed Config Files
 | File | Location |
