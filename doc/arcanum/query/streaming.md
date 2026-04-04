@@ -1,3 +1,7 @@
+---
+description: "response streaming — Anthropic SDK streaming, partial tool calls, stream interruption retry, output buffering, real-time display"
+---
+
 # Response Streaming
 > Source: `src/query.ts`, `services/api/claude.ts`
 > Status: STUB — needs research

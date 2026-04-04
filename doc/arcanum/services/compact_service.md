@@ -1,3 +1,7 @@
+---
+description: "compact service — autoCompact microCompact sessionMemoryCompact, 4-tier compaction, grouping, time-based config, 167K/967K thresholds, postCompactCleanup"
+---
+
 # Compact Service -- Arcanum Wiki
 
 ## What Is This?

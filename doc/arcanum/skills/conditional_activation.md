@@ -1,3 +1,7 @@
+---
+description: "conditional skill activation — paths frontmatter, glob matching, touched file triggers, performance optimization, VoxCore 13 conditional skills"
+---
+
 # Conditional Skill Activation -- Arcanum Wiki
 
 ## Overview

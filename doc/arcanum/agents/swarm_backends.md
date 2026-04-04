@@ -1,3 +1,7 @@
+---
+description: "swarm backends — tmux iTerm2 in-process, multi-agent execution environments, terminal multiplexing, process isolation, backend selection logic"
+---
+
 # Swarm Backends -- Arcanum Wiki
 
 ## Overview

@@ -1,3 +1,7 @@
+---
+description: "hooks power user guide — PreToolUse PostToolUse UserPromptSubmit, shell command hooks, JSON protocol, decision allow deny ask, timestamp injector example"
+---
+
 # Guide: Hooks for Power Users — Arcanum Wiki
 
 > How to exploit the hook system for workflow automation, safety guardrails, and custom behavior.

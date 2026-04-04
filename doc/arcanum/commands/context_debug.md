@@ -1,3 +1,7 @@
+---
+description: "context debug commands — /context /ctx_viz /compact /cost /stats /usage /extra-usage /rate-limit-options, token counts, context visualization"
+---
+
 # Context & Debug Commands -- Arcanum Wiki
 
 ## Overview

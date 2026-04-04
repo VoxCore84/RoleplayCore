@@ -1,3 +1,7 @@
+---
+description: "voice mode — push-to-talk STT streaming, voice keyterms, speech-to-text input, hands-free interaction, audio input processing"
+---
+
 # Voice Mode / Push-to-Talk -- Arcanum Wiki
 
 ## What Is This?

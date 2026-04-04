@@ -1,3 +1,7 @@
+---
+description: "memory system architecture — 4 subsystems, memory directory structure, file types, MEMORY.md always-loaded, topic file selection, persistence"
+---
+
 # Memory System Architecture -- Arcanum Wiki
 
 ## Overview

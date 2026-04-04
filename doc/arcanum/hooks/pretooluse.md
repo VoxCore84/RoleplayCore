@@ -1,3 +1,7 @@
+---
+description: "PreToolUse hook — runs before tool execution, input modification, permission decisions allow deny ask, if-conditions, most powerful hook type"
+---
+
 # PreToolUse Hook -- Arcanum Wiki
 
 ## Overview

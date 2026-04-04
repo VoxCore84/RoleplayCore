@@ -1,3 +1,7 @@
+---
+description: "skills agents swarm guide — custom slash commands, skill frontmatter paths conditional, agent definitions, fork mode cache, team lifecycle, 50-message cap"
+---
+
 # Guide: Skills, Agents & the Swarm — Arcanum Wiki
 
 > How to build custom skills, define agents, and leverage the multi-agent swarm system.

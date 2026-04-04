@@ -1,3 +1,7 @@
+---
+description: "stickers and good-claude — /stickers emoji sticker reactions, /good-claude positive feedback mechanism, fun hidden commands, developer Easter eggs"
+---
+
 # Stickers and Good Claude -- Arcanum Wiki
 
 These two commands are trivial features (< 50 lines each) and are combined into a single article.

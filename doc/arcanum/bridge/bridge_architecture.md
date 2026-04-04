@@ -1,3 +1,7 @@
+---
+description: "bridge architecture — IDE integration protocol, WebSocket communication, state synchronization, capability negotiation, transport layer"
+---
+
 # Bridge Architecture
 > Source: `src/bridge/` (31 files)
 > Status: STUB — needs research

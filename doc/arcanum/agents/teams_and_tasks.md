@@ -1,3 +1,7 @@
+---
+description: "teams and tasks — TeamCreate TeamDelete, task list coordination, task ownership, blocking dependencies, team config files, teammate discovery"
+---
+
 # Teams and Tasks -- Arcanum Wiki
 
 ## Overview

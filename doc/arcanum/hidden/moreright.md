@@ -1,3 +1,7 @@
+---
+description: "moreright — unknown internal feature, investigation needed, potentially related to permission escalation or capability expansion"
+---
+
 # Moreright -- Arcanum Wiki
 
 ## What Is This?

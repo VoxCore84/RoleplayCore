@@ -1,3 +1,7 @@
+---
+description: "debugging Claude Code — CLAUDE.md ignored, memory not loading, permission loops, MCP failures, truncated results, YOLO denial tracking, /doctor"
+---
+
 # Guide: Debugging Claude Code Itself — Arcanum Wiki
 
 > When Claude Code behaves unexpectedly, here's how to diagnose what's happening using your knowledge of internals.

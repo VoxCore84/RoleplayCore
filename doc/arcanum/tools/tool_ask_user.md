@@ -1,3 +1,7 @@
+---
+description: "AskUserQuestionTool — interactive clarification, multi-question support, option previews, multiSelect, annotations, SDK structured IO, permission component"
+---
+
 # AskUserQuestionTool -- Arcanum Wiki
 
 ## Purpose

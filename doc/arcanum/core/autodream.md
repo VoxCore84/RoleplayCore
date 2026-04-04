@@ -1,3 +1,7 @@
+---
+description: "AutoDream background consolidation — 4 phases Orient Gather Consolidate Prune, 24h + 5 session gate, tengu_onyx_plover flag, lock file mtime, memory updates"
+---
+
 # AutoDream -- Arcanum Wiki
 
 ## Overview

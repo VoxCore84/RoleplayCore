@@ -1,3 +1,7 @@
+---
+description: "UI component tree — React component hierarchy, PromptInput, message rendering, diff views, permission dialogs, agent status"
+---
+
 # Component Tree
 > Source: `src/components/`
 > Status: STUB — LOW PRIORITY

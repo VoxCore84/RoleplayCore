@@ -1,3 +1,7 @@
+---
+description: "glossary codenames — Tengu feature flags, Chicago computer use, Buddy tamagotchi, Kairos autonomous, Moreright, DXT extensions, beta headers, hard limits, model IDs"
+---
+
 # Glossary & Internal Codenames — Arcanum Wiki
 
 > Every internal term, codename, and abbreviation used in Claude Code's source code.

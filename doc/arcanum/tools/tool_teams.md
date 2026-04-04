@@ -1,3 +1,7 @@
+---
+description: "team tools — TeamCreateTool TeamDeleteTool SendMessageTool, multi-agent swarm, team_name, broadcast, shutdown_request, plan_approval_response, teammate coordination"
+---
+
 # Team Tools -- Arcanum Wiki
 
 Covers `TeamCreateTool`, `TeamDeleteTool`, and `SendMessageTool`.

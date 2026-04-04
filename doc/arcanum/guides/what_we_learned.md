@@ -1,3 +1,7 @@
+---
+description: "top 15 discoveries — CLAUDE.md second-class, blind memory selector, speculation, 50K tool limit, hook allow deny, fork cache, 1M free, git 2K cap, YOLO denials"
+---
+
 # Guide: What We Learned — The 15 Most Important Discoveries — Arcanum Wiki
 
 > A synthesis of the most impactful findings from reverse-engineering Claude Code's source.

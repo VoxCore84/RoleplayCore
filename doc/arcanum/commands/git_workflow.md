@@ -1,3 +1,7 @@
+---
+description: "git workflow commands — /diff /review /pr-comments /autofix-pr /issue /commit /commit-push-pr /security-review, GitHub integration, PR creation"
+---
+
 # Git Workflow Commands -- Arcanum Wiki
 
 ## Overview

@@ -1,3 +1,7 @@
+---
+description: "hook command types — shell command, prompt side-query, agent spawn, http request, JSON protocol, statusMessage, additionalContext injection"
+---
+
 # Hook Command Types -- Arcanum Wiki
 
 ## Overview

@@ -1,3 +1,7 @@
+---
+description: "hooks system overview — 27 event types, execution pipeline, PreToolUse PostToolUse, permission precedence, 4 command types shell prompt agent http"
+---
+
 # Hook System Architecture -- Arcanum Wiki
 
 ## Overview

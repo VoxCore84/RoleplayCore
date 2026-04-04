@@ -1,3 +1,7 @@
+---
+description: "FileReadTool — file reading, images PNG JPG PDF ipynb, token limits, offset limit pagination, 2000 line default, image compression, deduplication, pages parameter"
+---
+
 # FileReadTool -- Arcanum Wiki
 
 ## Purpose

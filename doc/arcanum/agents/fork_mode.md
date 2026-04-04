@@ -1,3 +1,7 @@
+---
+description: "fork mode — prompt cache sharing, byte-identical API prefix, subagent spawning optimization, parent context inheritance, cache hit maximization"
+---
+
 # Fork Mode -- Arcanum Wiki
 
 ## Overview

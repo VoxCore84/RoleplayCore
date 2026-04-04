@@ -1,3 +1,7 @@
+---
+description: "MCP transport types — stdio, SSE, streamable, websocket, HTTP, docker, npx, uvx, 8 transport backends, env var expansion"
+---
+
 # MCP Transport Types
 > Source: `utils/mcp/`
 > Status: STUB — needs research

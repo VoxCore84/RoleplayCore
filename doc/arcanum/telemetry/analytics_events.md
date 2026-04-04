@@ -1,3 +1,7 @@
+---
+description: "analytics events — telemetry data sent to Anthropic, event schema, /privacy-settings, disable telemetry, data contents, file paths prompts"
+---
+
 # Analytics Events
 > Source: `utils/telemetry/`, `services/analytics/`
 > Status: STUB — needs research

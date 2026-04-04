@@ -1,3 +1,7 @@
+---
+description: "tool dispatch — concurrent read-only batching max 10, tool result >100K disk persistence, ToolSearch deferred loading, execution pipeline"
+---
+
 # Tool Dispatch
 > Source: `src/query.ts`, `src/tools.ts`
 > Status: STUB — needs research

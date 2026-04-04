@@ -1,3 +1,7 @@
+---
+description: "permissions overview — 7 modes, 8 rule sources, permission evaluation pipeline, auto accept deny ask, tool-level access control"
+---
+
 # Permission Evaluation Pipeline -- Arcanum Wiki
 
 ## Overview

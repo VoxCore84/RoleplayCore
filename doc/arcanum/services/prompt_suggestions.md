@@ -1,3 +1,7 @@
+---
+description: "PromptSuggestion service — autocomplete suggestions, context-aware prompt completions, slash command discovery, input assistance"
+---
+
 # Prompt Suggestion Service -- Arcanum Wiki
 
 ## What Is This?

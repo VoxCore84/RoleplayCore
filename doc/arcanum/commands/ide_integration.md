@@ -1,3 +1,7 @@
+---
+description: "IDE integration commands — /remote-control /ide /desktop /chrome /mobile /terminal-setup /web-setup /remote-env, VS Code bridge, browser automation"
+---
+
 # IDE Integration Commands -- Arcanum Wiki
 
 ## Overview

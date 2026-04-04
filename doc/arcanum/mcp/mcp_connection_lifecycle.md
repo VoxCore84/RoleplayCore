@@ -1,3 +1,7 @@
+---
+description: "MCP connection lifecycle — server discovery, spawn, initialize handshake, tool registration, reconnection, error handling"
+---
+
 # MCP Connection Lifecycle
 > Source: `services/mcp/`, `utils/mcp/`
 > Status: STUB — needs research

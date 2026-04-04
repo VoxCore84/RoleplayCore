@@ -1,3 +1,7 @@
+---
+description: "Claude in Chrome — browser extension integration, Chrome DevTools protocol, web page interaction from Claude Code CLI"
+---
+
 # Claude in Chrome -- Arcanum Wiki
 
 ## What Is This?

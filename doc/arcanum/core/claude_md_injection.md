@@ -1,3 +1,7 @@
+---
+description: "CLAUDE.md injection — 6 source discovery, @include directives, priority order managed user project local, injected as user message not system prompt"
+---
+
 # CLAUDE.md Injection -- Arcanum Wiki
 
 ## Overview

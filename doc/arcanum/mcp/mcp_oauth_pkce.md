@@ -1,3 +1,7 @@
+---
+description: "MCP OAuth PKCE — authentication flow, localhost redirect, manual copy-paste fallback, token refresh, MCP server auth"
+---
+
 # MCP OAuth PKCE
 > Source: `services/oauth/`, `utils/mcp/`
 > Status: STUB — needs research

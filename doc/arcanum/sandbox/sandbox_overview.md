@@ -1,3 +1,7 @@
+---
+description: "sandbox system — command sandboxing, /sandbox-toggle, file system restrictions, Docker namespace chroot, platform-specific isolation"
+---
+
 # Sandbox System
 > Source: `utils/sandbox/`, `utils/bash/`, `utils/shell/`, `utils/powershell/`
 > Status: STUB — needs research

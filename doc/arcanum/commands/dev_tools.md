@@ -1,3 +1,7 @@
+---
+description: "developer debug commands — /doctor /debug-tool-call /heapdump /ant-trace /perf-issue /mock-limits /break-cache /reset-limits /version /bridge-kick"
+---
+
 # Developer Tools Commands -- Arcanum Wiki
 
 ## Overview

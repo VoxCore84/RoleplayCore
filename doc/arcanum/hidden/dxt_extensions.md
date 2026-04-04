@@ -1,3 +1,7 @@
+---
+description: "DXT extension system — developer extensions, extension manifest format, tool augmentation, third-party capability injection"
+---
+
 # DXT (Extension System) -- Arcanum Wiki
 
 ## What Is This?

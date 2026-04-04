@@ -1,3 +1,7 @@
+---
+description: "deep link system — URL-based session launching, claude:// protocol handler, task handoff via URLs, external trigger integration"
+---
+
 # Deep Link System -- Arcanum Wiki
 
 ## What Is This?

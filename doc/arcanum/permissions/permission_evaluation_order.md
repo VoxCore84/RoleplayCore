@@ -1,3 +1,7 @@
+---
+description: "permission evaluation order — 8 rule sources priority, managed > project > user, hook allow vs deny rules, defense-in-depth"
+---
+
 # Permission Evaluation Order
 > Source: `utils/permissions/`, `components/permissions/`
 > Status: STUB — needs research

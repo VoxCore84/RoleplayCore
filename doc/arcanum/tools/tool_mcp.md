@@ -1,3 +1,7 @@
+---
+description: "MCP tools — MCPTool template, ListMcpResourcesTool, ReadMcpResourceTool, McpAuthTool, tool schema injection, passthrough parameters, server-specific tools"
+---
+
 # MCP Tools -- Arcanum Wiki
 
 Covers `MCPTool`, `ListMcpResourcesTool`, `ReadMcpResourceTool`, and `McpAuthTool`.

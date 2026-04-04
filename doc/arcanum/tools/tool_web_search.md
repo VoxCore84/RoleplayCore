@@ -1,3 +1,7 @@
+---
+description: "WebSearchTool — web search, Anthropic server-side web_search_20250305, allowed_domains blocked_domains, structured search hits, deferred tool, sources requirement"
+---
+
 # WebSearchTool -- Arcanum Wiki
 
 ## Purpose

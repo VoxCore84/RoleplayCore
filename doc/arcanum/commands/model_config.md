@@ -1,3 +1,7 @@
+---
+description: "model config commands — /model /fast /effort /output-style /color /theme /advisor /config /brief, model selection, fast mode, effort levels"
+---
+
 # Model & Configuration Commands -- Arcanum Wiki
 
 ## Overview

@@ -1,3 +1,7 @@
+---
+description: "hook permission race — 4-way decision merge, allow does NOT override deny, defense-in-depth, most restrictive wins, 8 rule sources"
+---
+
 # Hook Permission Race
 > Source: `hooks/toolPermission/`
 > Status: STUB — needs research

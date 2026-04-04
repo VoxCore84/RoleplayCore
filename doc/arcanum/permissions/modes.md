@@ -1,3 +1,7 @@
+---
+description: "permission modes — default auto plan acceptEdits bypassPermissions dontAsk, mode selection logic, mode capabilities, YOLO auto mode"
+---
+
 # Permission Modes -- Arcanum Wiki
 
 ## Overview

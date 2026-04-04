@@ -1,3 +1,7 @@
+---
+description: "bridge overview — Remote Control architecture, work secrets authentication, session spawning, 31 source files, IDE integration"
+---
+
 # Bridge Architecture -- Arcanum Wiki
 
 ## Overview

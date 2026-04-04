@@ -1,3 +1,7 @@
+---
+description: "fun hidden commands — /stickers stickermule, /good-claude disabled stub, /btw, /thinkback year-in-review, /thinkback-play, /insights analytics"
+---
+
 # Fun & Hidden Commands -- Arcanum Wiki
 
 ## Overview

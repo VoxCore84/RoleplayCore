@@ -1,3 +1,7 @@
+---
+description: "FileEditTool — exact string replacement, old_string new_string, replace_all, uniqueness enforcement, quote normalization, line ending preservation, staleness detection"
+---
+
 # FileEditTool -- Arcanum Wiki
 
 ## Purpose

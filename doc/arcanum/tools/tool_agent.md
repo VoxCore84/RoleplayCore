@@ -1,3 +1,7 @@
+---
+description: "AgentTool — subagent spawning, background tasks, worktree isolation, fork mode, model override, team_name, subagent_type, run_in_background, remote execution, agent delegation"
+---
+
 # AgentTool -- Arcanum Wiki
 
 ## Purpose

@@ -1,3 +1,7 @@
+---
+description: "surviving compaction — 4 tiers, what context survives, compaction instructions, checkpoint, post-compact restore budget, 1M context delay"
+---
+
 # Guide: Surviving Compaction — Arcanum Wiki
 
 > How to ensure critical context survives when Claude Code compresses your conversation.

@@ -1,3 +1,7 @@
+---
+description: "session management commands — /session list resume, /resume continue session, /share export, /export save, /rename, /branch fork, /clear reset, hidden aliases"
+---
+
 # Session Management Commands -- Arcanum Wiki
 
 ## Overview

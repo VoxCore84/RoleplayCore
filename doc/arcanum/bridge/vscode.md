@@ -1,3 +1,7 @@
+---
+description: "VS Code bridge — IDE transport types, permission relay to user, state synchronization, capability exchange, extension protocol"
+---
+
 # VS Code Bridge Protocol -- Arcanum Wiki
 
 ## Overview

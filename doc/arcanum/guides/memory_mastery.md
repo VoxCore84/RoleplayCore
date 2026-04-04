@@ -1,3 +1,7 @@
+---
+description: "memory system mastery — Sonnet selector, frontmatter description, 200 file cap, 5 per turn, MEMORY.md 200 line limit, AutoDream, topic file organization"
+---
+
 # Guide: Mastering the Memory System — Arcanum Wiki
 
 > How Claude Code's memory actually works internally, and how to exploit it for maximum recall.

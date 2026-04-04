@@ -1,3 +1,7 @@
+---
+description: "UI layout — Yoga flexbox engine, terminal size handling, width calculation, responsive design, scroll management"
+---
+
 # Yoga Layout Engine -- Arcanum Wiki
 
 ## Overview

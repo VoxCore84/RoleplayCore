@@ -1,3 +1,7 @@
+---
+description: "BashTool — shell command execution, timeout, background tasks, sandboxing, git detection, progress streaming, run_in_background, dangerouslyDisableSandbox, ~750 lines core"
+---
+
 # BashTool -- Arcanum Wiki
 
 ## Purpose

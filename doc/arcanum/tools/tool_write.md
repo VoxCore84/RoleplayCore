@@ -1,3 +1,7 @@
+---
+description: "FileWriteTool — file creation, complete overwrite, read-before-write enforcement, file history undo, LSP notification, VS Code sync, line ending preservation"
+---
+
 # FileWriteTool -- Arcanum Wiki
 
 ## Purpose

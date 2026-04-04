@@ -1,3 +1,7 @@
+---
+description: "entry points — REPL SDK bridge modes, cli argument parsing, headless QueryEngine, IDE integration entry, mode detection logic"
+---
+
 # Entry Points
 > Source: `src/entrypoints/`, `src/entrypoints/sdk/`
 > Status: STUB — needs research

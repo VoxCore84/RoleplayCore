@@ -1,3 +1,7 @@
+---
+description: "MCP server lifecycle — memoized connections, lazy initialization, reconnection logic, OAuth integration, graceful shutdown"
+---
+
 # MCP Server Lifecycle -- Arcanum Wiki
 
 ## Overview

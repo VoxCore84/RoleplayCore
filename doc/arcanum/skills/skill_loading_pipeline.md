@@ -1,3 +1,7 @@
+---
+description: "skill loading pipeline — 8 sources, bundled project user dynamic, 6 cache layers, loading order, cache invalidation, skill frontmatter YAML"
+---
+
 # Skill Loading Pipeline
 > Source: `src/skills/`, `utils/skills/`
 > Status: STUB — needs research

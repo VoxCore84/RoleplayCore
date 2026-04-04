@@ -1,3 +1,7 @@
+---
+description: "YOLO classifier — permission auto-accept, dangerous pattern detection, consecutive denial tracking, auto mode fallback, bashClassifier"
+---
+
 # YOLO Classifier (Auto Mode) -- Arcanum Wiki
 
 ## Overview

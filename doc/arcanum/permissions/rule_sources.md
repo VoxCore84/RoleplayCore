@@ -1,3 +1,7 @@
+---
+description: "permission rule sources — managed settings user project local CLI hooks YOLO defaults, 8 sources merge override order, active rule inspection"
+---
+
 # Permission Rule Sources
 > Source: `utils/permissions/`
 > Status: STUB — needs research

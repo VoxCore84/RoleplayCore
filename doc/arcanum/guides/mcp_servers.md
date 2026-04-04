@@ -1,3 +1,7 @@
+---
+description: "MCP server guide — building connecting, stdio transport, tool registration, server instructions, OAuth PKCE, 27.8h timeout, NotebookLM MCP vision"
+---
+
 # Guide: MCP Servers — Building & Connecting — Arcanum Wiki
 
 > How Claude Code discovers, connects, and communicates with MCP (Model Context Protocol) servers, and how to build your own.

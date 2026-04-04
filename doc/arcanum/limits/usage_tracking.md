@@ -1,3 +1,7 @@
+---
+description: "usage tracking — /usage /cost /extra-usage, session lifetime tracking, Max Pro plan limits, token budget --token-budget flag"
+---
+
 # Usage Tracking
 > Source: `src/cost-tracker.ts`, usage commands
 > Status: STUB — needs research

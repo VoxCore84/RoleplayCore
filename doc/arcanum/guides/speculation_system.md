@@ -1,3 +1,7 @@
+---
+description: "speculation system — predictive tool execution, copy-on-write overlay filesystem, pre-run Read during streaming, PromptSuggestion service"
+---
+
 # Guide: The Speculation System — Arcanum Wiki
 
 > Claude Code's hidden predictive execution system that runs tool calls BEFORE the model asks for them.

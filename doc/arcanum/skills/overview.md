@@ -1,3 +1,7 @@
+---
+description: "skills overview — 8 loading sources, skill discovery, execution pipeline, .claude/commands/ .claude/skills/, bundled marketplace MCP project user"
+---
+
 # Skill System Architecture -- Arcanum Wiki
 
 ## Overview

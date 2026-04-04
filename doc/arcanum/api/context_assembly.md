@@ -1,3 +1,7 @@
+---
+description: "context assembly — getSystemContext getUserContext, git status injection, CLAUDE.md loading, system prompt construction, context.ts"
+---
+
 # Context Assembly Pipeline -- Arcanum Wiki
 
 ## What Is This?

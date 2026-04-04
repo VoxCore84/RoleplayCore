@@ -1,3 +1,7 @@
+---
+description: "misc tools — BriefTool, ConfigTool, PowerShellTool, REPLTool, RemoteTriggerTool, SyntheticOutputTool, TodoWriteTool, ToolSearchTool, deferred tool lazy loading"
+---
+
 # Miscellaneous Tools -- Arcanum Wiki
 
 Covers smaller and utility tools: BriefTool, ConfigTool, PowerShellTool, REPLTool, RemoteTriggerTool, SyntheticOutputTool, TodoWriteTool, and ToolSearchTool.

@@ -1,3 +1,7 @@
+---
+description: "AgentTool internals — agent spawning, fork mode, coordinator orchestration, subagent delegation, background agent execution, agent context passing"
+---
+
 # Agent Tool Internals -- Arcanum Wiki
 
 ## Overview

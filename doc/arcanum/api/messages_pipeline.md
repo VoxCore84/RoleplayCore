@@ -1,3 +1,7 @@
+---
+description: "messages pipeline — conversation message assembly, system-reminder tags, message transformation, utils/messages/, history accumulation"
+---
+
 # Messages Pipeline -- Arcanum Wiki
 
 ## What Is This?

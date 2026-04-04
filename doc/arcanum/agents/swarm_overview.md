@@ -1,3 +1,7 @@
+---
+description: "multi-agent swarm architecture — team spawning, leader permission bridge, 50-message UI cap, teammate model, reconnection, parallel agent execution"
+---
+
 # Multi-Agent Swarm Architecture -- Arcanum Wiki
 
 ## Overview

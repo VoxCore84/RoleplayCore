@@ -1,3 +1,7 @@
+---
+description: "system prompt assembly — 3-stream pipeline, 21 dynamic sections, override priority, SYSTEM_PROMPT_DYNAMIC_BOUNDARY, global cache scope, cyber risk instruction"
+---
+
 # System Prompt Assembly Pipeline -- Arcanum Wiki
 
 ## Overview

@@ -1,3 +1,7 @@
+---
+description: "context window optimization — token budget, 1M context, conditional rules, frontmatter, gitignore, tool result limits, compaction instructions"
+---
+
 # Guide: Optimizing Your Context Window — Arcanum Wiki
 
 > How to get the most out of your 200K or 1M context window, based on source code analysis.

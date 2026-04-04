@@ -1,3 +1,7 @@
+---
+description: "bundled skills — 17 built-in skills, commit review-pr pdf, skill source code, override by project skills, bundled skill list"
+---
+
 # Bundled Skills -- Arcanum Wiki
 
 ## Overview

@@ -1,3 +1,7 @@
+---
+description: "tool pipeline overview — buildTool factory, Tool.ts, ToolDef interface, tool registration, assembleToolPool, concurrent batching, ToolSearch deferred loading, tool result persistence"
+---
+
 # Tool Pipeline Overview -- Arcanum Wiki
 
 ## How Tools Are Built

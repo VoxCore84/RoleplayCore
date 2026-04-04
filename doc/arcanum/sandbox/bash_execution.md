@@ -1,3 +1,7 @@
+---
+description: "bash execution internals — shell init profile loading, working directory persistence, timeout handling, background commands, Windows MSYS2 Git Bash"
+---
+
 # Bash Execution Internals
 > Source: `utils/bash/`, `utils/shell/`
 > Status: STUB — needs research

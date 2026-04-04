@@ -1,3 +1,7 @@
+---
+description: "compaction tiers deep dive — tier 1 API microcompact, tier 2 client microcompact tool results, tier 3 SM-compact 10K-40K verbatim, tier 4 full LLM summarization"
+---
+
 # Compaction Tiers -- Arcanum Wiki
 
 ## Overview

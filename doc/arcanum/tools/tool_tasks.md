@@ -1,3 +1,7 @@
+---
+description: "task tools — TaskCreate TaskGet TaskList TaskUpdate TaskOutput TaskStop, todo list, task status pending in_progress completed, blocking dependencies, owner assignment"
+---
+
 # Task Tools -- Arcanum Wiki
 
 Covers `TaskCreateTool`, `TaskGetTool`, `TaskListTool`, `TaskUpdateTool`, `TaskOutputTool`, and `TaskStopTool`.

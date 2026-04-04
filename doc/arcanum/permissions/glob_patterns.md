@@ -1,3 +1,7 @@
+---
+description: "permission glob patterns — file path matching, tool-specific allow deny rules, glob syntax for permissions, pattern precedence"
+---
+
 # Permission Glob Patterns -- Arcanum Wiki
 
 ## Overview

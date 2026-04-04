@@ -1,3 +1,7 @@
+---
+description: "terminal renderer — React Ink rendering pipeline, Yoga layout, component lifecycle, state management, double-buffered screens"
+---
+
 # Terminal Rendering Pipeline -- Arcanum Wiki
 
 ## Overview

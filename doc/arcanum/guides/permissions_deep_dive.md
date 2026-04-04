@@ -1,3 +1,7 @@
+---
+description: "permission system deep dive — 7 modes, 8 rule sources, allow deny glob patterns, YOLO classifier, managed enterprise settings, consecutive denial tracking"
+---
+
 # Guide: Permission System Deep Dive — Arcanum Wiki
 
 > How Claude Code decides whether to allow, deny, or ask about every tool call.

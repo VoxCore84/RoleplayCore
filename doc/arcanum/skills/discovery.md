@@ -1,3 +1,7 @@
+---
+description: "skill discovery — dynamic file edit walk-up search, .claude/skills/ directories, skill hot-reload, file change triggers, cache invalidation"
+---
+
 # Skill Dynamic Discovery -- Arcanum Wiki
 
 ## Overview

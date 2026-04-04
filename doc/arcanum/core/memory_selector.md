@@ -1,3 +1,7 @@
+---
+description: "memory selector — Sonnet side-query, 2-stage scan+select, reads only filename + description frontmatter, staleness handling, 5 file max per turn"
+---
+
 # Memory Selector -- Arcanum Wiki
 
 ## Overview

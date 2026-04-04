@@ -1,3 +1,7 @@
+---
+description: "memory hard limits — 200 lines MEMORY.md, 25KB cap, 200 file mtime cap, 5 files per turn, 50K post-compact restore budget, 5K per file restore cap"
+---
+
 # Memory Limits -- Arcanum Wiki
 
 ## Overview

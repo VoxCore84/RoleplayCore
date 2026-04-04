@@ -1,3 +1,7 @@
+---
+description: "IDE session lifecycle — session spawn, permission relay, state sync, reconnection, VS Code extension lifecycle"
+---
+
 # IDE Session Lifecycle
 > Source: `src/bridge/`, `src/screens/`
 > Status: STUB — needs research

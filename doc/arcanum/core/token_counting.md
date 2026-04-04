@@ -1,3 +1,7 @@
+---
+description: "token counting — no local tokenizer, API countTokens, 3-strategy counting, 4 bytes per token estimate, tool result size limits 50K chars 100K tokens"
+---
+
 # Token Counting -- Arcanum Wiki
 
 ## Overview

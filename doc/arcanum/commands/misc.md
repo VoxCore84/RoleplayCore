@@ -1,3 +1,7 @@
+---
+description: "miscellaneous commands — /help /exit /copy /vim /voice /keybindings /feedback /release-notes /plan /tag /summary /env /bughunter /tasks /status /rewind /statusline"
+---
+
 # Miscellaneous Commands -- Arcanum Wiki
 
 ## Overview

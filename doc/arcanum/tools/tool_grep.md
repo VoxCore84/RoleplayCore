@@ -1,3 +1,7 @@
+---
+description: "GrepTool — ripgrep rg content search, regex patterns, output_mode content files_with_matches count, context lines, multiline, head_limit offset pagination, type filter"
+---
+
 # GrepTool -- Arcanum Wiki
 
 ## Purpose

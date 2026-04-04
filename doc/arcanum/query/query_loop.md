@@ -1,3 +1,7 @@
+---
+description: "query.ts main loop — 1729 lines, API call stream tool dispatch compact check, conversation iteration, the brain of Claude Code"
+---
+
 # The Query Loop — query.ts
 > Source: `src/query.ts` (1,729 lines) — THE most important file in CC
 > Status: STUB — needs research

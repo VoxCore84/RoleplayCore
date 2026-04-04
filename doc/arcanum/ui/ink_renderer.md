@@ -1,3 +1,7 @@
+---
+description: "Ink terminal renderer — React to terminal rendering, double-buffered output, ANSI escape sequences, terminal capabilities"
+---
+
 # Ink Terminal Renderer
 > Source: `src/ink/` (96 files), `src/components/` (389 files)
 > Status: STUB — LOW PRIORITY unless forking UI

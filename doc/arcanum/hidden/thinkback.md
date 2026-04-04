@@ -1,3 +1,7 @@
+---
+description: "thinkback — /thinkback /thinkback-play year in review, session history replay, conversation highlights, retrospective analysis"
+---
+
 # Thinkback (Year in Review) -- Arcanum Wiki
 
 ## What Is This?

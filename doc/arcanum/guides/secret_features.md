@@ -1,3 +1,7 @@
+---
+description: "secret undocumented features — Buddy tamagotchi, voice, computer use Chicago, Kairos autonomous, AFK mode, stickers, thinkback, 170+ env vars, undercover mode"
+---
+
 # Guide: Secret & Undocumented Features — Arcanum Wiki
 
 > Features found in the source code that aren't documented, aren't in /help, or are feature-gated.

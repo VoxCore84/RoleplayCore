@@ -1,3 +1,7 @@
+---
+description: "buddy system — Tamagotchi pet companion, gacha collection, shiny variants, soul descriptions, hatching animation, persistent companion state"
+---
+
 # Buddy System (Companion / Tamagotchi Pet) -- Arcanum Wiki
 
 ## What Is This?

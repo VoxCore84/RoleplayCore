@@ -1,3 +1,7 @@
+---
+description: "memory skills commands — /memory /skills /agents /hooks /config /mcp /plugin /reload-plugins /init /init-verifiers, configuration management"
+---
+
 # Memory, Skills & Plugin Commands -- Arcanum Wiki
 
 ## Overview

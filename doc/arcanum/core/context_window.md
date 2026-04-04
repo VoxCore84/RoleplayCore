@@ -1,3 +1,7 @@
+---
+description: "context window — 200K default, 1M via [1m] suffix, budget allocation system tools conversation, context suggestions, auto-compact threshold 967K"
+---
+
 # Context Window Management -- Arcanum Wiki
 
 ## Overview

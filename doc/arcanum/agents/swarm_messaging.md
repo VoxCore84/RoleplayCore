@@ -1,3 +1,7 @@
+---
+description: "swarm messaging — mailbox system, inter-agent messages, SendMessage broadcast DM, shutdown_request, plan_approval, message queuing and delivery"
+---
+
 # Swarm Messaging -- Arcanum Wiki
 
 ## Overview

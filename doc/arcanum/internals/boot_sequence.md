@@ -1,3 +1,7 @@
+---
+description: "boot sequence — cli.js entrypoints bootstrap state.ts setup.ts main.tsx REPL.tsx query.ts, initialization order, session ID creation"
+---
+
 # Boot Sequence
 > Source: `src/bootstrap/`, `src/entrypoints/`, `src/setup.ts`
 > Status: STUB — needs research

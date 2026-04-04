@@ -1,3 +1,7 @@
+---
+description: "API request lifecycle — streaming, beta headers, attribution cch token, retry logic, provider routing Bedrock Vertex, token counting, prompt caching"
+---
+
 # Guide: API Internals — What Happens When Claude Responds — Arcanum Wiki
 
 > The complete request lifecycle from your message to Claude's response, including everything Claude Code does behind the scenes.

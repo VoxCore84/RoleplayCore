@@ -1,3 +1,7 @@
+---
+description: "settings sync service — cross-device settings synchronization, cloud settings backup, settings migration between machines"
+---
+
 # Settings Sync Service -- Arcanum Wiki
 
 ## What Is This?

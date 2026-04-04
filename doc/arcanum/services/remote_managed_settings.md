@@ -1,3 +1,7 @@
+---
+description: "remote managed settings — enterprise MDM policy enforcement, managed-only controls, remote settings sync, organization security policies"
+---
+
 # Remote Managed Settings Service -- Arcanum Wiki
 
 ## What Is This?

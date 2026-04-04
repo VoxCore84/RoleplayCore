@@ -1,3 +1,7 @@
+---
+description: "LSPTool — Language Server Protocol, goToDefinition, findReferences, hover, documentSymbol, workspaceSymbol, callHierarchy, deferred tool, clangd integration"
+---
+
 # LSPTool -- Arcanum Wiki
 
 ## Purpose

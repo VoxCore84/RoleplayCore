@@ -1,3 +1,7 @@
+---
+description: "NotebookLM MCP vision — arcanum search server, TF-IDF grep, tool registration, context budget savings, implementation roadmap, knowledge persistence"
+---
+
 # Guide: The NotebookLM MCP Vision — Arcanum Wiki
 
 > The plan to turn Arcanum into a persistent knowledge MCP server so every Claude Code tab has instant recall.

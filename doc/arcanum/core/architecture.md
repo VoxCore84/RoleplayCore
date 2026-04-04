@@ -1,3 +1,7 @@
+---
+description: "architecture overview — source directory map, data flows, entry points CLI SDK server bridge, query engine main loop, tool execution pipeline, supporting systems"
+---
+
 # Architecture Overview — Arcanum Wiki
 
 > The complete system architecture of Claude Code v0.2.57+, reverse-engineered from 1,884 TypeScript source files.

@@ -1,3 +1,7 @@
+---
+description: "state management — global mutable state, session ID cost tokens conversation, state persistence, cross-turn state, subagent state passing"
+---
+
 # State Management
 > Source: `src/state/`
 > Status: STUB — needs research

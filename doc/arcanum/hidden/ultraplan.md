@@ -1,3 +1,7 @@
+---
+description: "UltraPlan — advanced planning system, ccrSession.ts, keyword detection triggers, enhanced plan mode, multi-step task decomposition"
+---
+
 # UltraPlan -- Arcanum Wiki
 
 ## What Is This?

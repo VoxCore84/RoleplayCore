@@ -1,3 +1,7 @@
+---
+description: "UI components — PromptInput, StructuredDiff, permissions dialog, context visualizer, spinner, agent status, Ink React components"
+---
+
 # Key UI Components -- Arcanum Wiki
 
 ## Overview

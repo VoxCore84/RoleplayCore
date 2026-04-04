@@ -1,3 +1,7 @@
+---
+description: "hook execution pipeline — evaluation order, timeout handling, JSON stdin stdout protocol, error recovery, parallel vs sequential hooks"
+---
+
 # Hook Execution Pipeline
 > Source: `src/hooks/`, `utils/hooks/`
 > Status: STUB — needs research

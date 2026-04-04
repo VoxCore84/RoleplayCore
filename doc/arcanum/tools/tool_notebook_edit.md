@@ -1,3 +1,7 @@
+---
+description: "NotebookEditTool — Jupyter notebook editing, cell replace insert delete, cell_id lookup, nbformat versioning, .ipynb files, execution state cleanup"
+---
+
 # NotebookEditTool -- Arcanum Wiki
 
 ## Purpose

@@ -1,3 +1,7 @@
+---
+description: "computer use Chicago — screenshot capture, mouse click keyboard input, MCP server integration, feature-gated, desktop automation, UI interaction"
+---
+
 # Computer Use ("Chicago") -- Arcanum Wiki
 
 ## What Is This?

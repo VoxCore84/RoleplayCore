@@ -1,3 +1,7 @@
+---
+description: "extractMemories service — automatic memory extraction from conversations, memory file writing, duplicate detection, consolidation triggers"
+---
+
 # Extract Memories Service -- Arcanum Wiki
 
 ## What Is This?

@@ -1,3 +1,7 @@
+---
+description: "permissions config commands — /permissions mode selection, /sandbox-toggle sandbox on off, /privacy-settings telemetry control"
+---
+
 # Permissions & Configuration Commands -- Arcanum Wiki
 
 ## Overview

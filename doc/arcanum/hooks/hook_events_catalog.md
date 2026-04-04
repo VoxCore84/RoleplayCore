@@ -1,3 +1,7 @@
+---
+description: "hook events catalog — all 27 hook event types, PreToolUse PostToolUse UserPromptSubmit Stop Notification Compact, trigger conditions"
+---
+
 # Hook Events Catalog
 > Source: `src/hooks/` (104 files)
 > Status: STUB — needs research

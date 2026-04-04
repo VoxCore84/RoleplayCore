@@ -1,3 +1,7 @@
+---
+description: "compaction instructions — CLAUDE.md integration, PreCompact hooks, analysis scratchpad, what to preserve, how to write effective instructions"
+---
+
 # Compaction Instructions -- Arcanum Wiki
 
 ## Overview

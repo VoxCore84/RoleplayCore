@@ -1,3 +1,7 @@
+---
+description: "multi-agent patterns — fan-out research, parallel implementation, adversarial review, team swarm, fork cache sharing, 50-message cap, cost optimization"
+---
+
 # Guide: Multi-Agent Patterns That Actually Work — Arcanum Wiki
 
 > Proven patterns for using subagents, swarms, and teams effectively, based on source code understanding.

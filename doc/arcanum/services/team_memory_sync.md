@@ -1,3 +1,7 @@
+---
+description: "team memory sync — shared memory across teammates, team knowledge base, cross-agent memory coordination, team config paths"
+---
+
 # Team Memory Sync Service -- Arcanum Wiki
 
 ## What Is This?

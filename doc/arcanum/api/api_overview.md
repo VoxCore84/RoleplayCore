@@ -1,3 +1,7 @@
+---
+description: "API layer overview — Anthropic SDK streaming, services/api/claude.ts, retry logic, rate limits, authentication, model selection, token counting"
+---
+
 # API Layer Overview -- Arcanum Wiki
 
 ## What Is This?

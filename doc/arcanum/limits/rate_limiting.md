@@ -1,3 +1,7 @@
+---
+description: "rate limiting — policyLimits service, API rate limits, /rate-limit-options /passes /mock-limits /reset-limits, backoff queue behavior"
+---
+
 # Rate Limiting
 > Source: `services/policyLimits/`, rate-limit commands
 > Status: STUB — needs research

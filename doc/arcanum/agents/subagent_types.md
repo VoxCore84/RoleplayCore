@@ -1,3 +1,7 @@
+---
+description: "subagent types — built-in agent definitions, agent YAML frontmatter, tool restrictions per type, specialized agent capabilities, custom .claude/agents/"
+---
+
 # Subagent Types -- Arcanum Wiki
 
 ## Overview

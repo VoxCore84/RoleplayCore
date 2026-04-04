@@ -1,3 +1,7 @@
+---
+description: "tool use summary service — tool call result condensing, output summarization, context-efficient tool result display"
+---
+
 # Tool Use Summary Service -- Arcanum Wiki
 
 ## What Is This?

@@ -1,3 +1,7 @@
+---
+description: "rules system — .claude/rules/ files, conditional vs unconditional, paths frontmatter activation, recursive walk-up, priority order, token savings"
+---
+
 # Rules System -- Arcanum Wiki
 
 ## Overview

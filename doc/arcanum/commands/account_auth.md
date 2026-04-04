@@ -1,3 +1,7 @@
+---
+description: "account auth commands — /login /logout /oauth-refresh /install-github-app /install-slack-app /upgrade /passes, OAuth flow, API key setup"
+---
+
 # Account & Authentication Commands -- Arcanum Wiki
 
 ## Overview

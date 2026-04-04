@@ -1,3 +1,7 @@
+---
+description: "MCP client overview — 7 config scopes, tool registration, server instructions, mcp__server__tool naming, 27.8h timeout, enableAllProjectMcpServers"
+---
+
 # MCP Client Architecture -- Arcanum Wiki
 
 ## Overview

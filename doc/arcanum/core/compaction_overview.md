@@ -1,3 +1,7 @@
+---
+description: "compaction overview — 4-tier system, trigger thresholds 83% context, API microcompact, client microcompact, session memory compact, full LLM compact"
+---
+
 # Compaction System Overview -- Arcanum Wiki
 
 ## Overview

@@ -1,3 +1,7 @@
+---
+description: "system prompt anatomy — assembly pipeline, dynamic boundary, CLAUDE.md as user message not system, cacheable sections, token costs, what you can control"
+---
+
 # Guide: Anatomy of the System Prompt — Arcanum Wiki
 
 > Exactly how Claude Code's system prompt is assembled, what goes where, and what you can control.

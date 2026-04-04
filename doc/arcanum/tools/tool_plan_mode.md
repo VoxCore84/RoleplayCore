@@ -1,3 +1,7 @@
+---
+description: "plan mode tools — EnterPlanModeTool ExitPlanModeV2Tool, read-only exploration, plan approval, allowedPrompts, agent plan_approval_request, no subagent restriction"
+---
+
 # Plan Mode Tools -- Arcanum Wiki
 
 Covers `EnterPlanModeTool` and `ExitPlanModeV2Tool`.

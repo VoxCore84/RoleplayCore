@@ -1,3 +1,7 @@
+---
+description: "PostToolUse hook — runs after tool execution, context injection, MCP output replacement, observe-only no blocking, logging audit trail"
+---
+
 # PostToolUse Hook -- Arcanum Wiki
 
 ## Overview

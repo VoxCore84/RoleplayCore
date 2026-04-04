@@ -1,3 +1,7 @@
+---
+description: "teleport CCR — remote session management, SSH tunnel creation, remote machine execution, cloud compute offloading, cross-machine session transfer"
+---
+
 # Teleport (Remote Sessions / CCR) -- Arcanum Wiki
 
 ## What Is This?
