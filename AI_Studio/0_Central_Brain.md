@@ -8,7 +8,7 @@
 
 ## Triad Coordination — READ FIRST (all agents)
 
-**Last updated**: 2026-04-03 -- Session 220: Bnetserver port fix, Chrono Surge GM spell (1900030, +250% haste/-75% CD), 3 DB schema fixes for TC upstream sync (crafting columns/tables), duplicate MCP process cleanup. Commit `54d9ef6621`
+**Last updated**: 2026-04-04 -- Session 222: Claude Code internals research (11 reports, 266KB knowledge base). 1M context enabled, 3 conditional rules, .gitignore optimized, 54 memory frontmatter files. Commit `0916b667c9`
 
 ### Architecture (as of session 160)
 
@@ -70,6 +70,7 @@ Update THIS file on `/wrap-up` with: what was completed, what's deployed, infras
 - Found a conflict → write `[CONFLICT]` tag here, don't proceed
 
 ## Current Focus
+- **Claude Code Internals**: 11 reports written (266KB knowledge base). 1M context enabled, 3 conditional rules, .gitignore optimized, 54 memory frontmatter files. 17 Tier 2-4 reports pending. Reports: `AI_Studio/Reports/ClaudeCodeInternals/`
 - **VoxSniffer v1.0.0**: SHIPPED (session 168). 7-round dual ChatGPT review (API + Browser). 62 files, 8,881 lines. Deployed to GitHub + AddOns + publishable/. **NEEDS IN-GAME TEST**
 - **VoxGM v1.0.0**: SHIPPED (session 167). **NEEDS IN-GAME TEST**
 - **CreatureCodex v1.0.0**: RELEASED (session 171b). Build clean. GitHub release live. **NEEDS IN-GAME TEST**

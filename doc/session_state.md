@@ -3,7 +3,7 @@
 **Read this FIRST in any new Claude Code tab.**
 This is the single source of truth for what all tabs are doing, what's done, what's blocked, and what to pick up next. Updated by whichever tab finishes work.
 
-**Last updated**: April 3, 2026 -- Session 220: Bnetserver port fix, Chrono Surge spell (1900030), 3 DB schema fixes for TC upstream sync, duplicate process cleanup. Commit `54d9ef6621`.
+**Last updated**: April 4, 2026 -- Session 222: Claude Code internals research — 11 reports (266KB), 1M context enabled, 3 conditional rules, .gitignore optimized, 54 memory frontmatter files. Commit `0916b667c9`.
 
 ---
 
@@ -224,6 +224,8 @@ Each zone produces a SQL file in `sql/exports/` and findings for review.
 
 | Session | What | Key Output |
 |---------|------|-----------|
+| 222 | Claude Code internals research + config optimizations | 11 reports (266KB), 1M context enabled, 3 conditional rules, .gitignore optimized (205→15 untracked), 54 memory frontmatter files. Source: `C:/Users/atayl/Desktop/claude-code-source/`. `0916b667c9` |
+| 221 | Swift Crusade spell + timestamp hook fix | Custom spell 1900031 (+100% move speed, +200% mounted ground+flight). Timestamp hook statusMessage added for terminal visibility. `0916b667c9` |
 | 220 | Bnetserver fix + Chrono Surge spell + DB schema repair | Port 1119 fix, custom spell 1900030 (+250% haste/-75% CD), 3 DB schema fixes (crafting columns/tables for TC sync), duplicate process cleanup. `54d9ef6621` |
 | 215 | Angel VA TDIU (21-8940) filing support | Filled PDF (103 XFA fields), draft answers doc, migraine legal analysis (3 decisions), 4 buddy statements (Adam v2 + 3 templates), neurologist letter template, complete action plan, print-ready Item 26 continuation sheet. All in Desktop/Excluded/Angel_VA/. No VoxCore commit |
 | 214 | Gemini Pro VoxCore business briefing | 15-doc package (1,440 lines combined). 10 memory + 11 desktop files synthesized. Identity correction for wrong VoxCore. Google ecosystem + Triad-to-Vertex migration mapped. `c690e31568` |
