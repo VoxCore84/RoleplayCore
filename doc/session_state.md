@@ -63,7 +63,7 @@ This is the single source of truth for what all tabs are doing, what's done, wha
 | Main (173) | VoxSniffer V2 spec review pipeline (V6→V7) | COMPLETE | Autonomous fix pipeline: V6 reviews (1 CRIT + 4 HIGH + 10 MED + 7 LOW) → V7 with 25+ fixes + 3-pass self-audit. 2 CRITICAL scoping fixes in Phase 6. Spec zipped to Desktop. Remaining: initialized gate, FM.FlushAll guard, payload removal notes |
 | Main (214) | Gemini Pro VoxCore business briefing | COMPLETE | 15-doc briefing package on Desktop. Identity correction + Google ecosystem mapping. `c690e31568` |
 | Main (215) | Angel VA TDIU filing support | COMPLETE | Filled 21-8940 PDF (103 fields), draft answers, migraine legal analysis, 4 buddy statements, neurologist template, action plan, Item 26 continuation sheet. All Desktop/Excluded/Angel_VA/. No VoxCore commit (personal files) |
-| Tab 2 (228) | DB Cleanup & Housekeeping — drop staging DBs, loot error fix, gist update | IN PROGRESS | Owns: world DB (loot cleanup), staging DBs, gist files. Does NOT touch: C++, addons, spells |
+| Tab 2 (228) | DB Cleanup & Housekeeping — drop staging DBs, loot error fix, gist update | COMPLETE | Dropped 2 staging DBs, cleared 428 orphan LootIDs (1.78M DBErrors eliminated), pushed 3 gists (sessions 214-228). SQL: `2026_04_04_03_world.sql` |
 | Main (227) | VoxSniffer Combat Audit v1 implementation | COMPLETE | CombatAudit.lua + ProcExpectations.lua + audit_report.py. Gemini audit PASS (4 HIGH fixes). Commit `5cd63fdd3f`. Needs in-game test |
 | Tab 1 (227) | Warlock Full Class — Phase 0-2 extraction pipeline | IN PROGRESS | Data extraction from DB2 + registry scaffolding. Spec: `AI_Studio/2_Active_Specs/TRIAD-WARLOCK-FULLCLASS-V1` |
 | Tab 2 (227) | DB error cleanup + TC TDB backfill | COMPLETE | Phase 1-2a cleanup (886K rows), TC TDB INSERT IGNORE. Commit `eef19fe221` |
@@ -270,7 +270,7 @@ Each zone produces a SQL file in `sql/exports/` and findings for review.
 
 ---
 
-## GitHub Gists (synced March 21 — session 199)
+## GitHub Gists (synced April 4 — session 228)
 
 - DB Report: https://gist.github.com/528e801b53f6c62ce2e5c2ffe7e63e29
 - Changelog: https://gist.github.com/4c63baf8154753d2a89475d9a4f5b2cc

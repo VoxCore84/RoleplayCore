@@ -1,0 +1,90 @@
+{
+  "summary": {
+    "total": 199,
+    "hasHandler": 24,
+    "disabled": 1,
+    "needsHandler": 174,
+    "dbOnly": 0
+  },
+  "byTree": {
+    "affliction": {
+      "total": 37,
+      "hasHandler": 7,
+      "needsHandler": 30
+    },
+    "class": {
+      "total": 42,
+      "hasHandler": 3,
+      "needsHandler": 39
+    },
+    "demonology": {
+      "total": 39,
+      "hasHandler": 1,
+      "needsHandler": 37
+    },
+    "destruction": {
+      "total": 39,
+      "hasHandler": 10,
+      "needsHandler": 29
+    },
+    "hero_diabolist": {
+      "total": 14,
+      "hasHandler": 3,
+      "needsHandler": 11
+    },
+    "hero_hellcaller": {
+      "total": 14,
+      "hasHandler": 0,
+      "needsHandler": 14
+    },
+    "hero_soul_harvester": {
+      "total": 14,
+      "hasHandler": 0,
+      "needsHandler": 14
+    }
+  },
+  "tierAMissing": [
+    {
+      "nodeId": 71933,
+      "name": "Soul Leech",
+      "tree": "class",
+      "spellId": 108370
+    },
+    {
+      "nodeId": 72049,
+      "name": "Agony",
+      "tree": "affliction",
+      "spellId": 980
+    },
+    {
+      "nodeId": 101894,
+      "name": "Call Dreadstalkers",
+      "tree": "demonology",
+      "spellId": 104316
+    },
+    {
+      "nodeId": 101905,
+      "name": "Summon Demonic Tyrant",
+      "tree": "demonology",
+      "spellId": 265187
+    },
+    {
+      "nodeId": 71979,
+      "name": "Mayhem",
+      "tree": "destruction",
+      "spellId": 387506
+    },
+    {
+      "nodeId": 94840,
+      "name": "Wither",
+      "tree": "hero_hellcaller",
+      "spellId": 445465
+    },
+    {
+      "nodeId": 94851,
+      "name": "Demonic Soul",
+      "tree": "hero_soul_harvester",
+      "spellId": 449614
+    }
+  ]
+}
