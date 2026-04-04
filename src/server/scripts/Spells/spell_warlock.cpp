@@ -248,6 +248,7 @@ enum WarlockSpells
     SPELL_WARLOCK_SUMMON_INFERNAL_VISUAL            = 111685,
     SPELL_WARLOCK_DOOM_BOLT_PET                     = 453616,
     SPELL_WARLOCK_IMMOLATION_INFERNAL               = 19483,
+    SPELL_WARLOCK_VILEFIEND_HEADBUTT                = 267999,
     SPELL_WARLOCK_OVERFIEND_CHAOS_BOLT              = 434589,
 
     // Class Utilities (Phase 5 - Tier C)
@@ -3271,6 +3272,7 @@ class spell_warl_diabolic_ritual_passive : public AuraScript
             SPELL_WARLOCK_DIABOLIC_RITUAL_PITLORD,
             SPELL_WARLOCK_CHAOS_BOLT,
             SPELL_WARLOCK_RAIN_OF_FIRE,
+            SPELL_WARLOCK_RAIN_OF_FIRE_DAMAGE,
             SPELL_WARLOCK_SHADOWBURN,
             SPELL_WARLOCK_DIABOLIC_OCULI_PASSIVE,
             SPELL_WARLOCK_DIABOLIC_OCULI_SUMMON
@@ -3283,8 +3285,10 @@ class spell_warl_diabolic_ritual_passive : public AuraScript
         if (!spellInfo)
             return false;
 
+        // Rain of Fire damage is delivered by spell 42223, not 5740
         return spellInfo->Id == SPELL_WARLOCK_CHAOS_BOLT
             || spellInfo->Id == SPELL_WARLOCK_RAIN_OF_FIRE
+            || spellInfo->Id == SPELL_WARLOCK_RAIN_OF_FIRE_DAMAGE
             || spellInfo->Id == SPELL_WARLOCK_SHADOWBURN;
     }
 
@@ -4478,14 +4482,15 @@ class spell_warl_summon_vilefiend : public SpellScript
 };
 
 // Vilefiend - 135816 (Demonology temporary summon)
-// Melee attacker that charges owner's target on spawn.
+// Melee attacker that charges owner's target on spawn. Casts Headbutt (267999) periodically.
 struct npc_warl_vilefiend : public ScriptedAI
 {
     npc_warl_vilefiend(Creature* creature) : ScriptedAI(creature) {}
 
     bool firstTick = true;
+    uint32 headbuttTimer = 10000; // First headbutt after 10s
 
-    void UpdateAI(uint32 /*diff*/) override
+    void UpdateAI(uint32 diff) override
     {
         if (firstTick)
         {
@@ -4499,15 +4504,24 @@ struct npc_warl_vilefiend : public ScriptedAI
             if (Unit* target = owner->ToPlayer()->GetSelectedUnit())
             {
                 if (me->IsValidAttackTarget(target))
-                {
                     me->AI()->AttackStart(target);
-                }
             }
 
             firstTick = false;
         }
 
-        UpdateVictim();
+        if (!UpdateVictim())
+            return;
+
+        if (headbuttTimer <= diff)
+        {
+            if (Unit* victim = me->GetVictim())
+                me->CastSpell(victim, SPELL_WARLOCK_VILEFIEND_HEADBUTT, false);
+            headbuttTimer = urand(20000, 30000);
+        }
+        else
+            headbuttTimer -= diff;
+
         me->DoMeleeAttackIfReady();
     }
 };
@@ -4824,13 +4838,16 @@ class spell_warl_soul_link : public AuraScript
 // Chaos Bolt and Rain of Fire have a 35% chance to replicate to a nearby enemy
 // DB2: EFFECT_0 DUMMY bp=35 (proc chance), EFFECT_1 DUMMY bp=60, EFFECT_2 DUMMY bp=5000 (range centiyards)
 // ProcCategoryRecovery: 5100ms ICD (handled by proc system)
+// NOTE: Rain of Fire damage is delivered by spell 42223, not 5740. The proc system fires
+// with 42223 as the triggering spell, so CheckProc must accept both spell IDs.
 class spell_warl_mayhem : public AuraScript
 {
     bool Validate(SpellInfo const* /*spellInfo*/) override
     {
         return ValidateSpellInfo({
             SPELL_WARLOCK_CHAOS_BOLT,
-            SPELL_WARLOCK_RAIN_OF_FIRE
+            SPELL_WARLOCK_RAIN_OF_FIRE,
+            SPELL_WARLOCK_RAIN_OF_FIRE_DAMAGE
         });
     }
 
@@ -4840,8 +4857,10 @@ class spell_warl_mayhem : public AuraScript
         if (!spellInfo)
             return false;
 
-        // Only proc on Chaos Bolt or Rain of Fire
-        if (spellInfo->Id != SPELL_WARLOCK_CHAOS_BOLT && spellInfo->Id != SPELL_WARLOCK_RAIN_OF_FIRE)
+        // Proc on Chaos Bolt (direct hit) or Rain of Fire damage ticks (42223, not 5740)
+        if (spellInfo->Id != SPELL_WARLOCK_CHAOS_BOLT
+            && spellInfo->Id != SPELL_WARLOCK_RAIN_OF_FIRE
+            && spellInfo->Id != SPELL_WARLOCK_RAIN_OF_FIRE_DAMAGE)
             return false;
 
         // EFFECT_0 base points = proc chance (35%)
@@ -4865,7 +4884,7 @@ class spell_warl_mayhem : public AuraScript
         // Get the original target to exclude from secondary target search
         Unit* originalTarget = eventInfo.GetActionTarget();
 
-        // Search center: near original target if available (Chaos Bolt), otherwise near caster (Rain of Fire)
+        // Search center: near original target if available, otherwise near caster
         WorldObject* searchCenter = originalTarget ? static_cast<WorldObject*>(originalTarget) : static_cast<WorldObject*>(caster);
 
         // EFFECT_2 base points = search range in centiyards (5000 = 50 yards)
@@ -4873,10 +4892,10 @@ class spell_warl_mayhem : public AuraScript
         if (AuraEffect const* rangeEffect = GetEffect(EFFECT_2))
             searchRange = float(rangeEffect->GetAmount()) / 100.0f;
 
-        // Find nearby enemy targets using the same pattern as Druid Twin Moons
+        // Find nearby enemy targets (use caster for phase shift to avoid cross-phase edge cases)
         std::vector<Unit*> targetList;
         Trinity::WorldObjectSpellAreaTargetCheck check(searchRange, searchCenter, caster, caster, procSpell, TARGET_CHECK_ENEMY, nullptr, TARGET_OBJECT_TYPE_UNIT);
-        Trinity::UnitListSearcher searcher(searchCenter, targetList, check);
+        Trinity::UnitListSearcher searcher(caster->GetPhaseShift(), targetList, check);
         Cell::VisitAllObjects(searchCenter, searcher, searchRange);
 
         // Remove the original target and caster from candidates
@@ -4891,6 +4910,9 @@ class spell_warl_mayhem : public AuraScript
         Unit* secondTarget = Trinity::Containers::SelectRandomContainerElement(targetList);
 
         // Cast the triggering spell on the second target as triggered (no GCD, no cost)
+        // For Chaos Bolt (116858): fires a full Chaos Bolt at the second target
+        // For Rain of Fire Damage (42223): applies one damage tick to the second target
+        // Both are unit-targeted spells so CastSpell(Unit*, ...) works correctly
         caster->CastSpell(secondTarget, procSpell->Id, CastSpellExtraArgsInit{
             .TriggerFlags = TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_IGNORE_POWER_COST | TRIGGERED_DONT_REPORT_CAST_ERROR
         });
