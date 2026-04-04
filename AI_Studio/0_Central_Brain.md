@@ -8,7 +8,7 @@
 
 ## Triad Coordination — READ FIRST (all agents)
 
-**Last updated**: 2026-03-31 -- Session 215: Angel VA TDIU (21-8940) filing support. Created filled PDF, draft answers, legal analysis (migraine 0% rating), 4 buddy statements, neurologist letter template, action plan, and print-ready continuation sheet for Item 26 remarks. All artifacts in Desktop/Excluded/Angel_VA/. No code changes
+**Last updated**: 2026-04-03 -- Session 220: Bnetserver port fix, Chrono Surge GM spell (1900030, +250% haste/-75% CD), 3 DB schema fixes for TC upstream sync (crafting columns/tables), duplicate MCP process cleanup. Commit `54d9ef6621`
 
 ### Architecture (as of session 160)
 
@@ -92,7 +92,7 @@ Potentially actionable specs remaining in `1_Inbox/`:
 
 ## Infrastructure State
 - **Build**: Current (VS build done)
-- **Server**: NOT RUNNING
+- **Server**: NOT RUNNING (DB schema repaired — 3 fixes applied for TC sync compat)
 - **Client**: 12.0.1.66709
 - **DB**: world ~1,200 MB | hotfixes 811 MB | characters 4 MB
 - **31 slash commands** (+12 case management skills session 178)
