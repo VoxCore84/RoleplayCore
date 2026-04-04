@@ -1,3 +1,7 @@
+---
+description: "plugin system — installation management, marketplace integration, bundled plugins, plugin-provided tools commands agents hooks, createMovedToPluginCommand"
+---
+
 # Plugin System
 > Source: `src/plugins/`, `utils/plugins/`, `services/plugins/`
 > Status: STUB — needs research

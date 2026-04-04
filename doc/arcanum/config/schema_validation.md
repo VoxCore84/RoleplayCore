@@ -1,3 +1,7 @@
+---
+description: "schema validation — Zod v4 schemas, lazySchema wrappers, 4 hook types discriminated union, forgiving validation, settings schema"
+---
+
 # Schema Validation
 > Source: `src/schemas/`
 > Status: STUB — needs research

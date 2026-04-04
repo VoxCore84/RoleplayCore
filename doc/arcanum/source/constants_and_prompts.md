@@ -1,3 +1,7 @@
+---
+description: "constants and prompts analysis — system prompt template, tool limits, API limits, beta headers, model IDs, attribution header, cyber risk instruction"
+---
+
 # Constants and Prompts
 > Source: `src/constants/`
 > Status: STUB — needs research

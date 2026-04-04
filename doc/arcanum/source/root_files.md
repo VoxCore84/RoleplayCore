@@ -1,3 +1,7 @@
+---
+description: "root source files — Tool.ts buildTool factory, query.ts 1729-line main loop, QueryEngine.ts, commands.ts registry, context.ts assembly, setup.ts bootstrap"
+---
+
 # Root Source Files
 > Source: `src/*.ts` (top-level files)
 > Status: STUB — needs research

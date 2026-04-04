@@ -1,3 +1,7 @@
+---
+description: "Arcanum wiki index — Claude Code internals knowledge base, 296 files, 25 directories, cross-reference to ClaudeCodeInternals reports, build status"
+---
+
 # Arcanum — Claude Code Internals Wiki
 
 > A comprehensive reverse-engineered knowledge base of Claude Code's internal architecture, systems, and hidden features. Built from leaked v0.2.57 source code (1,884 TypeScript files) and live behavior analysis.

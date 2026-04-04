@@ -1,3 +1,7 @@
+---
+description: "git operations — status diff branch, 2K char cap on git status, commit tracking, push detection, worktree management, git-related tool calls"
+---
+
 # Git Operations
 > Source: `utils/git/`
 > Status: STUB — needs research

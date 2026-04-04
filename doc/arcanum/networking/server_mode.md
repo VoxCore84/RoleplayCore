@@ -1,3 +1,7 @@
+---
+description: "server mode — headless API endpoint, non-interactive session, SDK integration, QueryEngine wrapper, print mode"
+---
+
 # Server Mode
 > Source: `src/server/`
 > Status: STUB — needs research

@@ -1,3 +1,7 @@
+---
+description: "proxy handling — upstream proxy configuration, HTTP CONNECT tunneling, SSL certificate pinning, corporate proxy support"
+---
+
 # Upstream Proxy
 > Source: `src/upstreamproxy/`
 > Status: STUB — needs research

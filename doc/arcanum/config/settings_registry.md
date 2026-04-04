@@ -1,3 +1,7 @@
+---
+description: "settings registry — 60+ settings keys, 5 merge sources, priority order, array concatenation dedup, policy always wins, enableAllProjectMcpServers"
+---
+
 # Settings Registry
 > Source: `utils/settings/`, `src/schemas/`
 > Status: STUB — needs research
