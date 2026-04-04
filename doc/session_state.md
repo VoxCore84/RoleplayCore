@@ -3,7 +3,7 @@
 **Read this FIRST in any new Claude Code tab.**
 This is the single source of truth for what all tabs are doing, what's done, what's blocked, and what to pick up next. Updated by whichever tab finishes work.
 
-**Last updated**: April 4, 2026 -- Session 222: Claude Code internals research — 11 reports (266KB), 1M context enabled, 3 conditional rules, .gitignore optimized, 54 memory frontmatter files. Commit `0916b667c9`.
+**Last updated**: April 4, 2026 -- Session 224: Applied Session 223 optimizations — 13 conditional skills, FileChanged hook, SubagentStart/ConfigChange hooks. Tier 2 reports COMPLETE (7 reports, 5,550 lines). Commit `8f01aa113c`.
 
 ---
 
@@ -224,6 +224,8 @@ Each zone produces a SQL file in `sql/exports/` and findings for review.
 
 | Session | What | Key Output |
 |---------|------|-----------|
+| 224 | Session 222/223 wrap-up + optimization application | 13 skills conditional, FileChanged hook, SubagentStart/ConfigChange hooks, SME handoff prompt. `8f01aa113c` |
+| 223 | Claude Code Tier 2 reports (1M tab) | 7 reports (5,550 lines): tool pipeline, swarm, coordinator, hooks, permissions, skills, MCP. 4 audit agents: concurrency, hooks, skills paths, fork mode. 13 skills made conditional |
 | 222 | Claude Code internals research + config optimizations | 11 reports (266KB), 1M context enabled, 3 conditional rules, .gitignore optimized (205→15 untracked), 54 memory frontmatter files. Source: `C:/Users/atayl/Desktop/claude-code-source/`. `0916b667c9` |
 | 221 | Swift Crusade spell + timestamp hook fix | Custom spell 1900031 (+100% move speed, +200% mounted ground+flight). Timestamp hook statusMessage added for terminal visibility. `0916b667c9` |
 | 220 | Bnetserver fix + Chrono Surge spell + DB schema repair | Port 1119 fix, custom spell 1900030 (+250% haste/-75% CD), 3 DB schema fixes (crafting columns/tables for TC sync), duplicate process cleanup. `54d9ef6621` |

@@ -8,7 +8,7 @@
 
 ## Triad Coordination — READ FIRST (all agents)
 
-**Last updated**: 2026-04-04 -- Session 222: Claude Code internals research (11 reports, 266KB knowledge base). 1M context enabled, 3 conditional rules, .gitignore optimized, 54 memory frontmatter files. Commit `0916b667c9`
+**Last updated**: 2026-04-04 -- Session 224: 18 Claude Code internals reports complete (Tier 1+2). 13 skills made conditional. FileChanged hook staged. Commit `8f01aa113c`
 
 ### Architecture (as of session 160)
 
