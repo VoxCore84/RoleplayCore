@@ -3,7 +3,7 @@
 **Read this FIRST in any new Claude Code tab.**
 This is the single source of truth for what all tabs are doing, what's done, what's blocked, and what to pick up next. Updated by whichever tab finishes work.
 
-**Last updated**: April 4, 2026 -- Session 224: Applied Session 223 optimizations — 13 conditional skills, FileChanged hook, SubagentStart/ConfigChange hooks. Tier 2 reports COMPLETE (7 reports, 5,550 lines). Commit `8f01aa113c`.
+**Last updated**: April 4, 2026 -- Session 227 (multi-tab): Main tab implemented VoxSniffer Combat Audit v1 (CombatAudit.lua + ProcExpectations.lua + audit_report.py), Gemini audited, 4 HIGH fixes applied. Commit `5cd63fdd3f`. Tab 1: Warlock extraction pipeline. Tab 2: DB error cleanup + TC TDB backfill (`eef19fe221`). Tab 3: Memory & coordination sync.
 
 ---
 
@@ -11,7 +11,8 @@ This is the single source of truth for what all tabs are doing, what's done, wha
 
 | Tab | Assignment | Status | Notes |
 |-----|-----------|--------|-------|
-| Main (Current) | TRIAD-DATA-MIGRATION-V1 — Baltic + LoreWalker gap-fill | IN PROGRESS | Phase 1 DONE (inventory). Phase 2 running (staging import). Spec: `AI_Studio/2_Active_Specs/TRIAD-DATA-MIGRATION-V1.md`. Staging DBs: `world_lorewalker_staging`, `hotfixes_lorewalker_staging`. |
+| Main (Past) | TRIAD-DATA-MIGRATION-V1 — Baltic + LoreWalker gap-fill | IN PROGRESS | Phase 1 DONE (inventory). Phase 2 running (staging import). Spec: `AI_Studio/2_Active_Specs/TRIAD-DATA-MIGRATION-V1.md`. Staging DBs: `world_lorewalker_staging`, `hotfixes_lorewalker_staging`. |
+| Tab 1 (Session 228) | TRIAD-WARLOCK-FULLCLASS-V1 — Phase 0-2 extraction pipeline | COMPLETE | 6 Python scripts in `tools/warlock/`, 12 files in `doc/classes/warlock/`. 199 nodes extracted, 24 HAS_HANDLER, 174 NEEDS_HANDLER. Validation PASSED (13/13, 8 warnings). Ready for Phase 3+ (C++ implementation). |
 | Antigravity (past) | Triad Limits Tuning & Wrap-up | COMPLETE | Pushed optimized Triad execution rules and config limits for 128GB RAM. |
 | Main (session 107) | Meta infrastructure, gist updates, coordination | COMPLETE | Commit `8aa10362ad`. Created session_state, bug tracker, skills, report |
 | Main (session 108) | Consolidation — review all transmog docs, fix errors, update gists/memory | COMPLETE | Slot ordering fix, sniffing docs tracked |
@@ -62,6 +63,11 @@ This is the single source of truth for what all tabs are doing, what's done, wha
 | Main (173) | VoxSniffer V2 spec review pipeline (V6→V7) | COMPLETE | Autonomous fix pipeline: V6 reviews (1 CRIT + 4 HIGH + 10 MED + 7 LOW) → V7 with 25+ fixes + 3-pass self-audit. 2 CRITICAL scoping fixes in Phase 6. Spec zipped to Desktop. Remaining: initialized gate, FM.FlushAll guard, payload removal notes |
 | Main (214) | Gemini Pro VoxCore business briefing | COMPLETE | 15-doc briefing package on Desktop. Identity correction + Google ecosystem mapping. `c690e31568` |
 | Main (215) | Angel VA TDIU filing support | COMPLETE | Filled 21-8940 PDF (103 fields), draft answers, migraine legal analysis, 4 buddy statements, neurologist template, action plan, Item 26 continuation sheet. All Desktop/Excluded/Angel_VA/. No VoxCore commit (personal files) |
+| Tab 2 (228) | DB Cleanup & Housekeeping — drop staging DBs, loot error fix, gist update | IN PROGRESS | Owns: world DB (loot cleanup), staging DBs, gist files. Does NOT touch: C++, addons, spells |
+| Main (227) | VoxSniffer Combat Audit v1 implementation | COMPLETE | CombatAudit.lua + ProcExpectations.lua + audit_report.py. Gemini audit PASS (4 HIGH fixes). Commit `5cd63fdd3f`. Needs in-game test |
+| Tab 1 (227) | Warlock Full Class — Phase 0-2 extraction pipeline | IN PROGRESS | Data extraction from DB2 + registry scaffolding. Spec: `AI_Studio/2_Active_Specs/TRIAD-WARLOCK-FULLCLASS-V1` |
+| Tab 2 (227) | DB error cleanup + TC TDB backfill | COMPLETE | Phase 1-2a cleanup (886K rows), TC TDB INSERT IGNORE. Commit `eef19fe221` |
+| Tab 3 (227) | Memory & coordination sync | COMPLETE | Updated session_state, Central Brain, MEMORY.md, recent-work.md, todo.md. Memory audit: 4 orphans, 7 broken transmog links, 4 missing index entries. recent-work.md needs archival (1,577 lines) |
 | -- | -- | -- | Add rows as tabs are opened |
 
 **Rule**: Before starting work, check this file. If another tab owns a file or task, don't touch it. Update your row when you start and when you finish.
@@ -113,11 +119,11 @@ Custom agent types (`app-reviewer`, `grep-auditor`, `doc-auditor`) require Claud
 ## Current Server State
 
 - **Build**: Current (VS build done). Includes transmog fail-open + bridge grace + BestiaryForge hooks
-- **Server**: NOT RUNNING
+- **Server**: RUNNING (PID 33360, 22GB RAM)
 - **Client**: 12.0.1.66709
-- **DB**: world ~1,200 MB (712K creatures, +101K from LoreWalker) | hotfixes 811 MB (400K spells) | characters 4 MB
-- **Logs**: Clean — zero crashes/fatals. SmartAI warnings + unhandled 12.x opcodes only.
-- **LoreWalker TDB import**: APPLIED (session 118) — 7 files + _00_ Stormwind fix. Restart worldserver to load.
+- **DB**: world ~1,400 MB (TC TDB + LoreWalker merged) | hotfixes ~900 MB (TC + LW) | characters 4 MB
+- **Logs**: 6.8M DBErrors (SmartAI orphans, difficulty, flags — cosmetic). Zero crashes.
+- **LoreWalker TDB**: APPLIED. **TC TDB 1200.26021**: BACKFILLED via INSERT IGNORE (session 227). Both data sets coexist.
 
 ---
 
@@ -224,6 +230,8 @@ Each zone produces a SQL file in `sql/exports/` and findings for review.
 
 | Session | What | Key Output |
 |---------|------|-----------|
+| 227 (main) | VoxSniffer Combat Audit v1 | CombatAudit.lua + ProcExpectations.lua + audit_report.py. Gemini audit PASS after 4 HIGH fixes. `5cd63fdd3f` |
+| 227 (tab 2) | DB error cleanup + TC TDB backfill | Phase 1-2a cleanup (886K rows), TC TDB INSERT IGNORE (771+433 tables), 5 mismatch fixes, 329 removed items purged, plan doc. `eef19fe221` |
 | 224 | Session 222/223 wrap-up + optimization application | 13 skills conditional, FileChanged hook, SubagentStart/ConfigChange hooks, SME handoff prompt. `8f01aa113c` |
 | 223 | Claude Code Tier 2 reports (1M tab) | 7 reports (5,550 lines): tool pipeline, swarm, coordinator, hooks, permissions, skills, MCP. 4 audit agents: concurrency, hooks, skills paths, fork mode. 13 skills made conditional |
 | 222 | Claude Code internals research + config optimizations | 11 reports (266KB), 1M context enabled, 3 conditional rules, .gitignore optimized (205→15 untracked), 54 memory frontmatter files. Source: `C:/Users/atayl/Desktop/claude-code-source/`. `0916b667c9` |
