@@ -15,9 +15,9 @@ This is the single source of truth for what all tabs are doing, what's done, wha
 | **Warlock-A1** | Tier A: Summon Demonic Tyrant (265187) | READY | Demonology. PetAI done, spell handler needed. See handoff below. |
 | **Warlock-A2** | Tier A: Mayhem (387506) | READY | Destruction. Spell duplication to secondary target. See handoff below. |
 | **Warlock-A3** | Tier A: Demonic Soul (449614) | READY | Soul Harvester. Resource-spend tracking + spec-dependent procs. See handoff below. |
-| **Warlock-B** | Tier B: 6 Summon spells | READY | Demonology/Destruction summons. See handoff below. |
+| **Warlock-B** | Tier B: 6 Summon spells | COMPLETE | 5 handlers + 1 TC_NATIVE. C++ compiles clean (LNK1104 = server running). SQL: `2026_04_04_08_world.sql`. |
 | **Warlock-C** | Tier C: 5 Class utilities | READY | Demon Skin, Mortal Coil, Soul Link, Soulburn, Ichor of Devils. See handoff below. |
-| **Warlock-D** | Tier D: 8 MAYBE spells | READY | Manual review + classify/implement. See handoff below. |
+| **Warlock-D** | Tier D: 8 MAYBE spells | COMPLETE | All 8 resolved: 6 TC_NATIVE, 1 HAS_HANDLER (Demonic Gateway stale), 1 duplicate. 0 new handlers needed. Registry + status updated. |
 | Main (session 107) | Meta infrastructure, gist updates, coordination | COMPLETE | Commit `8aa10362ad`. Created session_state, bug tracker, skills, report |
 | Main (session 108) | Consolidation — review all transmog docs, fix errors, update gists/memory | COMPLETE | Slot ordering fix, sniffing docs tracked |
 | Main (session 109) | ImageMagick install + sniffing guide updates | COMPLETE | `8150cf3dd5` |

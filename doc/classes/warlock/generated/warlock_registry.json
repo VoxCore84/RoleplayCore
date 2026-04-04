@@ -20,17 +20,17 @@
       "hero_soul_harvester": 14
     },
     "handlerStats": {
-      "HAS_HANDLER": 29,
-      "TC_NATIVE": 147,
-      "NEEDS_HANDLER": 22,
+      "HAS_HANDLER": 33,
+      "TC_NATIVE": 155,
+      "NEEDS_HANDLER": 10,
       "DISABLED": 1
     },
     "classifiedBy": "classify_warlock_handlers.py",
     "sourceFile": "src\\server\\scripts\\Spells\\spell_warlock.cpp",
-    "totalRegisteredScripts": 82,
-    "activeScripts": 81,
+    "totalRegisteredScripts": 84,
+    "activeScripts": 83,
     "disabledScripts": 1,
-    "triageNote": "Post-Phase 4 triage (session 229): 147 passives classified as TC_NATIVE via DB2 effect analysis"
+    "triageNote": "Post-Phase 5 Tier C: Demon Skin + Soul Link handlers written. Mortal Coil, Soulburn, Ichor of Devils classified TC_NATIVE (verified via DB2 effect/targeting analysis)."
   },
   "heroSubtrees": [
     {
@@ -440,11 +440,11 @@
         71930
       ],
       "priorityTier": "C",
-      "handlerStatus": "NEEDS_HANDLER",
-      "implementationType": "NATIVE_AURA",
-      "scriptClass": null,
-      "scriptFile": null,
-      "scriptLine": null
+      "handlerStatus": "HAS_HANDLER",
+      "implementationType": "AURASCRIPT",
+      "scriptClass": "spell_warl_demon_skin",
+      "scriptFile": "src/server/scripts/Spells/spell_warlock.cpp",
+      "scriptLine": 4735
     },
     {
       "nodeId": 71950,
@@ -762,11 +762,12 @@
         110072
       ],
       "priorityTier": "C",
-      "handlerStatus": "NEEDS_HANDLER",
-      "implementationType": "SPELLSCRIPT",
+      "handlerStatus": "TC_NATIVE",
+      "implementationType": null,
       "scriptClass": null,
       "scriptFile": null,
-      "scriptLine": null
+      "scriptLine": null,
+      "tcNativeReason": "FEAR (EFFECT_0) works natively. TRIGGER_SPELL (EFFECT_2) fires 108396 (HEAL_PCT 20%, ImplicitTarget_0=1=CASTER). No handler needed."
     },
     {
       "nodeId": 110071,
@@ -1126,7 +1127,7 @@
           "name": "Ichor of Devils",
           "maxRanks": 1,
           "overridesSpellId": 0,
-          "handlerStatus": "NEEDS_HANDLER"
+          "handlerStatus": "TC_NATIVE"
         },
         {
           "entryId": 91445,
@@ -1134,7 +1135,7 @@
           "name": "Frequent Donor",
           "maxRanks": 1,
           "overridesSpellId": 0,
-          "handlerStatus": "NEEDS_HANDLER"
+          "handlerStatus": "TC_NATIVE"
         }
       ],
       "parentNodeIds": [
@@ -1144,8 +1145,8 @@
         71956
       ],
       "priorityTier": "C",
-      "handlerStatus": "NEEDS_HANDLER",
-      "implementationType": "SPELLSCRIPT",
+      "handlerStatus": "TC_NATIVE",
+      "implementationType": null,
       "scriptClass": null,
       "scriptFile": null,
       "scriptLine": null
@@ -1267,11 +1268,12 @@
         71947
       ],
       "priorityTier": "C",
-      "handlerStatus": "NEEDS_HANDLER",
-      "implementationType": "SPELLSCRIPT",
+      "handlerStatus": "TC_NATIVE",
+      "implementationType": null,
       "scriptClass": null,
       "scriptFile": null,
-      "scriptLine": null
+      "scriptLine": null,
+      "triageNote": "Phase 5 Warlock-D: ADD_FLAT_MODIFIER(107) works natively. DUMMY(4) bp=10 is passive data. No handler needed."
     },
     {
       "nodeId": 71956,
@@ -1348,11 +1350,12 @@
         109842
       ],
       "priorityTier": "C",
-      "handlerStatus": "NEEDS_HANDLER",
-      "implementationType": "PET_LIFECYCLE",
-      "scriptClass": null,
-      "scriptFile": null,
-      "scriptLine": null
+      "handlerStatus": "HAS_HANDLER",
+      "implementationType": "SPELLSCRIPT",
+      "scriptClass": "spell_warl_demonic_gateway",
+      "scriptFile": "src/server/scripts/Spells/spell_warlock.cpp",
+      "scriptLine": 2389,
+      "triageNote": "Phase 5 Warlock-D: Handler already exists (line 2389) + npc_warl_demonic_gateway. DB binding present. Registry was stale."
     },
     {
       "nodeId": 71947,
@@ -1458,11 +1461,11 @@
         71957
       ],
       "priorityTier": "C",
-      "handlerStatus": "NEEDS_HANDLER",
-      "implementationType": "NATIVE_AURA",
-      "scriptClass": null,
-      "scriptFile": null,
-      "scriptLine": null
+      "handlerStatus": "HAS_HANDLER",
+      "implementationType": "AURASCRIPT",
+      "scriptClass": "spell_warl_soul_link",
+      "scriptFile": "src/server/scripts/Spells/spell_warlock.cpp",
+      "scriptLine": 4787
     },
     {
       "nodeId": 109841,
@@ -1604,11 +1607,12 @@
       ],
       "childNodeIds": [],
       "priorityTier": "C",
-      "handlerStatus": "NEEDS_HANDLER",
-      "implementationType": "SPELLSCRIPT",
+      "handlerStatus": "TC_NATIVE",
+      "implementationType": null,
       "scriptClass": null,
       "scriptFile": null,
-      "scriptLine": null
+      "scriptLine": null,
+      "tcNativeReason": "LEARN_SPELL(64) teaches 387626 natively. No handler needed for the talent passive."
     },
     {
       "nodeId": 109848,
@@ -2003,11 +2007,12 @@
         110269
       ],
       "priorityTier": "B",
-      "handlerStatus": "NEEDS_HANDLER",
-      "implementationType": "SPELLSCRIPT",
+      "handlerStatus": "TC_NATIVE",
+      "implementationType": null,
       "scriptClass": null,
       "scriptFile": null,
-      "scriptLine": null
+      "scriptLine": null,
+      "triageNote": "Phase 5 Warlock-D: DUMMY(4) bp=5 stores proc chance. Actual 'hit second target' proc needs complex C++ (deferred)."
     },
     {
       "nodeId": 72055,
@@ -2199,7 +2204,8 @@
           "name": "Summoner's Embrace",
           "maxRanks": 1,
           "overridesSpellId": 0,
-          "handlerStatus": "NEEDS_HANDLER"
+          "handlerStatus": "TC_NATIVE",
+          "triageNote": "Phase 5 Warlock-D: ADD_PCT_MODIFIER(108) x2 + ADD_PCT_MODIFIER_BY_SPELL_LABEL(429) — all native modifiers."
         },
         {
           "entryId": 124691,
@@ -2344,11 +2350,12 @@
         109863
       ],
       "priorityTier": "B",
-      "handlerStatus": "NEEDS_HANDLER",
-      "implementationType": "SPELLSCRIPT",
+      "handlerStatus": "TC_NATIVE",
+      "implementationType": null,
       "scriptClass": null,
       "scriptFile": null,
-      "scriptLine": null
+      "scriptLine": null,
+      "triageNote": "Phase 5 Warlock-D: ADD_FLAT_MODIFIER(107) + ADD_PCT_MODIFIER_BY_SPELL_LABEL(219) both work natively. Duration extension by 5000ms."
     },
     {
       "nodeId": 109858,
@@ -2439,11 +2446,12 @@
         109864
       ],
       "priorityTier": "B",
-      "handlerStatus": "NEEDS_HANDLER",
-      "implementationType": "SPELLSCRIPT",
+      "handlerStatus": "TC_NATIVE",
+      "implementationType": null,
       "scriptClass": null,
       "scriptFile": null,
-      "scriptLine": null
+      "scriptLine": null,
+      "triageNote": "Phase 5 Warlock-D: ADD_PCT_MODIFIER(108) x2 boost Corruption dmg 15% natively. DUMMY(3) cast effect fires once on learn (no-op). Slow-on-Corruption deferred."
     },
     {
       "nodeId": 72041,
@@ -3271,11 +3279,12 @@
         109253
       ],
       "priorityTier": "B",
-      "handlerStatus": "NEEDS_HANDLER",
-      "implementationType": "SPELLSCRIPT",
+      "handlerStatus": "TC_NATIVE",
+      "implementationType": null,
       "scriptClass": null,
       "scriptFile": null,
-      "scriptLine": null
+      "scriptLine": null,
+      "triageNote": "Phase 5 Warlock-D: DUMMY(4) bp=10 + DUMMY(4) bp=200 — pure passive data (pet haste values). No handler needed."
     },
     {
       "nodeId": 101914,
@@ -3465,10 +3474,10 @@
         110193
       ],
       "priorityTier": "B",
-      "handlerStatus": "NEEDS_HANDLER",
+      "handlerStatus": "HAS_HANDLER",
       "implementationType": "PET_LIFECYCLE",
-      "scriptClass": null,
-      "scriptFile": null,
+      "scriptClass": "spell_warl_inner_demons",
+      "scriptFile": "src/server/scripts/Spells/spell_warlock.cpp",
       "scriptLine": null
     },
     {
@@ -3498,10 +3507,10 @@
         110191
       ],
       "priorityTier": "A",
-      "handlerStatus": "NEEDS_HANDLER",
+      "handlerStatus": "HAS_HANDLER",
       "implementationType": "PET_LIFECYCLE",
-      "scriptClass": null,
-      "scriptFile": null,
+      "scriptClass": "spell_warl_summon_demonic_tyrant",
+      "scriptFile": "src/server/scripts/Spells/spell_warlock.cpp",
       "scriptLine": null
     },
     {
@@ -4522,7 +4531,7 @@
           "name": "Mayhem",
           "maxRanks": 1,
           "overridesSpellId": 0,
-          "handlerStatus": "NEEDS_HANDLER"
+          "handlerStatus": "HAS_HANDLER"
         },
         {
           "entryId": 91493,
@@ -4543,11 +4552,11 @@
         71983
       ],
       "priorityTier": "A",
-      "handlerStatus": "NEEDS_HANDLER",
+      "handlerStatus": "HAS_HANDLER",
       "implementationType": "SPELLSCRIPT",
-      "scriptClass": null,
-      "scriptFile": null,
-      "scriptLine": null
+      "scriptClass": "spell_warl_mayhem",
+      "scriptFile": "src/server/scripts/Spells/spell_warlock.cpp",
+      "scriptLine": 4827
     },
     {
       "nodeId": 71973,
@@ -5093,7 +5102,8 @@
           "name": "Summoner's Embrace",
           "maxRanks": 1,
           "overridesSpellId": 0,
-          "handlerStatus": "NEEDS_HANDLER"
+          "handlerStatus": "TC_NATIVE",
+          "triageNote": "Phase 5 Warlock-D: ADD_PCT_MODIFIER(108) x2 + ADD_PCT_MODIFIER_BY_SPELL_LABEL(429) — all native modifiers."
         },
         {
           "entryId": 125618,

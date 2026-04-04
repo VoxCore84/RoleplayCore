@@ -183,6 +183,11 @@ enum WarlockSpells
     SPELL_WARLOCK_DEMONIC_CONSUMPTION               = 267215,
     SPELL_WARLOCK_DEMONIC_CONSUMPTION_BUFF          = 267972,
 
+    // Summon Demonic Tyrant
+    SPELL_WARLOCK_DEMONIC_POWER                     = 265273,
+    SPELL_WARLOCK_REIGN_OF_TYRANNY                  = 1276748,
+    SPELL_WARLOCK_REIGN_OF_TYRANNY_BUFF             = 1276788,
+
     // Diabolist - Diabolic Ritual System
     SPELL_WARLOCK_DIABOLIC_RITUAL_PASSIVE           = 428514,
     SPELL_WARLOCK_DIABOLIC_RITUAL_OVERLORD          = 431944,
@@ -227,7 +232,31 @@ enum WarlockSpells
     SPELL_WARLOCK_INCINERATE                        = 29722,
     SPELL_WARLOCK_INFERNAL_BOLT_EMPOWER             = 433891,
     SPELL_WARLOCK_PIT_LORD_ATTACK_VISUAL            = 439562,
+
+    // Soul Harvester - Demonic Soul
+    SPELL_WARLOCK_DEMONIC_SOUL                      = 450510,
+    SPELL_WARLOCK_DEMONIC_SOUL_DAMAGE               = 449801,
+
+    // Tier B Summon Spells
+    SPELL_WARLOCK_INNER_DEMONS                      = 267216,
+    SPELL_WARLOCK_GRIMOIRE_IMP_LORD                 = 1276452,
+    SPELL_WARLOCK_SUMMON_VILEFIEND                  = 1251778,
+    SPELL_WARLOCK_SUMMON_VILEFIEND_ACTUAL           = 1251781,
+    SPELL_WARLOCK_SUMMON_DOOMGUARD                  = 1276672,
+    SPELL_WARLOCK_SUMMON_INFERNAL                   = 1122,
+    SPELL_WARLOCK_INFERNAL_AWAKENING               = 22703,
+    SPELL_WARLOCK_SUMMON_INFERNAL_VISUAL            = 111685,
+    SPELL_WARLOCK_DOOM_BOLT_PET                     = 453616,
+    SPELL_WARLOCK_IMMOLATION_INFERNAL               = 19483,
     SPELL_WARLOCK_OVERFIEND_CHAOS_BOLT              = 434589,
+
+    // Class Utilities (Phase 5 - Tier C)
+    SPELL_WARLOCK_DEMON_SKIN                        = 219272,
+    SPELL_WARLOCK_SOUL_LINK_TALENT                  = 108415,
+    SPELL_WARLOCK_SOUL_LINK_SPLIT                   = 108446,
+
+    // Destruction - Mayhem (choice node alt to Havoc)
+    SPELL_WARLOCK_MAYHEM                            = 387506,
 };
 
 enum MiscSpells
@@ -4313,6 +4342,567 @@ struct npc_warl_dimensional_rift_shadowy_tear : public ScriptedAI
     }
 };
 
+// ============================================================================
+// Tier B Summon Handlers (Phase 5)
+// ============================================================================
+
+// 267216 - Inner Demons (Demonology passive)
+// Periodically summons a Wild Imp to fight for the warlock.
+// EFFECT_0: APPLY_AURA PERIODIC_DUMMY (bp=5) — tick triggers imp summon
+// EFFECT_1: DUMMY (bp=15) — data storage
+class spell_warl_inner_demons : public AuraScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_WARLOCK_WILD_IMP_SUMMON });
+    }
+
+    void HandlePeriodic(AuraEffect const* /*aurEff*/)
+    {
+        Unit* caster = GetCaster();
+        if (!caster || !caster->IsInCombat())
+            return;
+
+        caster->CastSpell(caster, SPELL_WARLOCK_WILD_IMP_SUMMON, true);
+    }
+
+    void Register() override
+    {
+        OnEffectPeriodic += AuraEffectPeriodicFn(spell_warl_inner_demons::HandlePeriodic, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY);
+    }
+};
+
+// 1276452 - Grimoire: Imp Lord (Demonology talent)
+// EFFECT_0: DUMMY — trigger effect (despawn existing standard imps)
+// EFFECT_1: SUMMON creature 258584 (Imp Lord) — works natively
+class spell_warl_grimoire_imp_lord : public SpellScript
+{
+    void HandleDummy(SpellEffIndex /*effIndex*/)
+    {
+        Unit* caster = GetCaster();
+        if (!caster)
+            return;
+
+        // Despawn existing Wild Imps to make room for the Imp Lord
+        std::list<TempSummon*> summons;
+        caster->GetAllMinionsByEntry(summons, 55659); // Wild Imp entry
+        for (TempSummon* summon : summons)
+        {
+            if (summon->IsAlive())
+                summon->DespawnOrUnsummon();
+        }
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_warl_grimoire_imp_lord::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+    }
+};
+
+// Imp Lord - 258584 (Demonology pet, enhanced Wild Imp)
+// Casts Fel Firebolt on owner's target.
+struct npc_warl_imp_lord : public PetAI
+{
+    npc_warl_imp_lord(Creature* creature) : PetAI(creature)
+    {
+        if (Unit* owner = me->GetOwner())
+        {
+            me->SetLevel(owner->GetLevel());
+            me->SetMaxHealth(owner->GetMaxHealth() / 2);
+            me->SetHealth(me->GetMaxHealth());
+        }
+    }
+
+    void UpdateAI(uint32 /*diff*/) override
+    {
+        Unit* owner = me->GetOwner();
+        if (!owner)
+            return;
+
+        Unit* target = GetTarget();
+        ObjectGuid newtargetGUID = owner->GetTarget();
+        if (newtargetGUID.IsEmpty() || newtargetGUID == _targetGUID)
+        {
+            CastSpellOnTarget(owner, target);
+            return;
+        }
+
+        if (Unit* newTarget = ObjectAccessor::GetUnit(*me, newtargetGUID))
+            if (target != newTarget && me->IsValidAttackTarget(newTarget))
+                target = newTarget;
+
+        CastSpellOnTarget(owner, target);
+    }
+
+private:
+    Unit* GetTarget() const
+    {
+        return ObjectAccessor::GetUnit(*me, _targetGUID);
+    }
+
+    void CastSpellOnTarget(Unit* owner, Unit* target)
+    {
+        if (target && me->IsValidAttackTarget(target))
+        {
+            _targetGUID = target->GetGUID();
+            me->CastSpell(target, SPELL_WARLOCK_FEL_FIREBOLT, CastSpellExtraArgs(TRIGGERED_NONE).SetOriginalCaster(owner->GetGUID()));
+        }
+    }
+
+    ObjectGuid _targetGUID;
+};
+
+// 1251778 - Summon Vilefiend (Demonology talent)
+// EFFECT_0: APPLY_AURA DUMMY — no actual summon effect
+// We cast the actual summon spell (1251781) which summons creature 135816.
+class spell_warl_summon_vilefiend : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_WARLOCK_SUMMON_VILEFIEND_ACTUAL });
+    }
+
+    void HandleDummy(SpellEffIndex /*effIndex*/)
+    {
+        Unit* caster = GetCaster();
+        if (!caster)
+            return;
+
+        caster->CastSpell(*GetExplTargetDest(), SPELL_WARLOCK_SUMMON_VILEFIEND_ACTUAL, true);
+    }
+
+    void Register() override
+    {
+        OnEffectHit += SpellEffectFn(spell_warl_summon_vilefiend::HandleDummy, EFFECT_0, SPELL_EFFECT_APPLY_AURA);
+    }
+};
+
+// Vilefiend - 135816 (Demonology temporary summon)
+// Melee attacker that charges owner's target on spawn.
+struct npc_warl_vilefiend : public ScriptedAI
+{
+    npc_warl_vilefiend(Creature* creature) : ScriptedAI(creature) {}
+
+    bool firstTick = true;
+
+    void UpdateAI(uint32 /*diff*/) override
+    {
+        if (firstTick)
+        {
+            Unit* owner = me->GetOwner();
+            if (!owner || !owner->ToPlayer())
+                return;
+
+            me->SetMaxHealth(owner->CountPctFromMaxHealth(40));
+            me->SetHealth(me->GetMaxHealth());
+
+            if (Unit* target = owner->ToPlayer()->GetSelectedUnit())
+            {
+                if (me->IsValidAttackTarget(target))
+                {
+                    me->AI()->AttackStart(target);
+                }
+            }
+
+            firstTick = false;
+        }
+
+        UpdateVictim();
+        me->DoMeleeAttackIfReady();
+    }
+};
+
+// 1276672 - Summon Doomguard (Demonology talent)
+// EFFECT_0: SUMMON creature 250785 — works natively
+// EFFECT_1: DUMMY bp=3 — data storage (duration multiplier or attack count)
+// No SpellScript needed — the SUMMON effect fires automatically.
+
+// Doomguard - 250785 (Demonology temporary summon)
+// Ranged caster that fires Doom Bolt at owner's target.
+struct npc_warl_doomguard : public PetAI
+{
+    npc_warl_doomguard(Creature* creature) : PetAI(creature)
+    {
+        if (Unit* owner = me->GetOwner())
+        {
+            me->SetLevel(owner->GetLevel());
+            me->SetMaxHealth(owner->GetMaxHealth() / 2);
+            me->SetHealth(me->GetMaxHealth());
+        }
+    }
+
+    void UpdateAI(uint32 /*diff*/) override
+    {
+        Unit* owner = me->GetOwner();
+        if (!owner)
+            return;
+
+        if (me->IsInEvadeMode() && !owner->IsInCombat())
+            return;
+
+        Unit* target = GetTarget();
+        ObjectGuid newtargetGUID = owner->GetTarget();
+        if ((newtargetGUID.IsEmpty() || newtargetGUID == _targetGUID) && (target && me->IsValidAttackTarget(target)))
+        {
+            CastSpellOnTarget(owner, target);
+            return;
+        }
+
+        if (Unit* newTarget = ObjectAccessor::GetUnit(*me, newtargetGUID))
+        {
+            if (target != newTarget && me->IsValidAttackTarget(newTarget) && owner->IsInCombat())
+                target = newTarget;
+            CastSpellOnTarget(owner, target);
+            return;
+        }
+
+        EnterEvadeMode(EvadeReason::NoHostiles);
+    }
+
+private:
+    Unit* GetTarget() const
+    {
+        return ObjectAccessor::GetUnit(*me, _targetGUID);
+    }
+
+    void CastSpellOnTarget(Unit* owner, Unit* target)
+    {
+        if (target && me->IsValidAttackTarget(target))
+        {
+            _targetGUID = target->GetGUID();
+            me->CastSpell(target, SPELL_WARLOCK_DOOM_BOLT_PET, CastSpellExtraArgs(TRIGGERED_NONE).SetOriginalCaster(owner->GetGUID()));
+        }
+    }
+
+    ObjectGuid _targetGUID;
+};
+
+// 1122 - Summon Infernal (Destruction)
+// EFFECT_0: SUMMON creature 47319 (Leap Target marker)
+// EFFECT_1: TRIGGER_SPELL 22703 (Infernal Awakening — AoE damage/stun at landing)
+// EFFECT_2: TRIGGER_SPELL_WITH_VALUE 111685 (summons creature 89 = actual Infernal)
+// The spell chain fires automatically via trigger effects.
+// No SpellScript needed — just the Infernal creature AI.
+
+// Infernal - 89 (Destruction temporary summon)
+// Melee attacker with Immolation aura.
+struct npc_warl_infernal : public ScriptedAI
+{
+    npc_warl_infernal(Creature* creature) : ScriptedAI(creature) {}
+
+    bool initialized = false;
+
+    void IsSummonedBy(WorldObject* summoner) override
+    {
+        if (!summoner)
+            return;
+
+        Unit* owner = summoner->ToUnit();
+        if (!owner)
+            return;
+
+        me->SetMaxHealth(owner->CountPctFromMaxHealth(40));
+        me->SetHealth(me->GetMaxHealth());
+
+        // Apply Immolation aura
+        me->CastSpell(me, SPELL_WARLOCK_IMMOLATION_INFERNAL, true);
+    }
+
+    void UpdateAI(uint32 /*diff*/) override
+    {
+        if (!initialized)
+        {
+            Unit* owner = me->GetOwner();
+            if (owner && owner->ToPlayer())
+            {
+                if (Unit* target = owner->ToPlayer()->GetSelectedUnit())
+                {
+                    if (me->IsValidAttackTarget(target))
+                        me->AI()->AttackStart(target);
+                }
+            }
+            initialized = true;
+        }
+
+        UpdateVictim();
+        me->DoMeleeAttackIfReady();
+    }
+};
+
+// 265187 - Summon Demonic Tyrant
+class spell_warl_summon_demonic_tyrant : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_WARLOCK_REIGN_OF_TYRANNY_BUFF });
+    }
+
+    void HandleAfterCast()
+    {
+        Unit* caster = GetCaster();
+        if (!caster)
+            return;
+
+        // Temporary demon entries whose durations are extended by the Tyrant
+        static constexpr uint32 demonEntries[] = {
+            55659,   // Wild Imp
+            143622,  // Wild Imp (Inner Demons variant)
+            98035,   // Dreadstalker
+            135816,  // Vilefiend
+        };
+
+        uint32 demonCount = 0;
+
+        for (uint32 entry : demonEntries)
+        {
+            std::list<TempSummon*> summons;
+            caster->GetAllMinionsByEntry(summons, entry);
+            for (TempSummon* summon : summons)
+            {
+                if (!summon->IsAlive())
+                    continue;
+
+                // Extend demon duration by 15 seconds
+                summon->ModifyTimer(Seconds(15));
+                ++demonCount;
+            }
+        }
+
+        // Reign of Tyranny (1276748): Demonic Tyrant deals +10% damage per active demon
+        if (demonCount > 0 && caster->HasAura(SPELL_WARLOCK_REIGN_OF_TYRANNY))
+        {
+            std::list<TempSummon*> tyrants;
+            caster->GetAllMinionsByEntry(tyrants, 135002); // Demonic Tyrant
+            for (TempSummon* tyrant : tyrants)
+            {
+                if (!tyrant->IsAlive())
+                    continue;
+
+                int32 damageBonus = 10 * static_cast<int32>(demonCount);
+                CastSpellExtraArgs args(TRIGGERED_FULL_MASK);
+                args.AddSpellBP0(damageBonus);
+                tyrant->CastSpell(tyrant, SPELL_WARLOCK_REIGN_OF_TYRANNY_BUFF, args);
+            }
+        }
+    }
+
+    void Register() override
+    {
+        AfterCast += SpellCastFn(spell_warl_summon_demonic_tyrant::HandleAfterCast);
+    }
+};
+
+// 449614 - Demonic Soul (passive talent - Soul Harvester hero tree)
+// Aura type 396 (SPELL_AURA_TRIGGER_SPELL_ON_POWER_AMOUNT) triggers 450510
+// whenever the warlock's soul shard count crosses a shard boundary going upward.
+// The passive works natively via Unit::TriggerOnPowerChangeAuras — no AuraScript needed.
+
+// 450510 - Demonic Soul (triggered instant — chains to AoE damage burst)
+class spell_warl_demonic_soul : public SpellScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_WARLOCK_DEMONIC_SOUL_DAMAGE });
+    }
+
+    void HandleDummy(SpellEffIndex /*effIndex*/)
+    {
+        Unit* caster = GetCaster();
+        if (!caster)
+            return;
+
+        // Find the caster's current hostile target for the damage burst
+        Unit* target = caster->GetVictim();
+        if (!target)
+            target = ObjectAccessor::GetUnit(*caster, caster->GetTarget());
+
+        if (target && caster->IsValidAttackTarget(target))
+        {
+            caster->CastSpell(target, SPELL_WARLOCK_DEMONIC_SOUL_DAMAGE, CastSpellExtraArgsInit{
+                .TriggerFlags = TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_DONT_REPORT_CAST_ERROR
+            });
+        }
+    }
+
+    void Register() override
+    {
+        OnEffectHitTarget += SpellEffectFn(spell_warl_demonic_soul::HandleDummy, EFFECT_0, SPELL_EFFECT_DUMMY);
+    }
+};
+
+// 219272 - Demon Skin (Class talent)
+// Passive: Soul Leech absorb shield regenerates at EFFECT_0 bp % of max HP per tick.
+// EFFECT_0: PERIODIC_DUMMY (226) bp=2 — regen tick
+// EFFECT_1/2: ADD_FLAT_MODIFIER — native stat modifiers
+// EFFECT_3: SCHOOL_ABSORB — native base absorb (handled by engine)
+class spell_warl_demon_skin : public AuraScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_WARLOCK_SOUL_LEECH, SPELL_WARLOCK_SOUL_LEECH_ABSORB });
+    }
+
+    void HandlePeriodicDummy(AuraEffect const* aurEff) const
+    {
+        Unit* target = GetTarget();
+
+        // Only regen if the warlock has Soul Leech talent active
+        Aura const* soulLeech = target->GetAura(SPELL_WARLOCK_SOUL_LEECH);
+        if (!soulLeech)
+            return;
+
+        AuraEffect const* soulLeechCap = soulLeech->GetEffect(EFFECT_1);
+        if (!soulLeechCap)
+            return;
+
+        // Regen amount: EFFECT_0 base points % of max health per tick
+        int32 regenAmount = CalculatePct(target->GetMaxHealth(), aurEff->GetAmount());
+
+        // Get current shield amount
+        int32 currentShield = 0;
+        if (Aura const* existing = target->GetAura(SPELL_WARLOCK_SOUL_LEECH_ABSORB))
+            if (AuraEffect const* existingAbsorb = existing->GetEffect(EFFECT_0))
+                currentShield = existingAbsorb->GetAmount();
+
+        // Cap at Soul Leech EFFECT_1 % of max health
+        int32 cap = CalculatePct(target->GetMaxHealth(), soulLeechCap->GetAmount());
+        int32 newShield = std::min(currentShield + regenAmount, cap);
+
+        // Only refresh if we're actually adding shield
+        if (newShield > currentShield)
+            target->CastSpell(target, SPELL_WARLOCK_SOUL_LEECH_ABSORB, CastSpellExtraArgs(aurEff)
+                .AddSpellMod(SPELLVALUE_BASE_POINT0, newShield));
+    }
+
+    void Register() override
+    {
+        OnEffectPeriodic += AuraEffectPeriodicFn(spell_warl_demon_skin::HandlePeriodicDummy, EFFECT_0, SPELL_AURA_PERIODIC_DUMMY);
+    }
+};
+
+// 108415 - Soul Link (Class talent)
+// Passive: splits damage between warlock and demon pet.
+// EFFECT_0: DUMMY(3) bp=50 — split percentage (data for the split aura)
+// EFFECT_1: ADD_FLAT_MODIFIER(107) — native stat modifier
+// EFFECT_2: MOD_TOTAL_STAT(137) — native stat modifier
+// When the talent aura is applied, cast the split damage area aura (108446) on the warlock.
+// The area aura's SPLIT_DAMAGE_PCT effect (aura 81) redirects damage to the pet.
+class spell_warl_soul_link : public AuraScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({ SPELL_WARLOCK_SOUL_LINK_SPLIT });
+    }
+
+    void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/) const
+    {
+        Unit* target = GetTarget();
+
+        // Only apply split if the warlock has an active pet
+        if (!target->GetGuardianPet())
+            return;
+
+        // Cast the split damage area aura with the talent's DUMMY base points as the split %
+        int32 splitPct = GetEffectInfo(EFFECT_0).CalcValue(target);
+        target->CastSpell(target, SPELL_WARLOCK_SOUL_LINK_SPLIT, CastSpellExtraArgs(true)
+            .AddSpellMod(SPELLVALUE_BASE_POINT0, splitPct));
+    }
+
+    void HandleRemove(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/) const
+    {
+        GetTarget()->RemoveAura(SPELL_WARLOCK_SOUL_LINK_SPLIT);
+    }
+
+    void Register() override
+    {
+        AfterEffectApply += AuraEffectApplyFn(spell_warl_soul_link::HandleApply, EFFECT_1, SPELL_AURA_ADD_FLAT_MODIFIER, AURA_EFFECT_HANDLE_REAL);
+        AfterEffectRemove += AuraEffectRemoveFn(spell_warl_soul_link::HandleRemove, EFFECT_1, SPELL_AURA_ADD_FLAT_MODIFIER, AURA_EFFECT_HANDLE_REAL);
+    }
+};
+
+// 387506 - Mayhem (Destruction talent - choice node alternative to Havoc)
+// Chaos Bolt and Rain of Fire have a 35% chance to replicate to a nearby enemy
+// DB2: EFFECT_0 DUMMY bp=35 (proc chance), EFFECT_1 DUMMY bp=60, EFFECT_2 DUMMY bp=5000 (range centiyards)
+// ProcCategoryRecovery: 5100ms ICD (handled by proc system)
+class spell_warl_mayhem : public AuraScript
+{
+    bool Validate(SpellInfo const* /*spellInfo*/) override
+    {
+        return ValidateSpellInfo({
+            SPELL_WARLOCK_CHAOS_BOLT,
+            SPELL_WARLOCK_RAIN_OF_FIRE
+        });
+    }
+
+    bool CheckProc(ProcEventInfo& eventInfo)
+    {
+        SpellInfo const* spellInfo = eventInfo.GetSpellInfo();
+        if (!spellInfo)
+            return false;
+
+        // Only proc on Chaos Bolt or Rain of Fire
+        if (spellInfo->Id != SPELL_WARLOCK_CHAOS_BOLT && spellInfo->Id != SPELL_WARLOCK_RAIN_OF_FIRE)
+            return false;
+
+        // EFFECT_0 base points = proc chance (35%)
+        AuraEffect const* procChanceEffect = GetEffect(EFFECT_0);
+        if (!procChanceEffect)
+            return false;
+
+        return roll_chance_i(procChanceEffect->GetAmount());
+    }
+
+    void HandleProc(AuraEffect* /*aurEff*/, ProcEventInfo& eventInfo)
+    {
+        Unit* caster = GetTarget();
+        if (!caster)
+            return;
+
+        SpellInfo const* procSpell = eventInfo.GetSpellInfo();
+        if (!procSpell)
+            return;
+
+        // Get the original target to exclude from secondary target search
+        Unit* originalTarget = eventInfo.GetActionTarget();
+
+        // Search center: near original target if available (Chaos Bolt), otherwise near caster (Rain of Fire)
+        WorldObject* searchCenter = originalTarget ? static_cast<WorldObject*>(originalTarget) : static_cast<WorldObject*>(caster);
+
+        // EFFECT_2 base points = search range in centiyards (5000 = 50 yards)
+        float searchRange = 50.0f;
+        if (AuraEffect const* rangeEffect = GetEffect(EFFECT_2))
+            searchRange = float(rangeEffect->GetAmount()) / 100.0f;
+
+        // Find nearby enemy targets using the same pattern as Druid Twin Moons
+        std::vector<Unit*> targetList;
+        Trinity::WorldObjectSpellAreaTargetCheck check(searchRange, searchCenter, caster, caster, procSpell, TARGET_CHECK_ENEMY, nullptr, TARGET_OBJECT_TYPE_UNIT);
+        Trinity::UnitListSearcher searcher(searchCenter, targetList, check);
+        Cell::VisitAllObjects(searchCenter, searcher, searchRange);
+
+        // Remove the original target and caster from candidates
+        if (originalTarget)
+            std::erase(targetList, originalTarget);
+        std::erase(targetList, caster);
+
+        if (targetList.empty())
+            return;
+
+        // Pick a random second target
+        Unit* secondTarget = Trinity::Containers::SelectRandomContainerElement(targetList);
+
+        // Cast the triggering spell on the second target as triggered (no GCD, no cost)
+        caster->CastSpell(secondTarget, procSpell->Id, CastSpellExtraArgsInit{
+            .TriggerFlags = TRIGGERED_IGNORE_GCD | TRIGGERED_IGNORE_CAST_IN_PROGRESS | TRIGGERED_IGNORE_POWER_COST | TRIGGERED_DONT_REPORT_CAST_ERROR
+        });
+    }
+
+    void Register() override
+    {
+        DoCheckProc += AuraCheckProcFn(spell_warl_mayhem::CheckProc);
+        OnEffectProc += AuraEffectProcFn(spell_warl_mayhem::HandleProc, EFFECT_0, SPELL_AURA_DUMMY);
+    }
+};
+
 void AddSC_warlock_spell_scripts()
 {
     RegisterSpellScript(spell_warl_overfiend_chaos_bolt);
@@ -4406,6 +4996,12 @@ void AddSC_warlock_spell_scripts()
     RegisterCreatureAI(npc_warl_dimensional_rift_chaos_tear);
     RegisterCreatureAI(npc_warl_dimensional_rift_shadowy_tear);
 
+    // Soul Harvester
+    RegisterSpellScript(spell_warl_demonic_soul);
+
+    // Destruction - Mayhem
+    RegisterSpellScript(spell_warl_mayhem);
+
     // Affliction + Class
     RegisterSpellScript(spell_warl_fear);
     RegisterSpellScript(spell_warl_fear_buff);
@@ -4433,6 +5029,20 @@ void AddSC_warlock_spell_scripts()
     RegisterSpellScript(spell_warlock_fel_firebolt_wild_imp);
     RegisterCreatureAI(npc_pet_warlock_wild_imp);
     RegisterCreatureAI(npc_pet_warlock_demonic_tyrant);
+    RegisterSpellScript(spell_warl_summon_demonic_tyrant);
     RegisterSpellScript(spell_warl_incinerate);
     RegisterSpellScript(spell_warlock_imp_firebolt);
+
+    // Tier B Summons (Phase 5)
+    RegisterSpellScript(spell_warl_inner_demons);
+    RegisterSpellScript(spell_warl_grimoire_imp_lord);
+    RegisterCreatureAI(npc_warl_imp_lord);
+    RegisterSpellScript(spell_warl_summon_vilefiend);
+    RegisterCreatureAI(npc_warl_vilefiend);
+    RegisterCreatureAI(npc_warl_doomguard);
+    RegisterCreatureAI(npc_warl_infernal);
+
+    // Tier C Class Utilities (Phase 5)
+    RegisterSpellScript(spell_warl_demon_skin);
+    RegisterSpellScript(spell_warl_soul_link);
 }
