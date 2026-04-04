@@ -4648,7 +4648,11 @@ class spell_warl_summon_demonic_tyrant : public SpellScript
 {
     bool Validate(SpellInfo const* /*spellInfo*/) override
     {
-        return ValidateSpellInfo({ SPELL_WARLOCK_REIGN_OF_TYRANNY_BUFF });
+        return ValidateSpellInfo({
+            SPELL_WARLOCK_DEMONIC_POWER,
+            SPELL_WARLOCK_REIGN_OF_TYRANNY,
+            SPELL_WARLOCK_REIGN_OF_TYRANNY_BUFF
+        });
     }
 
     void HandleAfterCast()
@@ -4663,6 +4667,8 @@ class spell_warl_summon_demonic_tyrant : public SpellScript
             143622,  // Wild Imp (Inner Demons variant)
             98035,   // Dreadstalker
             135816,  // Vilefiend
+            258584,  // Imp Lord (Grimoire: Imp Lord talent)
+            250785,  // Doomguard (Summon Doomguard talent)
         };
 
         uint32 demonCount = 0;
@@ -4676,11 +4682,15 @@ class spell_warl_summon_demonic_tyrant : public SpellScript
                 if (!summon->IsAlive())
                     continue;
 
-                // Extend demon duration by 15 seconds
+                // Extend demon duration by 15 seconds (matches SpellDuration ID 8 = 15000ms)
                 summon->ModifyTimer(Seconds(15));
                 ++demonCount;
             }
         }
+
+        // Demonic Power (265273): +25% damage, mechanic resistance for all pets
+        // Targets TARGET_UNIT_PET (25) — auto-applies to all warlock pets when cast on self
+        caster->CastSpell(caster, SPELL_WARLOCK_DEMONIC_POWER, true);
 
         // Reign of Tyranny (1276748): Demonic Tyrant deals +10% damage per active demon
         if (demonCount > 0 && caster->HasAura(SPELL_WARLOCK_REIGN_OF_TYRANNY))
