@@ -2,7 +2,7 @@
 
 Source: v0.2.57 + v2.1.88 npm packages (sourcemap extraction, March-April 2026)
 Local archive: `C:/Users/atayl/Desktop/claude-code-source/`
-Status: Active research -- Tier 1 + Tier 2 COMPLETE, building cumulative expertise
+Status: **ALL 22 REPORTS COMPLETE** -- Tier 1 through Tier 4 fully documented
 
 ## Session 222 Summary (Apr 4 2026)
 
@@ -18,11 +18,15 @@ Status: Active research -- Tier 1 + Tier 2 COMPLETE, building cumulative experti
 4. Wrote 6 optimization reports (settings, session memory, frontmatter, rules, gitignore, 1M context)
 5. Applied optimizations to live config (1M context, conditional rules, git status, memory frontmatter)
 
-### What's Next (Tier 3-4 Reports)
-- 7 more reports to write (see index below)
-- Tier 3 DONE: computer use (13), buddy (15), bridge (17). REMAINING: voice (14), ultraplan (16)
-- Tier 4: commands catalog, API layer, messages pipeline, feature flags, UI renderer
+### Session 230 Summary (Apr 5 2026)
+1. Wrote final 4 reports via parallel agents: voice (14), API layer (19), messages pipeline (20), UI renderer (22)
+2. All 22 reports now complete across all 4 tiers
+3. Updated README and memory files
+
+### What's Next
 - Consider building a knowledge base MCP server for instant recall
+- Cross-reference reports for optimization opportunities
+- Upload to NotebookLM for human study
 
 ---
 
@@ -58,23 +62,23 @@ Status: Active research -- Tier 1 + Tier 2 COMPLETE, building cumulative experti
 | [11_skills_system.md](11_skills_system.md) | Skill Loading & Execution | 8 sources, 17 bundled skills. Dynamic discovery from file edits. Conditional `paths` activation. 6 cache layers |
 | [12_mcp_client.md](12_mcp_client.md) | MCP Server Integration | 7 config scopes, 8 transports. OAuth PKCE. Channel push system with 6-layer gating. ~27.8h tool timeout |
 
-### Tier 3 -- Hidden Features (4 of 5 COMPLETE)
+### Tier 3 -- Hidden Features (COMPLETE)
 | Report | System | Key Finding |
 |--------|--------|-------------|
 | [13_computer_use.md](13_computer_use.md) | Computer Use ("Chicago") | macOS-only, triple-layer gating (compile+GrowthBook+subscription). 23 tools via in-process MCP. Rust/enigo input + Swift screenshots. CFRunLoop pump every 1ms for libuv compat |
-| 14_voice_mode.md | Voice / Push-to-Talk | PENDING |
+| [14_voice_mode.md](14_voice_mode.md) | Voice / Push-to-Talk | Input-only (STT, no TTS). Triple-gated (compile+GrowthBook+OAuth). Deepgram Nova 3 via Anthropic WS proxy. Hold-to-talk via 200ms auto-repeat gap detection. 50 project keyterms for accuracy boosting |
 | [15_buddy_system.md](15_buddy_system.md) | Tamagotchi Pet | 18 species, deterministic gacha from hash(userId). 1% shiny, 1% legendary. Anti-cheat: bones regenerated on read, only soul persists. April 1 2026 launch |
 | [16_ultraplan.md](16_ultraplan.md) | UltraPlan | Internal-only remote planning via CCR. Opus 4.6, 30-min timeout, 3 entry points (slash/keyword/plan-upgrade), 27 files. Keyword rainbow animation. Not usable externally |
 | [17_bridge.md](17_bridge.md) | IDE Integration / Remote Control | Cloud-mediated (not direct IDE-CLI). Two protocols: v1 (WS+POST via Environments API) and v2 (SSE+CCRClient, env-less). Permission delegation, crash recovery, multi-session spawn |
 
-### Tier 4 -- Infrastructure (2 of 5 COMPLETE)
+### Tier 4 -- Infrastructure (COMPLETE)
 | Report | System | Key Finding |
 |--------|--------|-------------|
 | [18_commands_catalog.md](18_commands_catalog.md) | All Slash Commands (~90) | 55 active, 18 stubbed, ~14 feature-gated, ~25 internal-only. /insights is 119KB analytics platform. /security-review has 3-step parallel analysis. Kairos appears in 6 flags |
-| 19_api_layer.md | API Calls & Streaming | PENDING |
-| 20_messages_pipeline.md | Message Assembly | PENDING |
+| [19_api_layer.md](19_api_layer.md) | API Calls & Streaming | Raw streams over SDK (avoids O(n^2) partial JSON). 10 retries, exponential backoff. 529 cascade protection. Opus→Sonnet fallback after 3 consecutive 529s. 15+ beta headers with session-stable latches. 1-hour prompt cache TTL |
+| [20_messages_pipeline.md](20_messages_pipeline.md) | Message Assembly | Two-zone system prompt (static cacheable + dynamic session). CLAUDE.md injected as synthetic user msg at position 0. 11-transform normalization. ~30 concurrent attachment providers. Tool results >50K persisted to disk with preview |
 | [21_feature_flags.md](21_feature_flags.md) | Feature Flags & "Tengu" | ~175+ total gates (92 build-time + 60+ runtime + 25+ env). GrowthBook replacing Statsig. Kairos = unreleased scheduling platform. Chicago = Computer Use. Anti-distillation fake tool injection |
-| 22_ui_renderer.md | Ink/React Terminal | PENDING |
+| [22_ui_renderer.md](22_ui_renderer.md) | Ink/React Terminal | Custom Ink fork with pure-TS Yoga layout. Cell-level double-buffered rendering at 60fps. REPL.tsx is 5,005-line mega-component. charCache + blit optimization. LRU markdown cache (500 entries) |
 
 ### Installed Config Files
 | File | Location |
@@ -112,6 +116,21 @@ Status: Active research -- Tier 1 + Tier 2 COMPLETE, building cumulative experti
 19. **Bridge is cloud-mediated, not direct IDE-CLI** -- All traffic routes through Anthropic CCR servers. Works across networks (mobile controlling laptop)
 20. **Remote Control has bidirectional permission delegation** -- Remote user can approve/deny tools, change models, switch permission modes, and interrupt
 21. **drainRunLoop pattern for Swift/Rust under Node** -- 1ms setInterval pumping CFRunLoop is the solution for DispatchQueue.main calls under libuv
+
+### Tier 3 (continued)
+22. **Voice mode is STT-only, no TTS** -- Deepgram Nova 3 via Anthropic WebSocket proxy. Triple-gated like Computer Use (ant builds only)
+23. **Hold-to-talk detects key release via 200ms auto-repeat gap** -- Terminals lack keyUp events, so CC uses auto-repeat timing heuristic
+24. **50 project keyterms sent to Deepgram** -- Project name, git branch, coding terms boost transcription accuracy
+
+### Tier 4 (Infrastructure)
+25. **Raw SSE streams, not SDK BetaMessageStream** -- Avoids O(n^2) partial JSON parsing in the SDK's accumulator
+26. **Opus→Sonnet automatic fallback after 3 consecutive 529s** -- Prevents cascade amplification during overload
+27. **15+ beta headers with session-stable latches** -- Latches prevent prompt cache breaks from mid-session feature flag changes
+28. **CLAUDE.md is synthetic user message at position 0** -- Injected via `prependUserContext()`, not part of system prompt array
+29. **~30 concurrent attachment providers per tool-use** -- Primary dynamic context injection mechanism (skills, MCP, memory, git status, etc.)
+30. **Tool results >50K chars persisted to disk** -- Model gets `<persisted-output>` preview + file path; 200K aggregate cap per message
+31. **Custom Ink fork with pure-TS Yoga layout** -- Replaced upstream WASM Yoga with single-pass TypeScript flexbox. 60fps rendering with cell-level diffing
+32. **REPL.tsx is 5,005 lines** -- Single mega-component managing entire interactive session (streaming, permissions, vim, dialogs, agents, costs)
 
 ## Source Archive
 
