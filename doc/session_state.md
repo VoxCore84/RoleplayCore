@@ -12,9 +12,9 @@ This is the single source of truth for what all tabs are doing, what's done, wha
 | Tab | Assignment | Status | Notes |
 |-----|-----------|--------|-------|
 | Main (229) | Warlock Phase 4 modernization + Tier B triage | COMPLETE | 15 old-style handlers → RegisterSpellScript. Triage: 147 TC-native / 22 real TODO. Handoffs below. |
-| **Warlock-A1** | Tier A: Summon Demonic Tyrant (265187) | READY | Demonology. PetAI done, spell handler needed. See handoff below. |
+| **Warlock-A1** | Tier A: Summon Demonic Tyrant (265187) | COMPLETE | `spell_warl_summon_demonic_tyrant`: demon duration +15s, Reign of Tyranny buff. SQL: `_06_world.sql`. Commit: `0d4717c013` |
 | **Warlock-A2** | Tier A: Mayhem (387506) | READY | Destruction. Spell duplication to secondary target. See handoff below. |
-| **Warlock-A3** | Tier A: Demonic Soul (449614) | READY | Soul Harvester. Resource-spend tracking + spec-dependent procs. See handoff below. |
+| **Warlock-A3** | Tier A: Demonic Soul (449614) | COMPLETE | Aura 396 = native TRIGGER_SPELL_ON_POWER_AMOUNT (not PROC_TRIGGER_SPELL_COPY). Handler on 450510 chains to AoE damage burst 449801 (3.53 SP coeff). SQL: `_07_world.sql`. Commit: `0d4717c013` |
 | **Warlock-B** | Tier B: 6 Summon spells | COMPLETE | 5 handlers + 1 TC_NATIVE. C++ compiles clean (LNK1104 = server running). SQL: `2026_04_04_08_world.sql`. |
 | **Warlock-C** | Tier C: 5 Class utilities | READY | Demon Skin, Mortal Coil, Soul Link, Soulburn, Ichor of Devils. See handoff below. |
 | **Warlock-D** | Tier D: 8 MAYBE spells | COMPLETE | All 8 resolved: 6 TC_NATIVE, 1 HAS_HANDLER (Demonic Gateway stale), 1 duplicate. 0 new handlers needed. Registry + status updated. |
