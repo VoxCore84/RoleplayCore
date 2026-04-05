@@ -1,22 +1,56 @@
 ---
 description: "permission rule sources — managed settings user project local CLI hooks YOLO defaults, 8 sources merge override order, active rule inspection"
+title: "Permission Rule Sources"
+tags: [permissions, active-rule]
 ---
 
 # Permission Rule Sources
-> Source: `utils/permissions/`
-> Status: STUB — needs research
+> Source: `10_permissions.md`
 
-## Known: 8 Rule Sources
-1. Managed settings (enterprise)
-2. User settings
-3. Project settings
-4. Local settings
-5. CLI flags
-6. Hook results
-7. YOLO classifier
-8. Permission mode default
+## 8 Rule Sources
 
-## Key Questions
-- Exact merge/override order
-- What each source can set (allow, deny, ask, specific tools)
-- How to inspect active rules at runtime
+| Source | Editable | Persisted | Description |
+|--------|----------|-----------|-------------|
+| `policySettings` | No | Yes (MDM) | Enterprise managed settings |
+| `userSettings` | Yes | Yes | `~/.claude/settings.json` |
+| `projectSettings` | Yes | Yes | `.claude/settings.json` |
+| `localSettings` | Yes | Yes | `.claude/settings.local.json` |
+| `flagSettings` | No | Remote | GrowthBook feature flags |
+| `cliArg` | No | No (memory) | `--allowedTools` / `--disallowedTools` |
+| `command` | No | No | Command-level overrides |
+| `session` | No | No (memory) | Runtime session-only rules |
+
+## Rule Format
+
+`ToolName` or `ToolName(pattern)` with glob matching. Special: `mcp__server1` matches all tools from that server. Legacy names auto-normalized.
+
+## Loading Order
+
+When `allowManagedPermissionRulesOnly` is true, only `policySettings` rules load. Otherwise, all enabled sources merge.
+
+## Enterprise Controls
+
+- `allowManagedPermissionRulesOnly`: Only managed rules apply
+- `disableBypassPermissionsMode`: Block bypass mode (also via GrowthBook gate)
+- CCR: Only `acceptEdits`, `plan`, `default` modes supported
+
+## Auto Mode Rule Stripping
+
+Entering auto mode strips dangerous allow rules (Bash(\*), python, node, Agent, etc.) from in-memory context. Stashed in `strippedDangerousRules`, restored on exit. Rules NOT deleted from disk.
+
+## ToolPermissionContext
+
+Immutable (`DeepImmutable`) state carrying: `mode`, `additionalWorkingDirectories`, `alwaysAllowRules`, `alwaysDenyRules`, `alwaysAskRules`, `isBypassPermissionsModeAvailable`.
+
+## Key Source Files
+
+| File | Purpose |
+|------|---------|
+| `utils/permissions/permissionsLoader.ts` | Load/save rules from disk |
+| `utils/permissions/PermissionUpdate.ts` | Apply and persist updates |
+| `utils/permissions/permissionSetup.ts` | Context init, mode resolution |
+
+## Cross-References
+
+- [Permission Evaluation Order](permission_evaluation_order.md) -- how rules are applied
+- [Settings Registry](../config/settings_registry.md) -- permission settings keys

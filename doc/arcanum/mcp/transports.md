@@ -1,5 +1,7 @@
 ---
 description: "MCP transports — 8 transport types stdio SSE streamable websocket HTTP docker npx uvx, IDE filtering, connection setup"
+title: "MCP Transport Types -- Arcanum Wiki"
+tags: [mcp, ide-filtering, connection-setup]
 ---
 
 # MCP Transport Types -- Arcanum Wiki

@@ -1,5 +1,7 @@
 ---
 description: "GlobTool — file pattern matching, glob search, modification time sort, permission ignore patterns, fast read-only file discovery, **/*.ts patterns"
+title: "GlobTool -- Arcanum Wiki"
+tags: [tools, file-pattern, glob-search, modification-time, ts-patterns]
 ---
 
 # GlobTool -- Arcanum Wiki

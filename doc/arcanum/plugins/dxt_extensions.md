@@ -1,13 +1,51 @@
 ---
 description: "DXT extensions — zip format packaging, bomb detection 50:1 ratio, PKZIP central directory parsing Unix modes, lazy imports save 900KB heap"
+title: "DXT Extensions"
+tags: [plugins, zip-format, bomb-detection]
 ---
 
 # DXT Extensions
-> Source: `utils/dxt/`
-> Status: STUB — needs research
+> Source: `11_skills_system.md`, `21_feature_flags.md`
 
-## Key Questions
-- What is DXT? (Developer eXTension?)
-- Extension format and manifest
-- How to create and install extensions
-- Relationship to plugins vs skills vs MCP servers
+## What Is DXT
+
+DXT (Developer eXTension) is the packaging format for Claude Code plugins. A DXT extension is a zip archive containing a manifest, MCP server configs, skills, hooks, and optionally compiled code.
+
+## Package Structure
+
+DXT bundles (`.mcpb` files) contain:
+- **Manifest**: Metadata, MCP server declarations, skill definitions
+- **MCP configs**: Server connection details (can be inline or file references)
+- **Skills**: SKILL.md files with frontmatter
+- **Hooks**: Hook definitions for lifecycle events
+
+## Security Features
+
+- **Zip bomb detection**: 50:1 compression ratio limit prevents decompression bombs
+- **PKZIP central directory parsing**: Validates archive structure with Unix file mode extraction
+- **Path traversal prevention**: Normalized paths checked against directory traversal (`..` components rejected)
+- **File permissions**: Extracted files written with `O_EXCL | O_NOFOLLOW` flags and `0o600` permissions
+
+## Plugin-to-MCP Bridge
+
+`loadPluginMcpServers()` loads server configs from plugins via:
+1. `.mcp.json` in plugin directory
+2. `manifest.mcpServers` (string path, `.mcpb` file, array, or inline config)
+
+Plugin servers get scoped names: `plugin:<pluginName>:<serverName>`.
+
+## Lazy Import Optimization
+
+DXT parsing uses lazy `require()` imports to save ~900KB heap when extensions are not in use.
+
+## Key Source Files
+
+| File | Purpose |
+|------|---------|
+| `utils/dxt/` | DXT archive parsing and extraction |
+| `utils/plugins/mcpPluginIntegration.ts` | Plugin-to-MCP bridge |
+
+## Cross-References
+
+- [Plugin System](plugin_system.md) -- plugin lifecycle
+- [MCP Transport Types](../mcp/mcp_transport_types.md) -- server configs

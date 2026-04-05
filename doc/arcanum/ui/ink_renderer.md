@@ -1,5 +1,7 @@
 ---
 description: "Ink terminal renderer — React to terminal rendering, double-buffered output, ANSI escape sequences, terminal capabilities"
+title: "Ink Terminal Renderer"
+tags: [ui, double-buffered-output, ansi-escape, terminal-capabilities]
 ---
 
 # Ink Terminal Renderer

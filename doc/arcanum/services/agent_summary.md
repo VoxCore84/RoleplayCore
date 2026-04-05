@@ -1,5 +1,7 @@
 ---
 description: "AgentSummary service — subagent result summarization, agent output condensing, context-efficient agent responses"
+title: "Agent Summary Service -- Arcanum Wiki"
+tags: [services, agent-output]
 ---
 
 # Agent Summary Service -- Arcanum Wiki

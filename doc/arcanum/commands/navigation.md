@@ -1,5 +1,7 @@
 ---
 description: "navigation commands — /add-dir add working directory, /files list tracked files, /teleport remote session jump"
+title: "Navigation Commands -- Arcanum Wiki"
+tags: [commands, files-list]
 ---
 
 # Navigation Commands -- Arcanum Wiki

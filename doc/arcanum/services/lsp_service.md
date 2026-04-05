@@ -1,5 +1,7 @@
 ---
 description: "LSP service — Language Server Protocol connection management, clangd typescript-language-server, server lifecycle, capabilities negotiation"
+title: "LSP Service -- Arcanum Wiki"
+tags: [services, server-lifecycle, capabilities-negotiation]
 ---
 
 # LSP Service -- Arcanum Wiki

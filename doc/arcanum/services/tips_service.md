@@ -1,5 +1,7 @@
 ---
 description: "tips service — contextual tips display, usage hints, feature discovery prompts, tip rotation and dismissal"
+title: "Tips Service -- Arcanum Wiki"
+tags: [services, contextual-tips, usage-hints]
 ---
 
 # Tips Service -- Arcanum Wiki

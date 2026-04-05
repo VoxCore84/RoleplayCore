@@ -1,5 +1,7 @@
 ---
 description: "MCP channels — push notification system, 6-layer gating, real-time server updates, file watchers, build status"
+title: "MCP Channel System -- Arcanum Wiki"
+tags: [mcp, push-notification, 6-layer-gating, real-time-server, file-watchers, build-status]
 ---
 
 # MCP Channel System -- Arcanum Wiki

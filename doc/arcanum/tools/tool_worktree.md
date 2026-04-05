@@ -1,5 +1,7 @@
 ---
 description: "worktree tools — EnterWorktreeTool ExitWorktreeTool, git worktree isolation, agent file isolation, keep remove discard_changes, CWD switch, tmux session cleanup"
+title: "Worktree Tools -- Arcanum Wiki"
+tags: [tools, git-worktree, agent-file, cwd-switch, tmux-session]
 ---
 
 # Worktree Tools -- Arcanum Wiki

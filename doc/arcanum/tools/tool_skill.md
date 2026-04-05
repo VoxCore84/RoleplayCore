@@ -1,5 +1,7 @@
 ---
 description: "SkillTool — slash command execution, skill loading, forked sub-agent context, fully qualified names, args parameter, .claude/commands/ discovery, bundled skills"
+title: "SkillTool -- Arcanum Wiki"
+tags: [tools, slash-command, skill-loading, forked-sub-agent, fully-qualified, args-parameter, claudecommands-discovery, bundled-skills]
 ---
 
 # SkillTool -- Arcanum Wiki

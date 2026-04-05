@@ -1,5 +1,7 @@
 ---
 description: "MagicDocs service — automatic documentation generation, context-aware doc suggestions, inline documentation assistance"
+title: "MagicDocs Service -- Arcanum Wiki"
+tags: [services]
 ---
 
 # MagicDocs Service -- Arcanum Wiki

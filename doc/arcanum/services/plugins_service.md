@@ -1,5 +1,7 @@
 ---
 description: "plugins service — plugin loading lifecycle, bundled plugins, plugin discovery, reload-plugins command, plugin isolation"
+title: "Plugins Service -- Arcanum Wiki"
+tags: [services, plugin-loading, bundled-plugins, plugin-discovery, reload-plugins-command, plugin-isolation]
 ---
 
 # Plugins Service -- Arcanum Wiki

@@ -1,5 +1,7 @@
 ---
 description: "OAuth service — OAuth PKCE flow, token storage refresh, MCP server authentication, device authorization, code exchange"
+title: "OAuth Service -- Arcanum Wiki"
+tags: [services, oauth-pkce, token-storage, device-authorization, code-exchange]
 ---
 
 # OAuth Service -- Arcanum Wiki

@@ -1,13 +1,51 @@
 ---
 description: "server mode — headless API endpoint, non-interactive session, SDK integration, QueryEngine wrapper, print mode"
+title: "Server Mode"
+tags: [networking, headless-api, non-interactive-session, sdk-integration, queryengine-wrapper, print-mode]
 ---
 
 # Server Mode
-> Source: `src/server/`
-> Status: STUB — needs research
+> Source: `06_tool_pipeline.md`, `19_api_layer.md`
 
-## Key Questions
-- What is server mode? HTTP API? WebSocket server?
-- How does it differ from REPL/SDK modes?
-- Authentication for server mode
-- Use cases (CI/CD, headless, shared access?)
+## Overview
+
+Server mode runs Claude Code as a headless API endpoint without interactive UI. It powers the Agent SDK, `claude --print` mode, and bridge child processes.
+
+## QueryEngine (`src/QueryEngine.ts`, 48KB)
+
+The headless query engine wraps the conversation loop without React/Ink UI. It provides:
+- Streaming output via async generators
+- `SDKMessage` types for programmatic consumption
+- `buildSystemInitMessage()` for stream metadata
+- Custom system prompt override via `--system-prompt`
+
+## Print Mode (`claude --print`)
+
+Single-shot mode: takes input, runs query, prints result, exits. Used as bridge child processes and in CI/CD pipelines.
+
+## Non-Interactive Session Behavior
+
+- Permission mode: `dontAsk` (auto-deny anything not pre-allowed) or pre-configured rules
+- No `AskUserQuestion` tool available
+- Background agents use `shouldAvoidPermissionPrompts` flag
+- 529/overload errors on background sources bail immediately
+
+## SDK Integration
+
+The Agent SDK uses `QueryEngine` with:
+- `--sdk-url` for WebSocket transport to CCR
+- `--session-id` for bridge coordination
+- `CLAUDE_CODE_UNATTENDED_RETRY` for infinite retry on 429/529
+
+## Key Source Files
+
+| File | Purpose |
+|------|---------|
+| `src/QueryEngine.ts` | Headless query engine (48KB) |
+| `src/entrypoints/sdk/` | SDK entry point |
+| `src/utils/messages/systemInit.ts` | SDK stream metadata |
+
+## Cross-References
+
+- [Entry Points](../internals/entry_points.md) -- mode detection
+- [Remote Execution](remote_execution.md) -- cloud sessions

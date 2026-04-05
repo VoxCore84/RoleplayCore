@@ -1,14 +1,42 @@
 ---
 description: "git operations — status diff branch, 2K char cap on git status, commit tracking, push detection, worktree management, git-related tool calls"
+title: "Git Operations"
+tags: [git, status-diff, commit-tracking, push-detection, worktree-management, git-related-tool]
 ---
 
 # Git Operations
-> Source: `utils/git/`
-> Status: STUB — needs research
+> Source: `src/context.ts`, `02_system_prompt_assembly.md`
 
-## Key Questions
-- How does CC detect git repos, branches, status?
-- Git status capping (2K chars limit — we know this)
-- Worktree creation and management
-- How git context feeds into system prompt
-- Commit message generation logic
+## Git Status in System Prompt
+
+Git status is computed once per session via memoized `getGitStatus()` and appended to the system prompt as `systemContext`. It includes current branch, main branch, git user, short status (truncated at **2,000 characters**), and last 5 commits.
+
+The status is a snapshot from conversation start -- never updates during the session.
+
+## Worktree Management
+
+`EnterWorktreeTool` and `ExitWorktreeTool` (feature-gated) create worktrees under `.claude/worktrees/` with new branches. Settings: `worktree.symlinkDirectories` and `worktree.sparsePaths`.
+
+## Git-Related Settings
+
+| Setting | Default | Purpose |
+|---------|---------|---------|
+| `respectGitignore` | true | File picker honors `.gitignore` |
+| `includeGitInstructions` | true | Commit/PR instructions in system prompt |
+| `attribution.commit` | Co-Authored-By | Custom commit attribution text |
+
+## Commit/PR Workflow
+
+Built-in system prompt instructions guide staging, committing, and PR creation via `gh` CLI. Controlled by `includeGitInstructions` setting.
+
+## Key Source Files
+
+| File | Purpose |
+|------|---------|
+| `src/context.ts` | `getGitStatus()`, `getSystemContext()` |
+| `tools/EnterWorktreeTool/` | Worktree creation tool |
+
+## Cross-References
+
+- [Constants and Prompts](../source/constants_and_prompts.md) -- where git status is injected
+- [GitHub Integration](github_integration.md) -- PR and issue workflows

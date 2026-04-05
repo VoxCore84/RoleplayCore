@@ -1,5 +1,7 @@
 ---
 description: "CronTools — CronCreate CronList CronDelete, scheduled prompts, recurring tasks, one-shot reminders, 5-field cron expressions, session-scoped, jitter, 3-day auto-expire"
+title: "Cron Tools -- Arcanum Wiki"
+tags: [tools, scheduled-prompts, recurring-tasks, one-shot-reminders, 5-field-cron, session-scoped, jitter, 3-day-auto-expire]
 ---
 
 # Cron Tools -- Arcanum Wiki

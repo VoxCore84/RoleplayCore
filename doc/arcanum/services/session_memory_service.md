@@ -1,5 +1,7 @@
 ---
 description: "SessionMemory service — tengu_session_memory feature gate, custom templates, session-scoped memory, config/ template.md prompt.md"
+title: "Session Memory Service -- Arcanum Wiki"
+tags: [services, custom-templates, session-scoped-memory]
 ---
 
 # Session Memory Service -- Arcanum Wiki

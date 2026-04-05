@@ -1,20 +1,51 @@
 ---
 description: "settings registry — 60+ settings keys, 5 merge sources, priority order, array concatenation dedup, policy always wins, enableAllProjectMcpServers"
+title: "Settings Registry"
+tags: [config, 60-settings, 5-merge, priority-order, policy-always]
 ---
 
 # Settings Registry
-> Source: `utils/settings/`, `src/schemas/`
-> Status: STUB — needs research
+> Source: `settings_deep_dive.md`
 
-## What This Covers
-All 70+ settings keys, their types, defaults, scopes, and effects. Where settings are read from (env vars, config files, CLI flags).
+## Settings Categories (60+ Keys)
 
-## Source Files to Read
-- `utils/settings/` — settings loading, merging, validation
-- `src/schemas/` — JSON schema definitions for settings files
+**Core**: `model`, `effortLevel`, `alwaysThinkingEnabled`, `fastMode`, `cleanupPeriodDays`, `language`, `outputStyle`
 
-## Key Questions
-- Complete list of all settings keys with types and defaults
-- Merge order: CLI flag > env var > local config > project config > user config?
-- Which settings are hot-reloadable vs require restart?
-- Hidden/undocumented settings not in `claude config`?
+**Permissions**: `permissions.defaultMode` (6 modes), `permissions.allow/deny/ask` arrays, `additionalDirectories`, `skipDangerousModePermissionPrompt`
+
+**Memory**: `autoMemoryEnabled`, `autoMemoryDirectory`, `autoDreamEnabled`, `claudeMdExcludes`
+
+**MCP**: `enableAllProjectMcpServers`, `enabledMcpjsonServers`, `allowedMcpServers/deniedMcpServers`
+
+**Hooks**: `hooks` (13 event types), `disableAllHooks`, `allowedHttpHookUrls`
+
+**Plugins**: `enabledPlugins`, `extraKnownMarketplaces`, `pluginConfigs`
+
+**Shell/Sandbox**: `defaultShell`, `sandbox` (network, filesystem, ripgrep sub-schemas)
+
+**Git**: `respectGitignore`, `attribution`, `worktree`, `includeGitInstructions`
+
+## Key Environment Variables
+
+| Variable | Purpose |
+|----------|---------|
+| `ANTHROPIC_MODEL` | Override model (priority 3) |
+| `MAX_THINKING_TOKENS` | Thinking token budget |
+| `CLAUDE_CODE_MAX_OUTPUT_TOKENS` | Max output (upper limit: 64K) |
+| `BASH_DEFAULT_TIMEOUT_MS` | Bash timeout (default: 60s) |
+| `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` | Suppress all nonessential network |
+
+## Model Selection Priority
+
+`/model` command > `--model` flag > `ANTHROPIC_MODEL` env > `settings.json model` > built-in default.
+
+## Security Notes
+
+- `skipDangerousModePermissionPrompt` cannot be set in projectSettings (RCE risk)
+- `autoMemoryDirectory` ignored if set in projectSettings
+- Shell-executing settings (`apiKeyHelper`, `statusLine`) flagged as dangerous
+
+## Cross-References
+
+- [Schema Validation](schema_validation.md) -- Zod schemas
+- [Migration System](migration_system.md) -- format upgrades

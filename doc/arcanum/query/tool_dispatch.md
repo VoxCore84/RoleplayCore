@@ -1,18 +1,56 @@
 ---
 description: "tool dispatch — concurrent read-only batching max 10, tool result >100K disk persistence, ToolSearch deferred loading, execution pipeline"
+title: "Tool Dispatch"
+tags: [query, execution-pipeline]
 ---
 
 # Tool Dispatch
-> Source: `src/query.ts`, `src/tools.ts`
-> Status: STUB — needs research
+> Source: `06_tool_pipeline.md`
 
-## Known
-- Concurrent read-only batching (max 10)
-- Results >100K chars persisted to disk
-- ToolSearch defers tools to save prompt tokens
+## 5-Stage Pipeline
 
-## Key Questions
-- How are concurrent tool calls batched and executed?
-- Read-only detection — which tools are read-only?
-- How does ToolSearch decide to defer/include tools?
-- Tool result size handling and disk persistence
+1. **DEFINE**: `buildTool()` creates `Tool<I,O,P>` from `ToolDef` (fail-closed defaults)
+2. **REGISTER**: `getAllBaseTools()` assembles master list, feature-gated
+3. **ASSEMBLE**: `assembleToolPool()` merges built-in + MCP, sorted for cache stability
+4. **EXECUTE**: `runTools()` partitions into batches, `runToolUse()` per call
+5. **PERSIST**: `processToolResultBlock()` saves large results to disk
+
+## Concurrent Batching
+
+Tools partitioned into alternating batches: concurrent-safe (parallel, max 10) and non-concurrent (serial). Example: `[Read, Read, Edit, Grep, Grep]` becomes 3 batches.
+
+**Concurrency safety**: Read, Glob, Grep, ToolSearch, WebSearch, WebFetch = always safe. Edit, Write = never safe. Bash = input-dependent. Default: `false` (fail-closed).
+
+## Permission Chain (Per Tool Call)
+
+```
+1. Zod input validation
+2. Tool-specific validateInput()
+3. Speculative classifier (Bash only)
+4. PreToolUse hooks -> permission decision
+5. Rule-based + interactive permission
+6. tool.call() execution
+7. processToolResultBlock() -> disk persist
+8. PostToolUse hooks
+```
+
+## Size Limits
+
+| Constant | Value |
+|----------|-------|
+| Per-tool cap | 50,000 chars |
+| Per-message aggregate | 200,000 chars |
+| Absolute ceiling | 400,000 bytes |
+| Disk preview | 2,000 bytes |
+
+## Key Source Files
+
+| File | Purpose |
+|------|---------|
+| `services/tools/toolOrchestration.ts` | Batching and concurrency |
+| `services/tools/toolExecution.ts` | Per-call lifecycle (1100+ lines) |
+
+## Cross-References
+
+- [Query Loop](query_loop.md) -- where dispatch is called
+- [Hook Execution Pipeline](../hooks/hook_execution_pipeline.md) -- pre/post hooks

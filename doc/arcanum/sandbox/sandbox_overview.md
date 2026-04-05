@@ -1,14 +1,70 @@
 ---
 description: "sandbox system — command sandboxing, /sandbox-toggle, file system restrictions, Docker namespace chroot, platform-specific isolation"
+title: "Sandbox System"
+tags: [sandbox, command-sandboxing, sandbox-toggle, file-system, docker-namespace]
 ---
 
 # Sandbox System
-> Source: `utils/sandbox/`, `utils/bash/`, `utils/shell/`, `utils/powershell/`
-> Status: STUB — needs research
+> Source: `settings_deep_dive.md`, `10_permissions.md`
 
-## Key Questions
-- What sandboxing mechanisms exist? (Docker, namespace, chroot, none?)
-- How does bash execution get sandboxed on different platforms?
-- The `/sandbox-toggle` command — what does it control?
-- PowerShell-specific sandboxing on Windows
-- File system access restrictions
+## Sandbox Configuration
+
+The sandbox schema provides fine-grained control over command isolation:
+
+```json
+{
+  "sandbox": {
+    "enabled": true,
+    "failIfUnavailable": false,
+    "autoAllowBashIfSandboxed": true,
+    "network": {
+      "allowedDomains": ["github.com"],
+      "allowLocalBinding": true
+    },
+    "filesystem": {
+      "allowWrite": ["/tmp"],
+      "denyWrite": ["/etc"],
+      "denyRead": ["/secrets"]
+    },
+    "excludedCommands": ["docker"]
+  }
+}
+```
+
+## Key Settings
+
+| Setting | Purpose |
+|---------|---------|
+| `autoAllowBashIfSandboxed` | Skip permission prompts for sandboxed bash |
+| `allowUnsandboxedCommands` | Allow commands that bypass sandbox |
+| `excludedCommands` | Commands that skip sandboxing |
+| `enableWeakerNestedSandbox` | Weaker isolation for nested containers |
+
+## Platform Behavior
+
+- **macOS**: Bubblewrap-style sandbox via `CLAUDE_CODE_BUBBLEWRAP`
+- **Linux**: Container-based isolation
+- **Windows**: Limited; `enabledPlatforms` can restrict sandbox to specific OS
+
+## Filesystem Restrictions
+
+Protected paths that always prompt (bypass-immune safety checks):
+- `.git/`, `.vscode/`, `.idea/`, `.claude/` directories
+- `.gitconfig`, `.bashrc`, `.zshrc`, `.profile`, `.mcp.json`
+- Exception: `.claude/worktrees/` is allowed
+
+## Custom Ripgrep
+
+Sandbox can specify a custom ripgrep binary and args for Grep operations.
+
+## Key Source Files
+
+| File | Purpose |
+|------|---------|
+| `utils/sandbox/` | Sandbox implementation |
+| `utils/permissions/filesystem.ts` | Path safety checks |
+
+## Cross-References
+
+- [Bash Execution](bash_execution.md) -- how commands run inside sandbox
+- [Permission Evaluation](../permissions/permission_evaluation_order.md) -- safety checks

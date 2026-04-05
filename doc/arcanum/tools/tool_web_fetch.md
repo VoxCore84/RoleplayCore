@@ -1,5 +1,7 @@
 ---
 description: "WebFetchTool — URL fetching, HTML to markdown, Haiku processing, 15-minute cache, redirect handling, PDF binary content, deferred tool, prompt-based extraction"
+title: "WebFetchTool -- Arcanum Wiki"
+tags: [tools, url-fetching, html-to, haiku-processing, 15-minute-cache, redirect-handling, pdf-binary, deferred-tool]
 ---
 
 # WebFetchTool -- Arcanum Wiki

@@ -1,20 +1,56 @@
 ---
 description: "bridge architecture — IDE integration protocol, WebSocket communication, state synchronization, capability negotiation, transport layer"
+title: "Bridge Architecture"
+tags: [bridge, ide-integration, websocket-communication, state-synchronization, capability-negotiation, transport-layer]
 ---
 
 # Bridge Architecture
-> Source: `src/bridge/` (31 files)
-> Status: STUB — needs research
+> Source: `17_bridge.md`
 
-## What This Covers
-The bridge layer connects Claude Code CLI to IDE integrations (VS Code extension, Desktop app). Handles session management, permission callbacks, and WebSocket communication.
+## Key Finding
 
-## Source Files to Read
-- `src/bridge/` — all 31 files
-- Focus: session lifecycle, WebSocket protocol, permission forwarding
+The bridge is NOT a direct IDE-to-CLI WebSocket. It is **cloud-mediated** -- the CLI connects to Anthropic's CCR (Claude Code Runner) servers, and web/mobile clients connect to the same servers.
 
-## Key Questions
-- How does the VS Code extension communicate with the CLI process?
-- What protocol does the WebSocket use? (JSON-RPC? Custom?)
-- How are permissions forwarded from IDE UI to CLI?
-- What session state transfers between bridge and CLI?
+## Architecture
+
+```
+claude.ai/code + Mobile App
+        |
+  Anthropic CCR Servers
+        |
+  +-----------+----------+
+  | Standalone |  REPL    |
+  | Bridge     |  Bridge  |
+  | (spawns    | (bg in   |
+  |  children) |  session)|
+  +-----------+----------+
+```
+
+## Two Operational Modes
+
+**Standalone** (`claude remote-control`): Persistent server. Registers environment with CCR, long-polls for work, spawns child `claude --print` processes (max 32), manages session lifecycle.
+
+**REPL Bridge** (background): Runs inside interactive session. Creates session on CCR, connects transport, mirrors events bidirectionally, handles remote permissions.
+
+## Two Protocol Versions
+
+**v1** (environment-based): Register environment -> create session -> poll for work -> decode WorkSecret -> WebSocket reads + HTTP POST writes.
+
+**v2** (env-less, gated by `tengu_bridge_repl_v2`): Create session -> bridge endpoint -> SSE reads + HTTP POST writes. Simpler, fewer API calls.
+
+## Permission Delegation
+
+Remote users on claude.ai can approve/deny tool calls, change models, switch permission modes, interrupt operations. Bidirectional via `control_request`/`control_response` messages.
+
+## Key Source Files
+
+| File | Purpose |
+|------|---------|
+| `src/bridge/bridgeMain.ts` | Standalone bridge server (~2400 lines) |
+| `src/bridge/replBridge.ts` | REPL bridge (v1) |
+| `src/bridge/remoteBridgeCore.ts` | REPL bridge (v2) |
+
+## Cross-References
+
+- [WebSocket Protocol](websocket_protocol.md) -- message format
+- [IDE Session Lifecycle](ide_session_lifecycle.md) -- session management

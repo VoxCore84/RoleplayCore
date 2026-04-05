@@ -1,5 +1,7 @@
 ---
 description: "moreright — unknown internal feature, investigation needed, potentially related to permission escalation or capability expansion"
+title: "Moreright -- Arcanum Wiki"
+tags: [hidden, unknown-internal, investigation-needed]
 ---
 
 # Moreright -- Arcanum Wiki

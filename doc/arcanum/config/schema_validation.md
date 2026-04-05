@@ -1,12 +1,47 @@
 ---
 description: "schema validation — Zod v4 schemas, lazySchema wrappers, 4 hook types discriminated union, forgiving validation, settings schema"
+title: "Schema Validation"
+tags: [config, zod-v4, lazyschema-wrappers, forgiving-validation, settings-schema]
 ---
 
 # Schema Validation
-> Source: `src/schemas/`
-> Status: STUB — needs research
+> Source: `src/schemas/`, `settings_deep_dive.md`
 
-## Key Questions  
-- What JSON schemas validate settings, hooks, agents, skills?
-- How are invalid configs handled (error, warn, ignore)?
-- Schema for `.claude/settings.json`, `CLAUDE.md`, agent definitions
+## Overview
+
+Claude Code validates all configuration using Zod schemas. The SettingsSchema uses `.passthrough()` so unknown keys are preserved (not rejected), enabling forward-compatible settings files.
+
+## Key Schemas
+
+**SettingsSchema** -- 60+ optional keys covering model, permissions, MCP, hooks, UI, memory, plugins, and auth. Invalid fields warn but do not reject.
+
+**HooksSchema** -- Zod discriminated union of 4 hook command types:
+- `command` (shell) -- command string, shell type, if-condition, timeout, async flag
+- `prompt` (LLM) -- prompt with `$ARGUMENTS` placeholder, model override
+- `agent` (verifier) -- prompt + context, spawns sub-agent (default: Haiku, 60s timeout)
+- `http` (webhook) -- URL, headers with `$VAR` interpolation, SSRF guard
+
+**PermissionRuleSchema** -- validates `ToolName(pattern)` syntax. Parentheses in content must be escaped (`\(`, `\)`).
+
+## Forgiving Validation
+
+Settings loading uses a lenient JSON loader that preserves existing settings even if unrelated fields fail validation. This prevents a bad hook config from wiping your model setting.
+
+Tool input validation uses `safeParse` -- on failure the model gets `<tool_use_error>InputValidationError` rather than a crash.
+
+## LazySchema Pattern
+
+Recursive schemas use `lazySchema(() => z.object({...}))` wrappers to break circular references at parse time.
+
+## Key Source Files
+
+| File | Purpose |
+|------|---------|
+| `src/schemas/hooks.ts` | Hook command type schemas |
+| `src/schemas/settings.ts` | SettingsSchema (60+ keys) |
+| `utils/permissions/PermissionRule.ts` | Permission rule schema |
+
+## Cross-References
+
+- [Settings Registry](settings_registry.md) -- all settings keys
+- [Hook Execution Pipeline](../hooks/hook_execution_pipeline.md) -- hook schema usage

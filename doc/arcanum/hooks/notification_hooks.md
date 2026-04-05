@@ -1,5 +1,7 @@
 ---
 description: "notification hooks — Stop session end, PreCompact PostCompact, SessionStart, FileChanged, SubagentStart ConfigChange lifecycle events"
+title: "Notification, Stop, and Compact Hooks -- Arcanum Wiki"
+tags: [hooks, stop-session, precompact-postcompact, sessionstart, filechanged]
 ---
 
 # Notification, Stop, and Compact Hooks -- Arcanum Wiki

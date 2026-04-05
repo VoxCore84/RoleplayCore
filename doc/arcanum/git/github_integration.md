@@ -1,13 +1,43 @@
 ---
 description: "GitHub integration — PR creation, issue management, gh CLI wrapper, install-github-app, autofix-pr, security-review 3-step parallel analysis"
+title: "GitHub Integration"
+tags: [git, pr-creation, issue-management, gh-cli, install-github-app, autofix-pr]
 ---
 
 # GitHub Integration
-> Source: `utils/github/`
-> Status: STUB — needs research
+> Source: `18_commands_catalog.md`
 
-## Key Questions
-- GitHub app installation flow (`/install-github-app`)
-- PR creation, review, comment workflows
-- Issue tracking integration
-- How does CC authenticate with GitHub? (gh CLI, app token, OAuth?)
+## Overview
+
+GitHub integration relies on the `gh` CLI rather than direct API calls. Several commands wrap `gh` functionality.
+
+## Key Commands
+
+| Command | Type | Description |
+|---------|------|-------------|
+| `/review` | prompt | Fetch PR via `gh`, structured code review |
+| `/pr-comments` | prompt | Get PR comments (migrating to plugin) |
+| `/security-review` | prompt | 3-step parallel security audit |
+| `/install-github-app` | local | Set up Claude GitHub Actions |
+
+## Security Review Pipeline
+
+3-step analysis: (1) sub-task identifies vulnerabilities, (2) parallel sub-tasks filter false positives, (3) filter to confidence >= 8. Covers SQL injection, XSS, auth bypass, crypto, code injection, data exposure.
+
+## Internal Commands (Ant-Only)
+
+- `/commit` -- git commit with "undercover" mode (hide attribution)
+- `/commit-push-pr` -- branch + commit + push + PR + Slack posting
+
+## Stubbed: `/autofix-pr`, `/issue` (disabled)
+
+## Key Source Files
+
+| File | Purpose |
+|------|---------|
+| `src/commands/review/` | PR review prompt |
+| `src/commands/securityReview/` | 3-step security audit |
+
+## Cross-References
+
+- [Git Operations](git_operations.md) -- git status and commit workflow

@@ -1,5 +1,7 @@
 ---
 description: "permission modes — default auto plan acceptEdits bypassPermissions dontAsk, mode selection logic, mode capabilities, YOLO auto mode"
+title: "Permission Modes -- Arcanum Wiki"
+tags: [permissions, mode-selection, mode-capabilities, yolo-auto]
 ---
 
 # Permission Modes -- Arcanum Wiki
