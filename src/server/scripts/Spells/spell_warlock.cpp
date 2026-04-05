@@ -2567,13 +2567,7 @@ class spell_warl_hand_of_guldan : public SpellScript
         if (!caster || !target)
             return;
 
-        std::list<Creature*> oldImps;
-        caster->GetCreatureListWithEntryInGrid(oldImps, 55659, 100.0f);
-        for (Creature* imp : oldImps)
-        {
-            if (imp->IsAlive() && imp->GetOwnerGUID() == caster->GetGUID())
-                imp->DespawnOrUnsummon();
-        }
+        // 12.x: Hand of Gul'dan summons ADDITIONAL imps, does not despawn existing ones
 
         SpellInfo const* summonSpellInfo = sSpellMgr->GetSpellInfo(SPELL_WARLOCK_WILD_IMP_SUMMON, DIFFICULTY_NONE);
         if (!summonSpellInfo)
@@ -2744,12 +2738,22 @@ struct npc_warlock_dreadstalker : public ScriptedAI
             me->SetHealth(me->GetMaxHealth());
 
             if (Unit* target = owner->ToPlayer()->GetSelectedUnit())
-                me->CastSpell(target, SPELL_WARLOCK_DREADSTALKER_CHARGE, true);
+            {
+                if (me->IsValidAttackTarget(target))
+                {
+                    // 12.x: Charge effect (254) is unimplemented in TC — use MoveCharge directly
+                    me->GetMotionMaster()->MoveCharge(target->GetPositionX(), target->GetPositionY(), target->GetPositionZ(), 42.0f);
+                    AttackStart(target);
+                }
+            }
 
             firstTick = false;
 
             me->CastSpell(me, SPELL_WARLOCK_SHARPENED_DREADFANGS_BUFF, true);
         }
+
+        if (!me->HasUnitState(UNIT_STATE_CASTING))
+            me->DoMeleeAttackIfReady();
 
         UpdateVictim();
     }

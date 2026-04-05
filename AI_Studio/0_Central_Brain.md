@@ -8,7 +8,7 @@
 
 ## Triad Coordination — READ FIRST (all agents)
 
-**Last updated**: 2026-04-04 -- Session 227 (multi-tab): VoxSniffer Combat Audit v1 IMPLEMENTED + Gemini audited (4 HIGH fixes). Warlock extraction pipeline IN PROGRESS. DB error cleanup + TC TDB backfill applied. Commits: `5cd63fdd3f`, `eef19fe221`, `6e32ef1e0f`
+**Last updated**: 2026-04-04 -- Session 228 Tab A: RoleplayCore SQL re-applied (18 files), Phase 4 DB cleanup (90% error reduction: 6.8M to 670K), crafting_quality crash fix. Warlock Phase 3 done (session 230). Commits: `0f6334cb0c`, `fd88560bfb`
 
 ### Architecture (as of session 160)
 
@@ -72,7 +72,7 @@ Update THIS file on `/wrap-up` with: what was completed, what's deployed, infras
 ## Current Focus
 - **VoxSniffer Combat Audit v1**: IMPLEMENTED (session 227). CombatAudit.lua + ProcExpectations.lua + audit_report.py. Gemini audited, 4 HIGH fixes applied. **NEEDS IN-GAME TEST**. Commit `5cd63fdd3f`
 - **Warlock Full Class**: Phase 0-2 extraction pipeline IN PROGRESS (session 227 Tab 1). Spec: `AI_Studio/2_Active_Specs/TRIAD-WARLOCK-FULLCLASS-V1`. 110 existing scripts, gaps: Malefic Rapture, Havoc, Nightfall, Soul Rot, Oblivion, Hellcaller, Soul Harvester
-- **Claude Code Internals**: 11 reports written (266KB knowledge base). 1M context enabled, 3 conditional rules, .gitignore optimized, 54 memory frontmatter files. 17 Tier 2-4 reports pending. Reports: `AI_Studio/Reports/ClaudeCodeInternals/`
+- **Claude Code Internals**: 15 reports written (~300KB). Tier 1 (5/5), Tier 2 (7/7), Tier 3 (4/5), Tier 4 (2/5). Session 229 added UltraPlan, Commands Catalog, Feature Flags. 3 remaining: voice, API layer, messages, UI renderer. Reports: `AI_Studio/Reports/ClaudeCodeInternals/`
 - **VoxSniffer v1.0.0**: SHIPPED (session 168). 7-round dual ChatGPT review (API + Browser). 62 files, 8,881 lines. Deployed to GitHub + AddOns + publishable/. **NEEDS IN-GAME TEST**
 - **VoxGM v1.0.0**: SHIPPED (session 167). **NEEDS IN-GAME TEST**
 - **CreatureCodex v1.0.0**: RELEASED (session 171b). Build clean. GitHub release live. **NEEDS IN-GAME TEST**
@@ -94,8 +94,8 @@ Potentially actionable specs remaining in `1_Inbox/`:
 2 sensitive personal files moved to `Desktop\Excluded/`.
 
 ## Infrastructure State
-- **Build**: Current (VS build done)
-- **Server**: NOT RUNNING (DB schema repaired — 3 fixes applied for TC sync compat)
+- **Build**: Current (VS build done, 867/867)
+- **Server**: RUNNING (PID 41144, 28s startup). 670K DBErrors (down from 6.8M — 90% reduction)
 - **Client**: 12.0.1.66709
 - **DB**: world ~1,200 MB | hotfixes 811 MB | characters 4 MB
 - **31 slash commands** (+12 case management skills session 178)
