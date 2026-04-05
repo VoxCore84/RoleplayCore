@@ -4820,15 +4820,17 @@ class spell_warl_soul_link : public AuraScript
 
     void HandleApply(AuraEffect const* /*aurEff*/, AuraEffectHandleModes /*mode*/) const
     {
-        Unit* target = GetTarget();
+        Player* player = GetTarget()->ToPlayer();
+        if (!player)
+            return;
 
-        // Only apply split if the warlock has an active pet
-        if (!target->GetGuardianPet())
+        // Only apply split if the warlock has a permanent demon pet (not temporary summons)
+        if (!player->GetPet())
             return;
 
         // Cast the split damage area aura with the talent's DUMMY base points as the split %
-        int32 splitPct = GetEffectInfo(EFFECT_0).CalcValue(target);
-        target->CastSpell(target, SPELL_WARLOCK_SOUL_LINK_SPLIT, CastSpellExtraArgs(true)
+        int32 splitPct = GetEffectInfo(EFFECT_0).CalcValue(player);
+        player->CastSpell(player, SPELL_WARLOCK_SOUL_LINK_SPLIT, CastSpellExtraArgs(true)
             .AddSpellMod(SPELLVALUE_BASE_POINT0, splitPct));
     }
 
