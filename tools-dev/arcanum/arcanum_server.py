@@ -111,6 +111,56 @@ def arcanum_rebuild() -> str:
 
 
 @mcp.tool()
+def arcanum_mbox_search(
+    query: str = "",
+    sender: str = "",
+    recipient: str = "",
+    subject: str = "",
+    label: str = "",
+    since: str = "",
+    until: str = "",
+    has_attachment: bool = False,
+    attachment: str = "",
+    max_results: int = 20,
+) -> str:
+    """Search the mbox SQLite FTS5 index (Gmail takeout, ~10 GB, built by tools/mbox/index.py).
+
+    Uses a trigram tokenizer, so substring matching works:
+      - query='Warehm' hits 'Wareham'
+      - query='NARSUM' matches case-insensitively
+    Combine with structured filters for precise slices.
+
+    Args:
+        query: FTS5 trigram query string (substring + word match).
+        sender: Filter by From address substring.
+        recipient: Filter by To/Cc substring.
+        subject: Filter by Subject substring.
+        label: Filter by X-Gmail-Labels (e.g. 'Legal', 'Important').
+        since: Start date YYYY-MM-DD (inclusive).
+        until: End date YYYY-MM-DD (exclusive).
+        has_attachment: Only return messages with >=1 attachment.
+        attachment: Filter by attachment filename (glob: 'narsum*.pdf').
+        max_results: Maximum results (default 20, capped at 100).
+    """
+    return arcanum_logic.arcanum_mbox_search(
+        query=query, sender=sender, recipient=recipient, subject=subject,
+        label=label, since=since, until=until, has_attachment=has_attachment,
+        attachment=attachment, max_results=max_results,
+    )
+
+
+@mcp.tool()
+def arcanum_mbox_read(message_id: int) -> str:
+    """Read a full mbox message by its DB row id (returned from arcanum_mbox_search).
+
+    Args:
+        message_id: The numeric row id shown as '#N' in arcanum_mbox_search output.
+                    This is NOT the RFC Message-ID string.
+    """
+    return arcanum_logic.arcanum_mbox_read(message_id)
+
+
+@mcp.tool()
 def arcanum_reload() -> str:
     """Hot-reload arcanum_logic.py to pick up code changes without restarting
     the MCP server (or Claude Code). Use after editing tool implementations in

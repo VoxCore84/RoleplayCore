@@ -3,7 +3,7 @@
 **Read this FIRST in any new Claude Code tab.**
 This is the single source of truth for what all tabs are doing, what's done, what's blocked, and what to pick up next. Updated by whichever tab finishes work.
 
-**Last updated**: April 8, 2026 -- Main tab dispatched CC 2.1.97 source refresh to a new tab. Handoff: `doc/handoff_cc_297_source_refresh.md`. New tab OWNS all of `AI_Studio/Reports/ClaudeCodeInternals/` + `memory/claude-code-internals.md`.
+**Last updated**: April 9, 2026 -- JD-Planner tab opened to design `Case_Reference/` Johnny Decimal (`XXX_YYY`) restructure. Case-SME tab active (~43 min in, did not self-claim its row). Both rows added retroactively by JD-Planner to prevent collision. Zero physical ops in `Case_Reference/` until Case-SME tab finishes.
 
 ---
 
@@ -20,6 +20,8 @@ This is the single source of truth for what all tabs are doing, what's done, wha
 | **Warlock-D** | Tier D: 8 MAYBE spells + deep audit | COMPLETE | All 8 resolved. Deep audit: fixed 5 orphan DB entries (2 name mismatches + 3 stale), Soul Link pet check. SQL: `_11`. Commits: `0d4717c013`, `51d8381bd1`. |
 | **CC-297-Refresh** | Re-extract claude-code 2.1.97 sources, diff vs 2.1.88, patch all 22 internals reports + memory file | COMPLETE | Commit: `1e8db7592d`. 8 tracked reports + README committed (188 insertions, 18 deletions). 14 more reports updated on disk (gitignored). memory/claude-code-internals.md updated (outside git, ~/.claude/projects/). 15 findings files in `_2.1.97_refresh/`. Sourcemap extraction impossible (Anthropic stripped cli.js.map post-2.1.88 leak); used hybrid changelog + cli.js grep methodology instead. |
 | **Hook-Daemon** | Persistent asyncio HTTP daemon replacing per-hook Python subprocess spawns. 18/20 hooks converted from `type:"command"` → `type:"http"` pointing at `localhost:19484/hook/<name>`. | COMPLETE (2026-04-09) | `hook_daemon.py` (1,244 lines, stdlib only), `daemon_shim.py` (72 lines, SessionStart auto-starter), `release-gate-enforce.py` refactored exit(2)→JSON block, `test-hooks.py` added Phase 0 + Phase 3 HTTP integration tests, `start_all.bat` step 7 added, handoff rewritten. Latency: 119ms → 0.94ms avg (~127× faster). Tests: 49/49 passing. Live-verified during implementation session. Daemon auto-starts via SessionStart shim on every CC boot. Rollback: one `git checkout` + `taskkill`. The original handoff proposed a TCP+dispatch.py architecture that would've still spawned Python per hook — 2.1.97 source refresh revealed `type:"http"` hooks as the correct primitive. |
+| **Case-SME** | Becoming SME on `Case_Reference/` folders (scope unknown) | ACTIVE | Started ~2026-04-09, ~43 min in at time of this entry. Output location, scope, ETA all UNKNOWN — tab did not self-claim. DO NOT touch `Case_Reference/` files or any `memory/case-*.md` until this tab finishes. Row added retroactively by JD-Planner to prevent collision. |
+| **JD-Planner** | Design Johnny Decimal `XXX_YYY` restructure for `Case_Reference/` (proposal only, zero file ops) | ACTIVE | Read-only on `Case_Reference/`. Writes ONLY to `AI_Studio/Reports/case_archive_jd_proposal.md`. ZERO physical file ops in `Case_Reference/` until Case-SME tab completes. Will not touch `memory/case-*.md` or existing dossiers. Any rename execution requires explicit user approval AND Case-SME completion. |
 | -- | -- | -- | Add rows as tabs are opened |
 
 **Rule**: Before starting work, check this file. If another tab owns a file or task, don't touch it. Update your row when you start and when you finish.

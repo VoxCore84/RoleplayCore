@@ -1,9 +1,25 @@
 --
-ALTER TABLE `trait_tree` ADD COLUMN `TitleText` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL FIRST;
-ALTER TABLE `trait_tree` CHANGE `Unused1000_1` `BaseNodeGroup` int NOT NULL DEFAULT 0 AFTER `TraitSystemID`;
-ALTER TABLE `trait_tree` CHANGE `Unused1000_2` `MinZoom` float NOT NULL DEFAULT 0 AFTER `Flags`;
-ALTER TABLE `trait_tree` CHANGE `Unused1000_3` `MaxZoom` float NOT NULL DEFAULT 0 AFTER `MinZoom`;
-ALTER TABLE `trait_tree` ADD COLUMN `UiTextureKitID` int NOT NULL DEFAULT 0 AFTER `MaxZoom`;
+-- Idempotent schema changes for trait_tree
+--
+SET @col_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='hotfixes' AND TABLE_NAME='trait_tree' AND COLUMN_NAME='TitleText');
+SET @sql = IF(@col_exists = 0, "ALTER TABLE `trait_tree` ADD COLUMN `TitleText` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL FIRST", 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @col_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='hotfixes' AND TABLE_NAME='trait_tree' AND COLUMN_NAME='BaseNodeGroup');
+SET @sql = IF(@col_exists = 0, 'ALTER TABLE `trait_tree` CHANGE `Unused1000_1` `BaseNodeGroup` int NOT NULL DEFAULT 0 AFTER `TraitSystemID`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @col_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='hotfixes' AND TABLE_NAME='trait_tree' AND COLUMN_NAME='MinZoom');
+SET @sql = IF(@col_exists = 0, 'ALTER TABLE `trait_tree` CHANGE `Unused1000_2` `MinZoom` float NOT NULL DEFAULT 0 AFTER `Flags`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @col_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='hotfixes' AND TABLE_NAME='trait_tree' AND COLUMN_NAME='MaxZoom');
+SET @sql = IF(@col_exists = 0, 'ALTER TABLE `trait_tree` CHANGE `Unused1000_3` `MaxZoom` float NOT NULL DEFAULT 0 AFTER `MinZoom`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
+
+SET @col_exists = (SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='hotfixes' AND TABLE_NAME='trait_tree' AND COLUMN_NAME='UiTextureKitID');
+SET @sql = IF(@col_exists = 0, 'ALTER TABLE `trait_tree` ADD COLUMN `UiTextureKitID` int NOT NULL DEFAULT 0 AFTER `MaxZoom`', 'SELECT 1');
+PREPARE stmt FROM @sql; EXECUTE stmt; DEALLOCATE PREPARE stmt;
 
 --
 -- Table structure for table `trait_tree_locale`
