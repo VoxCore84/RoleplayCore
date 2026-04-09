@@ -18,7 +18,7 @@ This is the single source of truth for what all tabs are doing, what's done, wha
 | **Warlock-B** | Tier B: 6 Summon spells | COMPLETE | 5 handlers + 1 TC_NATIVE. C++ compiles clean (LNK1104 = server running). SQL: `2026_04_04_08_world.sql`. |
 | **Warlock-C** | Tier C: 5 Class utilities | COMPLETE | Demon Skin + Soul Link handlers. Mortal Coil/Soulburn/Ichor TC_NATIVE. Deep audit: GetPet() fix. SQL: `_09_world.sql`. Commits: `0d4717c013`, `51d8381bd1`. |
 | **Warlock-D** | Tier D: 8 MAYBE spells + deep audit | COMPLETE | All 8 resolved. Deep audit: fixed 5 orphan DB entries (2 name mismatches + 3 stale), Soul Link pet check. SQL: `_11`. Commits: `0d4717c013`, `51d8381bd1`. |
-| **CC-297-Refresh** | Re-extract claude-code 2.1.97 sources, diff vs 2.1.88, patch all 22 internals reports + memory file | IN PROGRESS (2026-04-08) | Handoff: `doc/handoff_cc_297_source_refresh.md`. OWNS: `AI_Studio/Reports/ClaudeCodeInternals/**`, `memory/claude-code-internals.md`. Do NOT touch from other tabs. |
+| **CC-297-Refresh** | Re-extract claude-code 2.1.97 sources, diff vs 2.1.88, patch all 22 internals reports + memory file | COMPLETE | Commit: `1e8db7592d`. 8 tracked reports + README committed (188 insertions, 18 deletions). 14 more reports updated on disk (gitignored). memory/claude-code-internals.md updated (outside git, ~/.claude/projects/). 15 findings files in `_2.1.97_refresh/`. Sourcemap extraction impossible (Anthropic stripped cli.js.map post-2.1.88 leak); used hybrid changelog + cli.js grep methodology instead. |
 | -- | -- | -- | Add rows as tabs are opened |
 
 **Rule**: Before starting work, check this file. If another tab owns a file or task, don't touch it. Update your row when you start and when you finish.

@@ -1,31 +1,10 @@
 {
-  "model": "opus",
   "permissions": {
     "allow": [
-      "Bash(*)",
-      "Read(*)",
       "Edit(C:/Users/atayl/VoxCore/**)",
       "Edit(C:/Users/atayl/Desktop/**)",
       "Write(C:/Users/atayl/VoxCore/**)",
       "Write(C:/Users/atayl/Desktop/**)",
-      "Glob(*)",
-      "Grep(*)",
-      "Agent(*)",
-      "LSP",
-      "NotebookEdit(*)",
-      "TaskCreate(*)",
-      "TaskGet(*)",
-      "TaskList(*)",
-      "TaskOutput(*)",
-      "TaskStop(*)",
-      "TaskUpdate(*)",
-      "TeamCreate(*)",
-      "TeamDelete(*)",
-      "mcp__mysql__*",
-      "mcp__wago-db2__*",
-      "mcp__codeintel__*",
-      "mcp__voxcore-db__*",
-      "mcp__voxcore-server__*",
       "mcp__arcanum__*"
     ]
   }
