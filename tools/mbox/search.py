@@ -32,6 +32,15 @@ import sys
 import textwrap
 from pathlib import Path
 
+# Force UTF-8 on Windows stdio so decoded MIME headers (emoji, CJK, etc.)
+# print cleanly instead of crashing cp1252.
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 from .store import DEFAULT_DB_PATH, connect, format_bytes
 
 

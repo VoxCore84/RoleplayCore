@@ -25,11 +25,21 @@ import argparse
 import email
 import email.parser
 import hashlib
+import os
 import sys
 import time
 import traceback
 from email.policy import compat32
 from pathlib import Path
+
+# Force UTF-8 on Windows stdio so progress printing doesn't choke on
+# MIME-decoded subjects (emoji, CJK, etc.).
+if sys.platform == "win32":
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 from . import store
 from .store import (
@@ -37,6 +47,7 @@ from .store import (
     DEFAULT_DB_PATH,
     DEFAULT_MBOX_DIR,
     connect,
+    decode_mime_header,
     extract_address,
     extract_addresses,
     extract_body_and_attachments,
@@ -68,8 +79,15 @@ def process_message(
     *,
     extract_attachments: bool,
     attachment_dir: Path,
+    fts_sync: bool = True,
 ) -> dict:
     """Parse, dedup, and insert a single raw message.
+
+    Args:
+        fts_sync: If True (default), write to messages_fts per-message. If
+            False, skip FTS writes — caller must call store.rebuild_fts()
+            in bulk at the end of the indexing run. False is ~2× faster
+            for bulk loads.
 
     Returns a dict: {status: 'new'|'duplicate'|'error', atts_new, atts_dup, error}
     """
@@ -82,7 +100,7 @@ def process_message(
 
     try:
         # Headers
-        subject = (msg.get("Subject") or "").strip()
+        subject = decode_mime_header((msg.get("Subject") or "").strip())
         from_addr, from_name = extract_address(msg.get("From"))
         to_addrs = extract_addresses(msg.get("To"))
         cc_addrs = extract_addresses(msg.get("Cc"))
@@ -135,8 +153,9 @@ def process_message(
 
         message_row_id = cur.lastrowid
 
-        # FTS5 sync
-        fts_insert(conn, message_row_id, subject, from_addr, from_name, to_addrs, body_text)
+        # FTS5 sync (skippable in bulk-load mode)
+        if fts_sync:
+            fts_insert(conn, message_row_id, subject, from_addr, from_name, to_addrs, body_text)
 
         # Attachments
         if extract_attachments and attachments:
@@ -152,18 +171,23 @@ def process_message(
                     )
                     continue
 
+                # Always INSERT OR IGNORE into the DB — `is_new` refers to the
+                # on-disk CAS store, not the per-process partial DB. Without
+                # this, workers can end up with message_attachments rows whose
+                # sha256 exists in no attachments row, breaking FK constraints
+                # during the parallel merge.
                 if is_new:
                     result["atts_new"] += 1
-                    conn.execute(
-                        """
-                        INSERT OR IGNORE INTO attachments
-                            (sha256, filename, mime_type, size_bytes, stored_path, first_seen_ts)
-                        VALUES (?, ?, ?, ?, ?, ?)
-                        """,
-                        (digest, filename_as_sent, mime_type, len(payload), str(dest), now_ts()),
-                    )
                 else:
                     result["atts_dup"] += 1
+                conn.execute(
+                    """
+                    INSERT OR IGNORE INTO attachments
+                        (sha256, filename, mime_type, size_bytes, stored_path, first_seen_ts)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                    """,
+                    (digest, filename_as_sent, mime_type, len(payload), str(dest), now_ts()),
+                )
 
                 conn.execute(
                     """
@@ -194,8 +218,15 @@ def index_mbox_file(
     extract_attachments: bool,
     attachment_dir: Path,
     force: bool,
+    fts_sync: bool = True,
 ) -> dict:
-    """Index a single mbox file. Returns stats dict."""
+    """Index a single mbox file. Returns stats dict.
+
+    Args:
+        fts_sync: propagated to process_message. False defers FTS5 construction
+            to a single bulk pass; caller must invoke store.rebuild_fts() at
+            the end. Caller should also apply_bulk_pragmas() before this loop.
+    """
     path = path.resolve()
     size = path.stat().st_size
 
@@ -246,6 +277,7 @@ def index_mbox_file(
                 conn, raw, str(path), offset,
                 extract_attachments=extract_attachments,
                 attachment_dir=attachment_dir,
+                fts_sync=fts_sync,
             )
             processed += 1
             if res["status"] == "new":
@@ -407,6 +439,11 @@ def main(argv: list[str] | None = None) -> int:
                    help="reindex mboxes even if already marked complete")
     p.add_argument("--status", action="store_true",
                    help="print per-mbox progress and exit")
+    p.add_argument("--parallel", type=int, default=0, metavar="N",
+                   help="Worker count: 0=auto (default), 1=single-threaded, N=explicit. "
+                        "Auto picks min(16, cpu_count//2) when total size >= 100 MB.")
+    p.add_argument("--no-fts", action="store_true",
+                   help="Skip the final FTS5 rebuild (debug/bench only — search won't work)")
     args = p.parse_args(argv)
 
     db_path = Path(args.db)
@@ -423,15 +460,47 @@ def main(argv: list[str] | None = None) -> int:
 
     attachment_dir = Path(args.attachments)
     extract_atts = not args.no_attachments
-
-    print(f"DB:           {db_path}")
-    print(f"Attachments:  {attachment_dir if extract_atts else '(disabled)'}")
-    print(f"Files to index: {len(mbox_files)}")
     total_size = sum(f.stat().st_size for f in mbox_files)
-    print(f"Total size:   {format_bytes(total_size)}")
+
+    # Auto-pick worker count
+    workers = args.parallel
+    if workers == 0:
+        cpu = os.cpu_count() or 4
+        if total_size < 100 * 1024 * 1024 and len(mbox_files) <= 2:
+            workers = 1
+        else:
+            workers = min(16, max(2, cpu // 2))
+
+    print(f"DB:             {db_path}")
+    print(f"Attachments:    {attachment_dir if extract_atts else '(disabled)'}")
+    print(f"Files to index: {len(mbox_files)}")
+    print(f"Total size:     {format_bytes(total_size)}")
+    print(f"Workers:        {workers}")
     print()
 
+    # Parallel path (best for >100 MB or many files)
+    if workers > 1:
+        from .parallel import run_parallel
+        rc = run_parallel(
+            mbox_files=mbox_files,
+            db_path=db_path,
+            attachment_dir=attachment_dir,
+            workers=workers,
+            extract_attachments=extract_atts,
+            force=args.force,
+            build_fts=not args.no_fts,
+        )
+        if rc == 0:
+            print()
+            print_status(db_path)
+        return rc
+
+    # Single-threaded path — still uses bulk pragmas + deferred FTS5 rebuild
+    # for a ~1.5-2× speedup over the naive per-message FTS5 insert path.
+    import time as _time
+    t_parse_start = _time.time()
     conn = connect(db_path)
+    store.apply_bulk_pragmas(conn)
     try:
         for i, mbox in enumerate(mbox_files, 1):
             print(f"[{i}/{len(mbox_files)}] {mbox.name}")
@@ -440,7 +509,24 @@ def main(argv: list[str] | None = None) -> int:
                 extract_attachments=extract_atts,
                 attachment_dir=attachment_dir,
                 force=args.force,
+                fts_sync=False,
             )
+        t_parse = _time.time() - t_parse_start
+
+        if not args.no_fts:
+            print()
+            print("[fts] bulk-rebuilding messages_fts from master...")
+            t_fts_start = _time.time()
+            count = store.rebuild_fts(conn)
+            t_fts = _time.time() - t_fts_start
+            print(f"  [fts done] {count:,} rows in {t_fts:.1f}s")
+
+        print()
+        print("[finalize] ANALYZE + VACUUM + WAL restore...")
+        t_fin_start = _time.time()
+        store.finalize_db(conn)
+        t_fin = _time.time() - t_fin_start
+        print(f"  [finalize done] in {t_fin:.1f}s")
     finally:
         conn.close()
 

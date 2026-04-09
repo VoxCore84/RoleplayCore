@@ -16,6 +16,7 @@ import os
 import re
 import sqlite3
 import time
+from email.header import decode_header, make_header
 from email.utils import getaddresses, parsedate_to_datetime
 from pathlib import Path
 from typing import Iterable
@@ -52,22 +53,54 @@ PRAGMAS_RUNTIME = [
     ("foreign_keys", "ON"),
 ]
 
+# Bulk-load pragmas — trades crash safety for write speed during indexing.
+# Any crash during bulk load just means rebuild from source mboxes (cheap).
+#
+# `journal_mode=MEMORY` keeps the rollback journal in RAM (fast, no on-disk
+# journal file), and cleanly releases all file handles on close — important
+# for the parallel merge phase which ATTACHes partial DBs. `OFF` is faster
+# but leaves the DB in a state where subsequent ATTACH fails on Windows.
+#
+# `synchronous=OFF` skips fsync on commit (data only at risk on power loss).
+# Applied temporarily; finalize_db() restores WAL + NORMAL at the end.
+PRAGMAS_BULK_LOAD = [
+    ("journal_mode", "MEMORY"),
+    ("synchronous", "OFF"),
+    ("temp_store", "MEMORY"),
+    ("mmap_size", 30_000_000_000),
+    ("cache_size", -4_000_000),  # 4 GB page cache during bulk load
+    ("foreign_keys", "OFF"),      # skip FK checks; dedup on UNIQUE handles integrity
+]
+
 # =========================================================================
 # Connection + schema
 # =========================================================================
 
 
-def connect(db_path: Path | str = DEFAULT_DB_PATH, *, read_only: bool = False) -> sqlite3.Connection:
-    """Open (or create) the mbox index DB with all pragmas applied."""
+def connect(db_path: Path | str = DEFAULT_DB_PATH, *, read_only: bool = False,
+            autocommit: bool = False) -> sqlite3.Connection:
+    """Open (or create) the mbox index DB with all pragmas applied.
+
+    Args:
+        read_only: Open in URI read-only mode.
+        autocommit: Disable Python's implicit transaction management
+            (isolation_level=None). Required for ATTACH DATABASE statements,
+            which can't run inside an implicit transaction. Use for the
+            merge phase in parallel mode.
+    """
     db_path = Path(db_path)
     db_path.parent.mkdir(parents=True, exist_ok=True)
     is_new = not db_path.exists() or db_path.stat().st_size == 0
 
+    connect_kwargs = {}
+    if autocommit:
+        connect_kwargs["isolation_level"] = None
+
     if read_only:
         uri = f"file:{db_path.as_posix()}?mode=ro"
-        conn = sqlite3.connect(uri, uri=True)
+        conn = sqlite3.connect(uri, uri=True, **connect_kwargs)
     else:
-        conn = sqlite3.connect(str(db_path))
+        conn = sqlite3.connect(str(db_path), **connect_kwargs)
 
     # Apply pragmas
     pragmas = PRAGMAS_INIT if is_new and not read_only else PRAGMAS_RUNTIME
@@ -77,10 +110,88 @@ def connect(db_path: Path | str = DEFAULT_DB_PATH, *, read_only: bool = False) -
     if is_new and not read_only:
         schema_sql = SCHEMA_PATH.read_text(encoding="utf-8")
         conn.executescript(schema_sql)
-        conn.commit()
+        if not autocommit:
+            conn.commit()
 
     conn.row_factory = sqlite3.Row
     return conn
+
+
+def apply_bulk_pragmas(conn: sqlite3.Connection) -> None:
+    """Switch a live connection into bulk-load mode. Call before heavy writes."""
+    for key, val in PRAGMAS_BULK_LOAD:
+        try:
+            conn.execute(f"PRAGMA {key}={val}")
+        except sqlite3.DatabaseError:
+            pass
+
+
+def apply_runtime_pragmas(conn: sqlite3.Connection) -> None:
+    """Restore WAL + normal synchronous. Call after bulk load finishes."""
+    for key, val in PRAGMAS_RUNTIME:
+        try:
+            conn.execute(f"PRAGMA {key}={val}")
+        except sqlite3.DatabaseError:
+            pass
+
+
+def rebuild_fts(conn: sqlite3.Connection) -> int:
+    """Bulk-rebuild messages_fts from the messages table in one pass.
+
+    Dramatically faster than per-message FTS5 writes because the trigram
+    tokenizer can batch internally and SQLite avoids the per-row overhead.
+    Returns the row count inserted.
+
+    Uses DROP + CREATE because contentless FTS5 tables don't support
+    ``DELETE FROM``, and the `'delete-all'` command only works on FTS5
+    tables with an external content source. DROP+CREATE is idempotent and
+    simpler.
+    """
+    conn.execute("DROP TABLE IF EXISTS messages_fts")
+    conn.execute(
+        """
+        CREATE VIRTUAL TABLE messages_fts USING fts5(
+            subject,
+            from_addr,
+            from_name,
+            to_addrs,
+            body,
+            content='',
+            tokenize='trigram'
+        )
+        """
+    )
+    conn.execute(
+        """
+        INSERT INTO messages_fts(rowid, subject, from_addr, from_name, to_addrs, body)
+        SELECT id,
+               COALESCE(subject, ''),
+               COALESCE(from_addr, ''),
+               COALESCE(from_name, ''),
+               COALESCE(to_addrs, ''),
+               COALESCE(body_text, '')
+        FROM messages
+        """
+    )
+    count = conn.execute("SELECT COUNT(*) FROM messages_fts").fetchone()[0]
+    conn.execute("INSERT INTO messages_fts(messages_fts) VALUES('optimize')")
+    conn.commit()
+    return int(count)
+
+
+def finalize_db(conn: sqlite3.Connection, vacuum: bool = True) -> None:
+    """Restore normal pragmas, ANALYZE, and optionally VACUUM. Call once at end."""
+    apply_runtime_pragmas(conn)
+    try:
+        conn.execute("ANALYZE")
+        conn.commit()
+    except sqlite3.DatabaseError:
+        pass
+    if vacuum:
+        try:
+            conn.execute("VACUUM")
+        except sqlite3.DatabaseError:
+            pass
 
 
 # =========================================================================
@@ -152,6 +263,27 @@ def parse_date(raw: str | None) -> int | None:
         return None
 
 
+def decode_mime_header(raw: str | None) -> str:
+    """Decode an RFC 2047 encoded header value (=?UTF-8?B?...?=) to plain text."""
+    if not raw:
+        return ""
+    try:
+        return str(make_header(decode_header(raw)))
+    except Exception:
+        # Fallback: try per-fragment decode, drop anything that blows up
+        try:
+            parts = decode_header(raw)
+            out = []
+            for text, charset in parts:
+                if isinstance(text, bytes):
+                    out.append(text.decode(charset or "utf-8", errors="replace"))
+                else:
+                    out.append(text)
+            return "".join(out)
+        except Exception:
+            return raw
+
+
 def extract_address(raw: str | None) -> tuple[str, str]:
     """Return (email_lower, display_name) for the first address in raw."""
     if not raw:
@@ -163,7 +295,7 @@ def extract_address(raw: str | None) -> tuple[str, str]:
     if not pairs:
         return "", ""
     name, addr = pairs[0]
-    return (addr or "").strip().lower(), (name or "").strip()
+    return (addr or "").strip().lower(), decode_mime_header((name or "").strip())
 
 
 def extract_addresses(raw: str | None) -> str:
