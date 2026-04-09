@@ -1,5 +1,20 @@
 # Message Assembly Pipeline -- Claude Code Internals Report
 
+> v2.1.88 baseline + cli.js@2.1.97 grep refresh (2026-04-08)
+
+## 2.1.97 Delta (summary)
+
+| Change | Version | Type |
+|---|---|---|
+| **Nested CLAUDE.md dedup** uses `loadedNestedMemoryPaths` Set on the tool-use context (NOT the 100-entry LRU `readFileState`) to prevent re-injection. `readFileState` is an LRU that drops entries in busy sessions; without this Set, every eviction cycle would re-inject the same CLAUDE.md. The Set is cleared on `/clear` and on auto/partial compact. Already in v2.1.88 `src/utils/attachments.ts:1718-1731`, `src/screens/REPL.tsx:1964-1967`, `src/QueryEngine.ts:198`, and `src/commands/clear/conversation.ts:132`. cli.js@2.1.97 has 14 matches for `loadedNestedMemoryPaths`. Cross-ref Report 02. | fixed ≤ 2.1.88 | refines |
+| **Read tool dedup on unchanged re-reads.** Already in v2.1.88 with extensive comments at `src/tools/FileReadTool/FileReadTool.ts:518-573`. Feature returns a stub instead of re-sending full content when `(path, offset, limit)` matches and mtime unchanged. Killswitch: `tengu_read_dedup_killswitch`. In 2.1.97 the stricter "Wasted call" message toggle added via `tengu_noreread_q7m_velvet`. Telemetry: `tengu_file_read_dedup`. Cross-ref Report 06. | 2.1.86 | refines |
+| **Token overhead reduced for `@file` mentions.** File path mentions in user text parse into path references. Already in v2.1.88. | 2.1.86 | no-op |
+| **`[Image #N]` chip on paste; trailing space fix.** `[Image #1]`, `[Image #2]` chips inserted at cursor on paste. 2.1.89 fix: no trailing space after the chip. Already in v2.1.88 source; the 2.1.89 change is a one-character fix. | 2.1.83 / 2.1.89 | no-op |
+| **Session transcript size reduction — skip empty hook entries.** NEW in 2.1.97. When a hook fires but emits no stdout/stderr and takes no action, the transcript writer now skips it entirely instead of recording an empty entry. Previously every hook fire wrote a `{}`-shaped transcript row. Aggregate effect: long sessions with many `PreCompact`/`PostCompact`/`PermissionRequest` hooks shrink meaningfully. Changelog only — the fix is a conditional `continue` buried in the transcript serializer. | 2.1.97 | gap |
+| **`message_delta` handler now updates ALL yielded messages in the turn** (fix). Before 2.1.97, only the last message (`newMessages.at(-1)`) received the `usage`/`stop_reason` update from the final `message_delta` event. If an API turn yielded multiple assistant messages (e.g., compact-then-continue inside one turn), only the last one showed real token usage and stop reason; earlier ones had stale/missing fields. cli.js@2.1.97 now loops: `for(let g1 of R6) g1.message.usage=Z6, g1.message.stop_reason=F6;`. Transcript accuracy fix. | 2.1.97 | gap |
+
+---
+
 ## Overview
 
 The message assembly pipeline is the central nervous system of Claude Code. Every time the model is called, the pipeline assembles a complete conversation payload from five distinct layers: a multi-block system prompt, a user context preamble (CLAUDE.md files and date), a system context suffix (git status), the normalized conversation history (messages, tool results, attachments), and per-turn attachment injections (memory, diagnostics, skill discovery, plan mode, etc.). These layers are stitched together in `src/query.ts` (the query loop), `src/services/api/claude.ts` (the API request builder), and `src/utils/api.ts` (context helpers), with message normalization happening in `src/utils/messages.ts`.

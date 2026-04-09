@@ -1,5 +1,24 @@
 # API Layer & Streaming — Claude Code Internals Report
 
+> v2.1.88 baseline + cli.js@2.1.97 grep refresh (2026-04-08)
+
+## 2.1.97 Delta (summary)
+
+| Change | Version | Type |
+|---|---|---|
+| **`X-Claude-Code-Session-Id` header** — already documented. cli.js@2.1.97 confirms: `"X-Claude-Code-Session-Id":N8()` in request-headers literal. Also confirms NEW `x-app` variant: background-mode sends `"cli-bg"` instead of `"cli"` (`DA6()?"cli-bg":"cli"`). | 2.1.86 | refines |
+| **`x-client-request-id` header** — already documented. cli.js@2.1.97 has 2 literal matches; surfaced in API error messages (`API error x-client-request-id=${w} (give this to the API team for server-log lookup)`). | 2.1.84 | no-op |
+| **`--print` SDK stdout streaming** (`--output-format=stream-json` + `--include-partial-messages`). Verified in cli.js@2.1.97 via the CLI option `"Include partial message chunks as they arrive (only works with --print and --output-format=stream-json)"`. Windows-disable claim not verifiable from grep alone (changelog only). | 2.1.78 / 2.1.81 | gap |
+| **`CLAUDE_STREAM_IDLE_TIMEOUT_MS` env var** — already documented. Default 90000 ms; watchdog gated on `CLAUDE_ENABLE_STREAM_WATCHDOG`. cli.js@2.1.97: `parseInt(process.env.CLAUDE_STREAM_IDLE_TIMEOUT_MS||"",10)||90000`. | 2.1.84 | no-op |
+| **`MAX_NON_STREAMING_TOKENS = 64_000`** — already documented. The 21k→64k raise happened in 2.1.83 by bypassing the SDK's 10-min timeout via a client-level timeout. cli.js@2.1.97: `CdY=64000`. | 2.1.83 | no-op |
+| **`ANTHROPIC_DEFAULT_*_MODEL_*` env vars (12 total).** Correct name is `ANTHROPIC_DEFAULT_<TIER>_MODEL_SUPPORTED_CAPABILITIES`, not `_MODEL_SUPPORTS` as the changelog said. Full quad per tier × 3 tiers: `_MODEL`, `_MODEL_NAME`, `_MODEL_DESCRIPTION`, `_MODEL_SUPPORTED_CAPABILITIES`. Plus a 4-var custom model family: `ANTHROPIC_CUSTOM_MODEL_OPTION` + `_NAME` + `_DESCRIPTION` + `_SUPPORTED_CAPABILITIES` (16 total model-identity env vars). | 2.1.84 | gap |
+| **`ANTHROPIC_CUSTOM_MODEL_OPTION`** (2.1.78) — lets the user inject an arbitrary model into the picker. Whitelisted for validity checks: `if (K === process.env.ANTHROPIC_CUSTOM_MODEL_OPTION) return {valid: !0}`. | 2.1.78 | gap |
+| **429 Retry-After cap (NEW in 2.1.97).** When a server 429 sets `Retry-After > 60s` and the session is NOT in unattended-retry mode, the client immediately throws rather than waiting. Constant: `xs_=60000`. Telemetry: `tengu_api_retry_after_too_long` with `{delayMs, status, provider}`. v2.1.88 `withRetry.ts` has no equivalent branch. | 2.1.97 | invalidates |
+| **Long-retry visibility fix (2.1.94).** During persistent-retry waits > 60s, the loop yields a `system/api_error` message with `{retryInMs, retryAttempt, maxRetries}` every 30s (`ms_=30000`) so the UI ticks down visibly instead of freezing. Telemetry: `tengu_api_persistent_retry_wait`. v2.1.88 had a single `await sleep(delayMs)` with no per-iteration yield — the "stuck agent" symptom. | 2.1.94 | invalidates |
+| **`CLAUDE_CODE_USE_MANTLE=1`** — Amazon Bedrock powered by Mantle, 6th provider auth path. Provider detection: `B6(process.env.CLAUDE_CODE_USE_MANTLE)?"mantle"` added alongside existing `firstParty`/`bedrock`/`vertex`/`foundry`. Sibling skip-auth: `CLAUDE_CODE_SKIP_MANTLE_AUTH`. | 2.1.94 | gap |
+| **6th provider `CLAUDE_CODE_USE_ANTHROPIC_AWS`** — auth string `"anthropicAws"`, sibling `CLAUDE_CODE_SKIP_ANTHROPIC_AWS_AUTH`. Not in changelog brief but present in cli.js@2.1.97. Update Section 14 from "Four provider paths" to **six providers**: firstParty, Bedrock, Vertex, Foundry, Mantle, anthropicAws. | 2.1.97 | gap |
+| **Default effort bump medium→high** — server-side change for API-key / Bedrock / Vertex / Foundry / Team / Enterprise. Client doesn't explicitly send `effort` for these — the server resolves. cli.js@2.1.97 `Bo6()` only returns `"medium"` for Pro/Max on Opus 4.6 or ultrathink+pro/max+thinking-supported. Display fallback has been `"high"` since v2.1.88 (`getDisplayedEffortLevel` returns `'high'` when no client default). | 2.1.94 | gap |
+
 ## Overview
 
 The API layer is the nerve center of Claude Code, responsible for every interaction between the client and the Anthropic Messages API. It handles model selection, authentication across four providers (firstParty, Bedrock, Vertex, Foundry), streaming SSE parsing, retry/backoff logic, token counting, cost tracking, prompt caching, and beta header negotiation. The system is engineered for resilience: streaming failures fall back to non-streaming, 529 overloads trigger exponential backoff with model fallback, and stale connections are detected and recycled.

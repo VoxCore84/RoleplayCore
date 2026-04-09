@@ -1,8 +1,50 @@
 # Claude Code Internals -- Knowledge Base
 
-Source: v0.2.57 + v2.1.88 npm packages (sourcemap extraction, March-April 2026)
-Local archive: `C:/Users/atayl/Desktop/claude-code-source/`
-Status: **ALL 22 REPORTS COMPLETE** -- Tier 1 through Tier 4 fully documented
+Source baseline: v0.2.57 + v2.1.88 npm packages (sourcemap extraction, March-April 2026)
+**2.1.97 refresh overlay**: `cli.js@2.1.97` grep-verification (minified bundle, no sourcemap — Anthropic stopped shipping `cli.js.map` after the 2.1.88 leak)
+Local archive: `C:/Users/atayl/Desktop/claude-code-source/` (both `claude-code-source/` v2.1.88 tree and `extract-2.1.97/package/` tarball)
+Status: **ALL 22 REPORTS COMPLETE** -- Tier 1 through Tier 4 fully documented + **2.1.97 delta refresh applied 2026-04-08**
+
+## Session 232 — 2.1.97 Refresh (2026-04-08)
+
+### What was done
+
+1. Pulled `@anthropic-ai/claude-code@2.1.97` tarball via `npm pack` — discovered the sourcemap is gone (Anthropic stripped it after the 2.1.88 leak).
+2. User-approved Option A: **Hybrid changelog + cli.js grep** methodology. Every new claim is anchored by a grep match against `cli.js@2.1.97` (13.4 MB minified) or a line in `sdk-tools.d.ts@2.1.97` or a v2.1.88 source citation for contrast. Full methodology: `_2.1.97_refresh/methodology.md`.
+3. Fanned out 14 parallel Explore/general-purpose agents across 3 waves covering all 22 reports. Each agent wrote structured findings incrementally to `_2.1.97_refresh/findings_*.md` rather than accumulating in context.
+4. Main tab applied surgical Edit-based delta summaries to the top of each report (preserves existing content, surfaces changes in one findable block per report). Memory file `memory/claude-code-internals.md` updated with top-level invalidations/gaps + codename table.
+
+### Biggest invalidations (things the reports were wrong about before the refresh)
+
+- **TaskOutput tool deprecated (2.1.83)** — `shouldDefer:!0`, runtime description says "[Deprecated]". AgentOutput/BashOutputTool alias into it. Report 06.
+- **Agent `resume` parameter removed (2.1.77)** — use `SendMessage` auto-resume. Reports 06, 08.
+- **`CLAUDE_CODE_MAX_CONTEXT_TOKENS` REMOVED** in 2.1.97 (zero grep hits). `getContextWindowForModel` simplified from 7 priorities to 4. Reports 03, 1m_context.
+- **Buddy system REMOVED in 2.1.97** post-April-Fools. Report 15 is historical.
+- **MCP HTTP/SSE leak ~50 MB/hour fixed in 2.1.97** — vendored SDK upgrade. Report 12.
+- **Compaction wrote duplicate subagent transcript files** (fixed 2.1.97). Report 01.
+- **Subagent worktree CWD leak** (fixed 2.1.97). Report 07.
+- **1M context is NOT default for Enterprise/plain Team** — the changelog overreached. Only Max and Team Premium (`E16()` = team with `default_claude_max_5x`) get `Opus 4.6[1m]` default. Reports 03, 1m_context.
+
+### Biggest gaps (new surface area added to reports)
+
+- **`defer` permission decision** + **Hook output persistence** + **TaskCreated/TaskCompleted hooks** → Report 09.
+- **`CLAUDE_CODE_NO_FLICKER` alt-screen compositor** (~56 `T4()` call sites) → Report 22 Section 3b.
+- **NEW `getAutoCompactWindow` resolver** with 4 sources + **rapid-refill breaker** → Reports 01, 03.
+- **Dream: Memory Pruning** prompt + tiny-memory-mode → Report 05.
+- **`/powerup`** + removal of `/tag`/`/vim`/`/pr-comments`/`/output-style` + internal-only shrinkage → Report 18.
+- **MCP per-tool `maxResultSizeChars`, CIMD (SEP-991), RFC 9728, `MCP_CONNECTION_NONBLOCKING`, Slack MCP UI override** → Report 12.
+- **PowerShell opt-in preview + `disableSkillShellExecution` + Accept-Edits env-var prefixes + `forceRemoteSettingsRefresh` + `managed-settings.d/`** → Reports 06, 10.
+- **6 provider paths** (was 4, added Mantle + anthropicAws) + **429 Retry-After cap** + **long-retry visibility fix** → Report 19.
+- **Voice Nova 3 unconditional + startup banner → spinner tip** → Report 14.
+- **UltraPlan timeout 30→90 min + prompt-template selector** → Report 16.
+
+### Methodology note for the next refresh wave
+
+The v2.1.88 sourcemap leak was a one-time accident (published 2026-03-31, removed immediately). Every version since (including 2.1.97 shipped 2026-04-08) omits `cli.js.map`. All public GitHub mirrors (AprilNEA, hangsman, laddyladboy, ChinaSiro/Hyper66666) are frozen at 2.1.88. **Do not attempt re-extraction via source-map recovery for future refreshes** — use the hybrid changelog + grep approach documented in `_2.1.97_refresh/methodology.md`.
+
+---
+
+## Session 230 Summary (Apr 5 2026)
 
 ## Session 222 Summary (Apr 4 2026)
 

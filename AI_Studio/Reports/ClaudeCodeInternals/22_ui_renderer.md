@@ -1,12 +1,14 @@
 # UI Renderer (Ink/React Terminal) — Claude Code Internals Report
 
-> Report 22 | Generated 2026-04-05 | Source: claude-code-source/src/
+> Report 22 | Generated 2026-04-05 | Source: v2.1.88 `src/` baseline + cli.js@2.1.97 grep refresh (2026-04-08)
 
 ## Overview
 
 Claude Code's terminal UI is built on a heavily customized fork of [Ink](https://github.com/vadimdemedes/ink), the React-for-terminals framework. The system renders a full React component tree — including flexbox layout, streaming markdown, virtual scrolling, text selection, and mouse support — entirely within a terminal emulator using ANSI escape sequences. This is not a thin wrapper; Anthropic has rewritten Ink's internals to replace the upstream Yoga WASM binding with a pure-TypeScript layout engine, added a cell-level screen buffer with double-buffering and blit optimization, and implemented a sophisticated diff-based rendering pipeline that produces minimal terminal updates at ~60fps.
 
-The rendering pipeline follows a clear path: React reconciler commits produce a virtual DOM of `ink-*` nodes, each with an associated Yoga layout node. On commit, the Yoga engine computes flexbox layout in a single pass. A renderer then walks the DOM tree, writing styled text into a cell-based `Screen` buffer. A `LogUpdate` diff engine compares the new screen against the previous frame, producing a minimal patch set (cursor moves, style transitions, text writes). These patches are optimized (merged, deduped) and serialized to ANSI escape sequences written to stdout. The entire pipeline runs in a single thread, throttled to 16ms frame intervals (~60fps), with double-buffering to avoid screen tearing.
+Since 2.1.89, Claude Code ships **two rendering modes**: an inline (default) mode where the Ink tree renders directly into the normal terminal scrollback and content scrolls naturally as it grows, and an opt-in **NO_FLICKER** mode enabled by `CLAUDE_CODE_NO_FLICKER=1` that wraps the entire React tree in an alt-screen compositor (`xj7` in the 2.1.97 bundle), claims the full terminal viewport, enables mouse tracking, and runs the cell-diff pipeline against the fixed-size alt-screen buffer. NO_FLICKER mode is auto-disabled under `tmux -CC` (iTerm2 integration) because that wrapper intercepts alt-screen sequences. About 56 distinct code paths branch on the `T4()` NO_FLICKER predicate — sticky footers, brief transcripts, paging keys, git-op counters, compact-boundary rendering, hyperlink click handlers, tool-result collapse heuristics, and more — so the modes are far from cosmetic: they produce materially different REPL behavior. Anthropic shipped ~15 NO_FLICKER bug fixes across 2.1.90–2.1.97. See Section 3b.
+
+The rendering pipeline follows a clear path: React reconciler commits produce a virtual DOM of `ink-*` nodes, each with an associated Yoga layout node. On commit, the Yoga engine computes flexbox layout in a single pass. A renderer then walks the DOM tree, writing styled text into a cell-based `Screen` buffer. A `LogUpdate` diff engine compares the new screen against the previous frame, producing a minimal patch set (cursor moves, style transitions, text writes). These patches are optimized (merged, deduped) and serialized to ANSI escape sequences written to stdout. The entire pipeline runs in a single thread, throttled to 16ms frame intervals (~60fps), with double-buffering to avoid screen tearing. In inline mode (the default), the pipeline operates on the "live region" — the bottom-of-terminal area containing the current dirty content — and earlier content naturally scrolls up into terminal scrollback. This line-by-line streaming model (added in 2.1.78) is what allows normal text copy/paste in Claude Code's default mode. The changelog notes that line-by-line streaming was disabled on Windows in 2.1.81; the Ink stdin-drain helper (`wN_`) also early-returns on `process.platform === "win32"` before attempting the `/dev/tty` raw read loop, which means Windows has a materially different terminal-input path. NO_FLICKER mode bypasses the inline streaming model entirely and uses the cell-diff pipeline against the full alt-screen buffer.
 
 The component hierarchy is deep: `main.tsx` creates the Ink root, wraps everything in `ThemeProvider`, then mounts `App` (which provides FPS metrics, stats, and app state contexts), `KeybindingSetup`, and finally the `REPL` screen component — a 5,005-line mega-component that manages the entire interactive session: message history, tool permissions, streaming text, prompt input, vim mode, transcripts, dialogs, and more.
 
@@ -124,6 +126,44 @@ this.scheduleRender = throttle(deferredRender, FRAME_INTERVAL_MS, {
 });
 ```
 
+### 3b. NO_FLICKER Mode (opt-in alt-screen compositor, 2.1.89+)
+
+Enabled by `CLAUDE_CODE_NO_FLICKER=1`. The predicate function (`T4()` in cli.js@2.1.97 around offset 7,055,000) returns `true` only when the env var is truthy and tmux -CC integration mode is NOT detected. When active, the REPL renders:
+
+```js
+if (T4()) return createElement(xj7, { mouseTracking: rc1() }, W_8);
+return W_8;
+```
+
+where `xj7` (cli.js offset 12,471,461) is a React component that:
+
+1. Writes `"\x1B[2J\x1B[H"` + the mouse-tracking enable sequence via `useInsertionEffect`, committing the escape before React's layout effects run.
+2. Calls `setAltScreenActive(true, mouseTracking)` on the Ink instance (class `Rr6` at offset 4,093,260), which resets frame buffers for alt-screen mode.
+3. Wraps children in a full-height Box: `<Box flexDirection="column" height={rows} width="100%" flexShrink={0}>`.
+4. On unmount, calls `setAltScreenActive(false)`, `clearTextSelection()`, and writes the mouse-disable + alt-screen-exit sequences.
+
+In inline mode (the default, `T4() === false`), the Ink engine still runs — same React reconciler, same Yoga layout, same Screen buffer, same LogUpdate diff pipeline — but content is rendered into the terminal's live region and older content scrolls up into terminal scrollback. Inline mode is what terminals can copy/paste naturally; NO_FLICKER is what produces a stable chrome-anchored UI similar to a full-screen TUI.
+
+`CLAUDE_CODE_NO_FLICKER` is auto-disabled under tmux integration mode. The `Sg4()` probe runs `tmux display-message -p "#{client_control_mode}"`; when control mode is `"1"`, `T4()` returns false and a footer hint fires: `"fullscreen disabled: tmux -CC (iTerm2 integration mode) detected — set CLAUDE_CODE_NO_FLICKER=1 to override"`. Users can still force the mode under tmux -CC, but Anthropic warns it is unsupported.
+
+**Gated behaviors** (non-exhaustive, collected from `T4()?...` branches in cli.js@2.1.97):
+
+- **Sticky footer**: Permission dialogs (`psK`, `MsK`) receive a `setStickyFooter` callback only in NO_FLICKER mode. In inline mode, permission prompts scroll into place with the rest of the message stream and have no persistent footer affordance.
+- **Brief transcript**: `ctrl+o` (transcript toggle) in NO_FLICKER mode toggles a `briefTranscript` overlay state on the current screen instead of swapping to a separate transcript screen. `ctrl+shift+b` is an explicit brief-transcript toggle (`app:toggleBrief`).
+- **Compact boundary rendering**: `if (token.type === "system" && subtype === "compact_boundary") { if (T4()) return null; ... }` — compact boundary markers are hidden in NO_FLICKER (the alt-screen redraw handles the visual seam).
+- **Git-op summary bar**: `bashCount`, `commits`, `pushes`, `branches`, `prs` counters are only initialized and rendered when `T4()` is true. Inline mode has no git-op summary.
+- **Paging keys**: `pageUp`/`pageDown` map to scroll operations (`oQ8`) in NO_FLICKER; in inline mode they map to line-nav (`startOfLine`/`endOfLine`).
+- **Hyperlink click handler**: `onHyperlinkClick` is attached to the Ink instance only in NO_FLICKER mode (mouse tracking is off in inline mode, so clicks don't reach the handler anyway).
+- **Copy-on-select config item**: only visible in the settings menu when `T4()` is true.
+- **Message list sticky prompt**: `scrollRef`, `trackStickyPrompt` are passed to `VirtualMessageList` only in NO_FLICKER mode.
+- **Tool-result collapse heuristic**: `T4()` changes which tools collapse by default — bash tools are eligible for collapse in NO_FLICKER but kept expanded in inline mode.
+- **Local JSX command rendering**: `isLocalJSXCommand` handling gated by `T4()`.
+- **Message append behavior**: `aK` state updater uses `ikK` (NO_FLICKER ordered insert) vs. plain `[...t8, S8]` append in inline mode.
+
+**Approximate scope**: ~56 distinct `T4()` call sites across ~38 unique 2KB regions of the bundle. Order-of-magnitude estimate: 500–1,000 LoC of NO_FLICKER-conditional logic, plus the shared alt-screen machinery in the Ink engine (`setAltScreenActive`, `resetFramesForAltScreen`, `altScreenActive`, `altScreenMouseTracking`, the SIGCONT re-entry path, the `reassertTerminalModes` loop).
+
+**Historical note**: v2.1.88 had a `fullResetSequence_CAUSES_FLICKER` fallback inside `LogUpdate` for unreachable scrollback diffs. That symbol is **gone** in cli.js@2.1.97 (0 matches). The inline-rendering scroll path no longer needs this fallback because content that scrolls past the live region enters terminal scrollback and is never re-addressed — the diff engine's viewport-tracking logic short-circuits before the old full-reset path would have fired. NO_FLICKER alt-screen mode has its own reset via `resetFramesForAltScreen()` which is non-flicker (the alt-screen buffer is always fully addressable).
+
 ### 4. The Screen Buffer (`src/ink/screen.ts`, `src/ink/output.ts`)
 
 The screen buffer is a cell-based representation backed by `Uint32Array` for performance. Each cell is packed into two 32-bit words encoding: character (via `CharPool` intern), style ID (via `StylePool` intern), cell width (narrow/wide/spacer), hyperlink ID (via `HyperlinkPool` intern), and a no-select flag.
@@ -151,7 +191,7 @@ The `charCache` in Output persists across frames (capped at 16,384 entries). For
 
 ### 6. The Yoga Layout Engine (`src/native-ts/yoga-layout/index.ts`)
 
-A pure-TypeScript port of Meta's Yoga (C++ flexbox engine). Replaces the upstream WASM binding that Ink normally uses. This is a complete single-pass flexbox implementation covering:
+A pure-TypeScript port of Meta's Yoga (C++ flexbox engine). In v2.1.88 this pure-TS engine already coexisted with the upstream WASM Yoga binding (the WASM path was retained as a fallback); in **2.1.85** Anthropic removed the WASM fallback entirely, leaving the pure-TS engine as the sole layout backend. This was part of a scroll-performance push: scroll-heavy code paths now always hit the pure-TS engine, which has a single-slot layout cache (`_hasL`) and exposed performance counters (`yogaVisited`, `yogaMeasured`, `yogaCacheHits`, `yogaLive`). `yogaVisited` and `yogaCacheHits` symbols remain in cli.js@2.1.97. This is a complete single-pass flexbox implementation covering:
 - flex-direction (row/column + reverse)
 - flex-grow / flex-shrink / flex-basis
 - align-items / align-self / align-content
@@ -177,7 +217,24 @@ Two components handle markdown:
 
 Syntax highlighting uses `cli-highlight` loaded via React Suspense (`use()` hook with `getCliHighlightPromise()`). First render shows unhighlighted markdown for ~50ms while the highlighter loads.
 
-Tables are rendered as React components (`MarkdownTable`) with proper flexbox layout. All other content goes through `formatToken()` which produces ANSI strings rendered via the `<Ansi>` component.
+Tables are rendered as React components (`MarkdownTable`) with proper flexbox layout.
+
+**Blockquotes** (added 2.1.97) are now also rendered as React components (`NRz` in the minified bundle, cli.js@2.1.97 offset 7,520,303), using a custom Ink border preset named `"quote"`:
+
+```js
+createElement(Box, {
+  borderStyle: "quote",
+  borderTop: false,
+  borderBottom: false,
+  borderRight: false,
+  borderDimColor: true,
+  paddingLeft: 1,
+}, createElement(Text, { dimColor }, italicContent))
+```
+
+The `"quote"` border preset (cli.js offset ~4,069,662) is `{ top:" ", left:"▎", right:" ", bottom:" ", ... }` — only the left column is drawn, using U+258E (`▎`, "Left One Eighth Block"). Because top/bottom/right borders are disabled, the Box renders a **continuous left bar** down the full height of the quoted content, rather than the per-line `${bar} ${italic(line)}` string-prefix approach used in v2.1.88's `markdown.ts` (which split inner content on EOL and prefixed each line independently — liable to break across wraps). The legacy string-based `formatToken` path (`DP`) is still present as a fallback for non-React string-rendering contexts and still uses the split-and-prefix approach.
+
+All other content goes through `formatToken()` which produces ANSI strings rendered via the `<Ansi>` component.
 
 ### 8. REPL.tsx — The Mega-Component (`src/screens/REPL.tsx`)
 
@@ -190,7 +247,7 @@ At 5,005 lines, REPL.tsx is the largest component. It manages:
 - **Commands** — slash-command parsing and execution
 - **Agent orchestration** — background tasks, local agents, swarm workers
 - **Notifications** — terminal notifications, idle return dialog, cost threshold dialog
-- **Transcript mode** — read-only view of conversation with search
+- **Transcript mode** — read-only view of conversation with interactive `/` search (2.1.83). In transcript mode (`screen === "transcript"`, virtual scroll active, search bar closed), a raw-key handler (`CK` in cli.js@2.1.97 offset 12,537,959, registered via `{ isActive: V6==="transcript" && DP6 && !Ql && !k6 }`) intercepts `/` to open an inline search bar overlay (`TqA` component, mounted in the `bottom` slot of the scroll scaffold): `if ($8 === "/") { aE.current?.setAnchor(); setSearchBarOpen(true); stopImmediatePropagation(); }`. A second handler processes `q` (exit), `[` (toggle past thinking), and `v` (render transcript to `$VISUAL`/`$EDITOR` via a temp `cc-transcript-<timestamp>.txt` file). While the search bar is open, `n` and `N` navigate matches via `aE.current.nextMatch` / `prevMatch`. **None of these bindings live in the formal Transcript keybinding context** (which only has `ctrl+e`, `ctrl+c`, `escape`, `q`) — they are raw-key handlers registered inside the REPL component directly.
 - **Terminal title** — animated title showing agent status
 - **Cost tracking** — per-turn and total cost display
 
@@ -214,11 +271,17 @@ Key imports reveal its scope: it imports from 80+ modules across tools, hooks, s
 - Dot-repeat (recorded changes)
 - Register (yank/paste)
 
+As of **2.1.92**, there is **no standalone `/vim` slash command**. Vim mode is enabled exclusively through `/config` via the `editorMode` setting, whose options are `["normal", "vim"]`. Grep confirms `"/vim"` and `name:"vim"` produce 0 matches in cli.js@2.1.97, while the config-menu item and the `/config` help example `Enable vim mode: { "setting": "editorMode", "value": "vim" }` are present (offsets 9,392,025 and 10,141,101). `editorMode` is persisted in the global config (default `"normal"`); current vim sub-mode is exposed in SDK context under `"vim": { mode: "INSERT" | "NORMAL" }`, present only when vim mode is enabled (offset 4,924,628). A legacy `"emacs"` value is normalized to `"normal"` in the menu display code but is not in the options list.
+
 **Keybindings** (`src/keybindings/`) — a layered context system:
-- 16 contexts: Global, Chat, Autocomplete, Settings, Confirmation, Tabs, Transcript, HistorySearch, Task, ThemePicker, Scroll, Help, Attachments, Footer, MessageSelector, DiffDialog, ModelPicker, Select, Plugin, MessageActions
+- 16+ contexts: Global, Chat, Autocomplete, Settings, Confirmation, Tabs, Transcript, HistorySearch, Task, ThemePicker, Scroll, Help, Attachments, Footer, MessageSelector, DiffDialog, ModelPicker, Select, Plugin, MessageActions
 - Default bindings in `defaultBindings.ts`, user overrides from `keybindings.json`
+- **Key Global bindings** (verified in cli.js@2.1.97): `ctrl+c → app:interrupt`, `ctrl+d → app:exit`, `ctrl+t → app:toggleTodos`, `ctrl+o → app:toggleTranscript`, `ctrl+shift+b → app:toggleBrief`, `ctrl+shift+o → app:toggleTeammatePreview`, `ctrl+r → history:search`.
+- **Transcript context bindings**: `ctrl+e → transcript:toggleShowAll`, `ctrl+c → transcript:exit`, `escape → transcript:exit`, `q → transcript:exit`. Note the transcript-mode `/` (search) and `n`/`N` (next/prev match) are handled as raw key events inside the REPL screen handler, not through the keybinding registry (see Section 8 "Transcript mode").
 - Platform-specific keys (Windows: `alt+v` for image paste, `meta+m` for mode cycle when VT mode unavailable)
 - Chord support (`ctrl+x ctrl+k` for kill agents, `ctrl+x ctrl+e` for external editor)
+
+**Ctrl+O behavior varies by render mode**. In inline mode (default), `ctrl+o` swaps the REPL screen from `"prompt"` to `"transcript"` (a separate scroll-back view with its own key handlers and render path). In NO_FLICKER mode (Section 3b), `ctrl+o` toggles a `briefTranscript` overlay state on the current screen instead, avoiding a jarring screen swap. `ctrl+shift+b` is an explicit brief-transcript toggle.
 
 ### 10. Theme System (`src/components/design-system/ThemeProvider.tsx`)
 
@@ -251,16 +314,21 @@ Single-pass optimization on the `Diff` array before terminal write:
 - Cancel cursor hide/show pairs
 - Remove clear patches with count 0
 
+### 13. Context-Low Footer Indicator (2.1.97 transient footer rewrite)
+
+The context-window usage indicator (`vtK` in cli.js@2.1.97 offset 12,124,669) is a small React component rendered in the REPL footer region. It shows either `"${percent}% until auto-compact"` (normal) or `"Context low (${remaining}% remaining) · Run /compact to compact & continue"` (warning). In 2.1.97 the component returns `null` when context usage is below the warning threshold: `if (!isAboveWarningThreshold || j) return null;` (`j` is the verbose-status override). The element only mounts when the threshold is crossed, producing a **transient footer notification** that appears when context is low and disappears when compaction recovers headroom. Color transitions from `"warning"` to `"error"` via `isAboveErrorThreshold`. In "compact requested" / verbose modes, a dim variant with pre-suffix text is rendered instead.
+
 ## Configuration & Settings
 
 ### Environment Variables
 | Variable | Purpose |
 |---|---|
+| `CLAUDE_CODE_NO_FLICKER` | Opt into alt-screen full-terminal rendering (flicker-free; disables inline streaming). Auto-disabled under tmux -CC (2.1.89+) |
 | `CLAUDE_CODE_DEBUG_REPAINTS` | Enable component owner-chain tracking for flicker attribution |
 | `CLAUDE_CODE_COMMIT_LOG` | Log per-commit timing to file (yoga, reconcile, paint durations) |
 | `CLAUDE_CODE_DISABLE_TERMINAL_TITLE` | Disable animated terminal title |
 | `CLAUDE_CODE_DISABLE_VIRTUAL_SCROLL` | Disable virtual scrolling for message list |
-| `CLAUDE_CODE_DISABLE_MOUSE` | Disable mouse tracking in alt-screen |
+| `CLAUDE_CODE_DISABLE_MOUSE` | Disable mouse tracking in alt-screen (read via `rc1()` inside NO_FLICKER path) |
 | `CLAUDE_CODE_DISABLE_MESSAGE_ACTIONS` | Disable message action bar |
 | `CLAUDE_CODE_ACCESSIBILITY` | Disable inverse cursor (for screen readers) |
 | `COLORFGBG` | Terminal foreground/background hint for auto-theme |
@@ -309,7 +377,7 @@ export const FRAME_INTERVAL_MS = 16  // ~60fps target
 
 4. **SIGCONT race** — After terminal suspension (ctrl+z), the shell may have written to the screen. The SIGCONT handler resets all frame buffers and the LogUpdate state. In alt-screen, it also re-enters the alternate buffer and re-enables mouse tracking.
 
-5. **Scrollback unreachability** — Content that scrolled into terminal scrollback (above the viewport) cannot be reached by cursor movement. If the diff detects changes in scrollback rows, it falls back to a full screen reset — the function is literally named `fullResetSequence_CAUSES_FLICKER`.
+5. **Scrollback unreachability** — Content that scrolled into terminal scrollback (above the viewport) cannot be reached by cursor movement. In v2.1.88 the diff engine had a `fullResetSequence_CAUSES_FLICKER` fallback to full-screen reset when a diff touched scrollback rows. That symbol is **gone** in cli.js@2.1.97 (0 matches): the inline-rendering viewport-tracking logic now short-circuits before the old fallback would fire (content past the live region simply enters scrollback and is never re-addressed). NO_FLICKER alt-screen mode has its own reset via `resetFramesForAltScreen()` which is non-flicker because the alt-screen buffer is always fully addressable.
 
 6. **Synchronized output** — When the terminal supports DEC 2026 (BSU/ESU), DECSTBM scroll + diff write are wrapped in a synchronization block so the intermediate state (scrolled but not yet repainted) is never visible. Without it, the scroll optimization is disabled to avoid visual jumps.
 

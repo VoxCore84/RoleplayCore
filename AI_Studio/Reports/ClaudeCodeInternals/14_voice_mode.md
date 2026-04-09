@@ -1,9 +1,15 @@
 # Voice Mode (Push-to-Talk) — Claude Code Internals Report
 
 > **Report**: #14 of the Claude Code Internals series
-> **Date**: 2026-04-05
-> **Source**: `C:/Users/atayl/Desktop/claude-code-source/claude-code-source/src/`
+> **Date**: 2026-04-05 (original); 2.1.97 refresh 2026-04-08
+> **Source**: v2.1.88 `src/` baseline + cli.js@2.1.97 grep verification
 > **Scope**: Complete voice/push-to-talk subsystem — audio capture, STT, UI, keybindings, feature gating
+>
+> **2.1.97 delta** (grep spot-check): 2 substantive changes since v2.1.88:
+> 1. **Deepgram Nova 3 is now unconditional.** The `tengu_cobalt_frost` GrowthBook gate was removed. `use_conversation_engine=true` and `stt_provider=deepgram-nova3` are now hard-coded in the WebSocket query-params builder (cli.js@2.1.97 line 3748). The `[voice_stream] Nova 3 gate enabled` debug log is gone.
+> 2. **The VoiceModeNotice startup banner was replaced by a spinner tip.** "Use /voice to enable push-to-talk dictation" now appears as a rotating tip (`id:"voice-mode"`, `cooldownSessions:10`, cli.js@2.1.97 line ~8339) instead of a dedicated startup notice. The eligibility predicate (voice available, not yet enabled, not remote/SSH) is preserved.
+>
+> All other voice mechanics verified unchanged: WebSocket flow (`/api/ws/speech_to_text/voice_stream`), `VOICE_STREAM_BASE_URL`, hold-to-talk keyhandler, audio capture NAPI path (`AUDIO_CAPTURE_NODE_PATH`), ALSA fallback (`arecord`/`S16_LE`), all tengu analytics events, and the `voiceNoticeSeenCount` / `voiceFooterHintSeenCount` config counters.
 
 ---
 
