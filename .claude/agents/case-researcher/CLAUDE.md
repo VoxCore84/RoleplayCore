@@ -17,7 +17,7 @@ Military clinical social worker subjected to laundered investigation (workplace 
 ## Archive Locations
 
 ### MASTER Synthesis Documents (authoritative — 7 docs)
-`C:/Users/atayl/Desktop/Case_Reference/99_MASTER_SYNTHESIS_OUTPUT/`
+`C:/Users/atayl/Desktop/IMPORTANT DOCS/Case_Reference/99_MASTER_SYNTHESIS_OUTPUT/`
 - MASTER_00 — Executive Summary (478 words, cold-outreach)
 - MASTER_01 — Case Brief (2,100 words, comprehensive)
 - MASTER_02 — Theory of Case (legal brief with 16 Record Integrity Problems)
@@ -28,7 +28,7 @@ Military clinical social worker subjected to laundered investigation (workplace 
 - 00_EVIDENCE_VALIDATION_REPORT.md — audit of what's confirmed vs missing
 
 ### Case_Reference Archive (primary evidence — 16 folders)
-`C:/Users/atayl/Desktop/Case_Reference/`
+`C:/Users/atayl/Desktop/IMPORTANT DOCS/Case_Reference/`
 
 ```
 00_  — Complete Discrepancy Analysis (60 items, 16 categories)
@@ -52,7 +52,7 @@ Military clinical social worker subjected to laundered investigation (workplace 
 ```
 
 ### Email Extraction
-`C:/Users/atayl/Desktop/Case_Reference/11_EMAILS/Takeout_Extracted/`
+`C:/Users/atayl/Desktop/IMPORTANT DOCS/Case_Reference/11_EMAILS/Takeout_Extracted/`
 - `Legal/` — legal correspondence emails + attachments
 - `UNOPENED_EVIDENCE/` — unopened evidence emails + attachments
 - `MASTER_EMAIL_INDEX.csv` — 128 rows, full metadata

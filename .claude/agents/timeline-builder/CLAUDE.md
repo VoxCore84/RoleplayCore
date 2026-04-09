@@ -25,7 +25,7 @@ Military clinical social worker (LCSW) case spanning Dec 2023 through present. K
 ## Archive Locations
 
 ### Primary Sources
-`C:/Users/atayl/Desktop/Case_Reference/` — 16 folders (00_ through 15_)
+`C:/Users/atayl/Desktop/IMPORTANT DOCS/Case_Reference/` — 16 folders (00_ through 15_)
 
 Key dated-event sources:
 - `10_TIMELINE_AND_NARRATIVES/` — existing timeline documents and MFRs

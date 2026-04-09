@@ -8,7 +8,7 @@
 
 ## Triad Coordination — READ FIRST (all agents)
 
-**Last updated**: 2026-04-04 -- Session 228 Tab A: RoleplayCore SQL re-applied (18 files), Phase 4 DB cleanup (90% error reduction: 6.8M to 670K), crafting_quality crash fix. Warlock Phase 3 done (session 230). Commits: `0f6334cb0c`, `fd88560bfb`
+**Last updated**: 2026-04-08 -- Session 233: Claude Code 2.1.74→2.1.97 changelog audit (5 of 22 internals reports flagged as materially wrong). Dispatched `CC-297-Refresh` tab with full handoff (`doc/handoff_cc_297_source_refresh.md`) to re-extract 2.1.97 sources and patch all 22 reports. Desktop `_Needs Sorted/` cleanup: 99 moved + 17 deleted (~665 MB), 20 items deliberately held for manual review. Commit: `4da762e9ee`. Prev: 2026-04-05 session 231 6-layer local AI stack deployed (Ollama v0.20.0 + Qwen 3.5 27B + Gemma 4 26B + Open WebUI + MCP bridge + OpenClaw, commit `0c9f0ba98c`)
 
 ### Architecture (as of session 160)
 

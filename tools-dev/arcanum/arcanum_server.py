@@ -1,14 +1,16 @@
 """
-Arcanum MCP Server — Knowledge base search for Claude Code internals.
+Arcanum MCP Server — Knowledge base search for VoxCore project + legal case.
 
-Indexes all markdown files in doc/arcanum/ and provides search, read, and
-index tools for instant recall during Claude Code sessions.
+Indexes markdown and text files across doc/arcanum/, memory files, reports,
+and the Case_Reference legal archive. Provides search, read, and index tools
+for instant recall during Claude Code sessions.
 
 Tools:
-  - arcanum_search: Full-text search across all arcanum docs
+  - arcanum_search: Full-text search across all indexed docs
   - arcanum_read: Read a specific doc by path or topic
   - arcanum_index: Browse the topic tree
   - arcanum_lookup: Find docs by keyword in frontmatter/headers
+  - arcanum_rebuild: Rebuild the index after adding/modifying documents
 """
 
 import os
@@ -44,6 +46,19 @@ REPORTS_DIR = Path(os.environ.get(
     Path(__file__).resolve().parent.parent.parent / "AI_Studio" / "Reports" / "ClaudeCodeInternals"
 ))
 
+CASE_DIR = Path(os.environ.get(
+    "CASE_DIR",
+    Path.home() / "Desktop" / "IMPORTANT DOCS" / "Case_Reference"
+))
+
+IMPORTANT_DOCS_DIR = Path(os.environ.get(
+    "IMPORTANT_DOCS_DIR",
+    Path.home() / "Desktop" / "IMPORTANT DOCS"
+))
+
+# File extensions to index (beyond .md)
+INDEX_EXTENSIONS = {".md", ".txt", ".log", ".csv", ".json", ".xml", ".html", ".htm"}
+
 # ---------------------------------------------------------------------------
 # Index builder
 # ---------------------------------------------------------------------------
@@ -52,57 +67,116 @@ _index: dict[str, dict] = {}  # relative_path -> {path, title, headers, descript
 _folders: dict[str, list[str]] = defaultdict(list)  # folder -> [relative_paths]
 
 
+def _index_file(prefix: str, base_dir: Path, filepath: Path):
+    """Index a single file into the search index."""
+    rel = filepath.relative_to(base_dir)
+    key = f"{prefix}/{rel.as_posix()}"
+    folder = f"{prefix}/{rel.parent.as_posix()}" if rel.parent != Path(".") else prefix
+
+    try:
+        content = filepath.read_text(encoding="utf-8", errors="replace")
+    except Exception:
+        content = ""
+
+    # Extract title (first # heading for md, first non-empty line otherwise)
+    title = rel.stem
+    if filepath.suffix == ".md":
+        title_match = re.search(r"^#\s+(.+)$", content, re.MULTILINE)
+        if title_match:
+            title = title_match.group(1).strip()
+    else:
+        for line in content.split("\n")[:5]:
+            line = line.strip()
+            if line and not line.startswith(("{", "<", "---")):
+                title = line[:100]
+                break
+
+    # Extract all headers (markdown)
+    headers = re.findall(r"^#{1,4}\s+(.+)$", content, re.MULTILINE)
+
+    # Extract frontmatter description
+    desc_match = re.search(r'^description:\s*["\']?(.+?)["\']?\s*$', content, re.MULTILINE)
+    description = desc_match.group(1) if desc_match else ""
+
+    # Extract frontmatter tags (for case files)
+    tags_match = re.search(r'^tags:\s*\[(.+?)\]\s*$', content, re.MULTILINE)
+    tags = [t.strip().strip('"\'') for t in tags_match.group(1).split(",")] if tags_match else []
+
+    # Extract frontmatter people
+    people_match = re.search(r'^people:\s*\[(.+?)\]\s*$', content, re.MULTILINE)
+    people = [p.strip().strip('"\'') for p in people_match.group(1).split(",")] if people_match else []
+
+    # Extract frontmatter date
+    date_match = re.search(r'^date:\s*["\']?(\d{4}[-/]\d{2}[-/]\d{2})["\']?\s*$', content, re.MULTILINE)
+    date = date_match.group(1) if date_match else ""
+
+    # Extract frontmatter doc_type
+    doctype_match = re.search(r'^doc_type:\s*["\']?(.+?)["\']?\s*$', content, re.MULTILINE)
+    doc_type = doctype_match.group(1).strip() if doctype_match else ""
+
+    # Extract frontmatter filing_relevance
+    filing_match = re.search(r'^filing_relevance:\s*\[(.+?)\]\s*$', content, re.MULTILINE)
+    filing_relevance = [f.strip().strip('"\'') for f in filing_match.group(1).split(",")] if filing_match else []
+
+    # Extract > blockquote lines (often contain source/status)
+    meta_lines = re.findall(r"^>\s+(.+)$", content, re.MULTILINE)
+
+    _index[key] = {
+        "path": key,
+        "abs_path": str(filepath),
+        "title": title,
+        "headers": headers,
+        "description": description,
+        "tags": tags,
+        "people": people,
+        "date": date,
+        "doc_type": doc_type,
+        "filing_relevance": filing_relevance,
+        "meta": meta_lines[:3],
+        "content": content,
+        "folder": folder,
+        "size": len(content),
+        "lines": content.count("\n") + 1,
+    }
+    _folders[folder].append(key)
+
+
 def _build_index():
-    """Scan arcanum, memory, and reports dirs. Build searchable index."""
+    """Scan all source dirs. Build searchable index."""
     _index.clear()
     _folders.clear()
 
-    sources = [
+    # Markdown-only sources (existing behavior)
+    md_sources = [
         ("arcanum", ARCANUM_DIR),
         ("memory", MEMORY_DIR),
         ("reports", REPORTS_DIR),
     ]
 
-    for prefix, base_dir in sources:
+    for prefix, base_dir in md_sources:
         if not base_dir.exists():
             continue
         for md_file in base_dir.rglob("*.md"):
-            rel = md_file.relative_to(base_dir)
-            key = f"{prefix}/{rel.as_posix()}"
-            folder = f"{prefix}/{rel.parent.as_posix()}" if rel.parent != Path(".") else prefix
+            _index_file(prefix, base_dir, md_file)
 
-            try:
-                content = md_file.read_text(encoding="utf-8", errors="replace")
-            except Exception:
-                content = ""
+    # Case archive — index all text-readable files
+    if CASE_DIR.exists():
+        for filepath in CASE_DIR.rglob("*"):
+            if filepath.is_file() and filepath.suffix.lower() in INDEX_EXTENSIONS:
+                _index_file("case", CASE_DIR, filepath)
 
-            # Extract title (first # heading)
-            title_match = re.search(r"^#\s+(.+)$", content, re.MULTILINE)
-            title = title_match.group(1).strip() if title_match else rel.stem
-
-            # Extract all headers
-            headers = re.findall(r"^#{1,4}\s+(.+)$", content, re.MULTILINE)
-
-            # Extract frontmatter description
-            desc_match = re.search(r'^description:\s*["\']?(.+?)["\']?\s*$', content, re.MULTILINE)
-            description = desc_match.group(1) if desc_match else ""
-
-            # Extract > blockquote lines (often contain source/status)
-            meta_lines = re.findall(r"^>\s+(.+)$", content, re.MULTILINE)
-
-            _index[key] = {
-                "path": key,
-                "abs_path": str(md_file),
-                "title": title,
-                "headers": headers,
-                "description": description,
-                "meta": meta_lines[:3],
-                "content": content,
-                "folder": folder,
-                "size": len(content),
-                "lines": content.count("\n") + 1,
-            }
-            _folders[folder].append(key)
+    # IMPORTANT DOCS — index all 7 folders (Angel_VA, Brand, Career, etc.)
+    # Excludes Case_Reference (already indexed above with its own prefix)
+    if IMPORTANT_DOCS_DIR.exists():
+        for filepath in IMPORTANT_DOCS_DIR.rglob("*"):
+            if filepath.is_file() and filepath.suffix.lower() in INDEX_EXTENSIONS:
+                # Skip Case_Reference subtree (already indexed as "case" scope)
+                try:
+                    filepath.relative_to(CASE_DIR)
+                    continue  # inside Case_Reference, skip
+                except ValueError:
+                    pass  # not inside Case_Reference, index it
+                _index_file("important_docs", IMPORTANT_DOCS_DIR, filepath)
 
 
 # Build on startup
@@ -117,7 +191,8 @@ mcp = FastMCP(
     instructions=(
         "Arcanum knowledge base server. Provides instant search and retrieval "
         "across the Claude Code internals wiki (doc/arcanum/), memory files, "
-        "and deep research reports. Use arcanum_search for full-text queries, "
+        "deep research reports, and the Case_Reference legal archive. "
+        "Use arcanum_search for full-text queries (scope='case' for legal files), "
         "arcanum_lookup for topic/keyword matching, arcanum_read for specific "
         "documents, and arcanum_index to browse the topic tree."
     ),
@@ -126,11 +201,11 @@ mcp = FastMCP(
 
 @mcp.tool()
 def arcanum_search(query: str, scope: str = "all", max_results: int = 10) -> str:
-    """Full-text search across all arcanum docs, memory files, and reports.
+    """Full-text search across all indexed docs (arcanum, memory, reports, case).
 
     Args:
         query: Search terms (case-insensitive). Supports multiple words (AND logic).
-        scope: 'all', 'arcanum', 'memory', or 'reports' to limit search scope.
+        scope: 'all', 'arcanum', 'memory', 'reports', or 'case' to limit search scope.
         max_results: Maximum number of results to return (default 10, max 50).
     """
     max_results = min(max_results, 50)
@@ -152,15 +227,28 @@ def arcanum_search(query: str, scope: str = "all", max_results: int = 10) -> str
         if not all(t in content_lower for t in terms):
             continue
 
-        # Score: title match > header match > content match
+        # Score: title > tags/people > header > description > content
         score = 0
+        tags_lower = " ".join(doc.get("tags", [])).lower()
+        people_lower = " ".join(doc.get("people", [])).lower()
+        doc_type = doc.get("doc_type", "").lower()
+        filing_lower = " ".join(doc.get("filing_relevance", [])).lower()
+
         for t in terms:
             if t in title_lower:
                 score += 10
+            if t in tags_lower:
+                score += 8  # frontmatter tag match
+            if t in people_lower:
+                score += 8  # frontmatter people match
             if t in headers_lower:
                 score += 5
             if t in doc["description"].lower():
                 score += 3
+            if t in doc_type:
+                score += 2
+            if t in filing_lower:
+                score += 6  # filing relevance match
 
         # Extract context snippet (first matching line)
         snippet = ""
@@ -298,7 +386,7 @@ def arcanum_index(folder: str = "") -> str:
 
 @mcp.tool()
 def arcanum_lookup(keyword: str, max_results: int = 15) -> str:
-    """Find docs by keyword match in titles, headers, and descriptions.
+    """Find docs by keyword match in titles, headers, tags, people, and descriptions.
     Faster than arcanum_search — checks metadata only, not full content.
 
     Args:
@@ -312,12 +400,18 @@ def arcanum_lookup(keyword: str, max_results: int = 15) -> str:
         score = 0
         if keyword_lower in doc["title"].lower():
             score += 10
+        if keyword_lower in " ".join(doc.get("tags", [])).lower():
+            score += 8
+        if keyword_lower in " ".join(doc.get("people", [])).lower():
+            score += 8
         if keyword_lower in doc["description"].lower():
             score += 5
         if any(keyword_lower in h.lower() for h in doc["headers"]):
             score += 3
         if keyword_lower in key.lower():
             score += 2
+        if keyword_lower in " ".join(doc.get("filing_relevance", [])).lower():
+            score += 6
 
         if score > 0:
             results.append((score, key, doc["title"], doc["description"][:100]))

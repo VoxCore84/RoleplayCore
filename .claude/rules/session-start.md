@@ -10,6 +10,7 @@ Before implementing anything non-trivial, check: should ChatGPT generate a spec 
 1. **Silently read `AI_Studio/0_Central_Brain.md`** — acquire Triad context
 2. **Read `doc/session_state.md`** (if exists) — check Active Tabs, pending handoffs, file ownership
 3. **Read `## Next Session` section of `todo.md`** from memory — pre-loaded task list
+4. **Run `python .claude/hooks/deadline-alert.py`** — surface any critical deadlines (HARD <30d, any <14d, past-due). Print to user if output is non-empty. Silent on clean days. Source: `.claude/deadlines.json`.
 
 ## Claude Code is Primary
 You are the Primary Terminal and Coordinator for VoxCore. All other AIs (ChatGPT, Gemini, Cowork) are API endpoints or scheduled task runners called from here. Execute pipeline actions immediately. Antigravity (Windsurf IDE) is deprecated — Gemini is accessed via API now.
