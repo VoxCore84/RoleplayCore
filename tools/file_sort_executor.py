@@ -256,6 +256,30 @@ def parse_inventory_md(md_path: str) -> list[dict]:
     return plan
 
 
+def _path_size(p: Path) -> int:
+    """Return byte size of a file, or recursive total size of a directory.
+
+    Used to detect silent no-clobber / partial-move bugs by comparing source
+    size before the move against destination size after. Returns -1 if the
+    path can't be stat'd (missing, permission denied, etc.).
+    """
+    try:
+        if p.is_file():
+            return p.stat().st_size
+        if p.is_dir():
+            total = 0
+            for child in p.rglob("*"):
+                if child.is_file():
+                    try:
+                        total += child.stat().st_size
+                    except OSError:
+                        pass  # unreadable file — best-effort
+            return total
+    except OSError:
+        return -1
+    return -1
+
+
 def execute_plan(plan: list[dict], dry_run: bool = True, allow_delete: bool = False):
     """Execute a file sort plan."""
     stats = {"moved": 0, "deleted": 0, "skipped": 0, "errors": 0, "missing": 0}
@@ -300,9 +324,47 @@ def execute_plan(plan: list[dict], dry_run: bool = True, allow_delete: bool = Fa
                         )
                         stats["skipped"] += 1
                     else:
+                        # Silent-no-clobber safety: capture source size before
+                        # the move, then verify dest matches afterwards. Catches
+                        # the session-235 bug where a pre-created target folder
+                        # silently swallowed a 26 GB move (the mv -n class of
+                        # failure where nothing errors but bytes disappear).
+                        src_size = _path_size(source_path)
+
                         shutil.move(str(source_path), str(dest_file))
-                        print(f"{prefix} MOVED: {source_path.name} -> {dest_dir}")
-                        stats["moved"] += 1
+
+                        # Post-move verification gate
+                        if source_path.exists():
+                            print(
+                                f"{prefix} ERROR: source still present after move "
+                                f"— likely silent merge into existing dest: {source_path}"
+                            )
+                            stats["errors"] += 1
+                        elif not dest_file.exists():
+                            print(
+                                f"{prefix} ERROR: dest missing after move "
+                                f"(move reported success but path absent): {dest_file}"
+                            )
+                            stats["errors"] += 1
+                        else:
+                            dst_size = _path_size(dest_file)
+                            if src_size >= 0 and dst_size != src_size:
+                                delta = dst_size - src_size
+                                print(
+                                    f"{prefix} WARN: size mismatch post-move "
+                                    f"(src {src_size:,}B -> dst {dst_size:,}B, "
+                                    f"delta {delta:+,}B): {dest_file}"
+                                )
+                                stats["errors"] += 1
+                            else:
+                                size_note = (
+                                    f" ({src_size:,}B)" if src_size >= 0 else ""
+                                )
+                                print(
+                                    f"{prefix} MOVED: {source_path.name}"
+                                    f"{size_note} -> {dest_dir}"
+                                )
+                                stats["moved"] += 1
                 except Exception as e:
                     print(f"{prefix} ERROR: {source} — {e}")
                     stats["errors"] += 1
