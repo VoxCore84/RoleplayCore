@@ -30,6 +30,7 @@ void AddSC_rogue_spell_scripts();
 void AddSC_shaman_spell_scripts();
 void AddSC_warlock_spell_scripts();
 void AddSC_warrior_spell_scripts();
+void AddSC_pet_spell_scripts();
 void AddSC_quest_spell_scripts();
 void AddSC_item_spell_scripts();
 void AddSC_azerite_item_spell_scripts();
@@ -52,6 +53,7 @@ void AddSpellsScripts()
     AddSC_shaman_spell_scripts();
     AddSC_warlock_spell_scripts();
     AddSC_warrior_spell_scripts();
+    AddSC_pet_spell_scripts();
     AddSC_quest_spell_scripts();
     AddSC_item_spell_scripts();
     AddSC_azerite_item_spell_scripts();
