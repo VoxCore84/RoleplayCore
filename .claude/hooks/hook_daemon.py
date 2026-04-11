@@ -27,6 +27,7 @@ import logging
 import os
 import re
 import signal
+import sqlite3
 import subprocess
 import sys
 import time
@@ -52,10 +53,20 @@ LOG_FILE = USER_CLAUDE / "hook_daemon.log"
 STATS_FILE = USER_CLAUDE / "session-stats.jsonl"
 PRECOMPACT_STATE = USER_CLAUDE / "precompact-state.json"
 
-DAEMON_VERSION = "1.0.0"
+DAEMON_VERSION = "1.1.0"
 START_TIME = time.time()
 IN_FLIGHT: "set[asyncio.Task]" = set()
 SHUTDOWN_EVENT: "asyncio.Event | None" = None  # set in main()
+
+# ── Feature #1: Codebase DB auto-refresh dirty flag ─────────────────────
+CODEBASE_DIRTY_FLAG = USER_CLAUDE / "codebase_dirty.flag"
+CODEBASE_DB_PATH = PROJECT_DIR / ".cache" / "codebase.db"
+
+# ── Feature #2: Digest staleness tracking ────────────────────────────────
+DIGEST_CACHE_DIR = PROJECT_DIR / ".cache" / "source_digests"
+
+# ── Feature #9: Triad reminder — track new C++ lines per session ────────
+SESSION_CPP_NEW_LINES = 0
 
 # ─── SECTION B — Logging ────────────────────────────────────────────────
 
@@ -412,13 +423,55 @@ async def handle_sensitive_file_guard(data: dict) -> dict:
 
 # ── handle_cpp_build_reminder ────────────────────────────────────────────
 async def handle_cpp_build_reminder(data: dict) -> dict:
+    global SESSION_CPP_NEW_LINES
     path = _get_tool_input(data).get("file_path", "")
-    if path.endswith((".cpp", ".h")):
-        # Plain text advisory — return as systemMessage so CC surfaces it
-        return {
-            "systemMessage": f"[hook] C++ file modified: {path} — use /build-loop to iterate or build in VS"
-        }
-    return {}
+    if not path.endswith((".cpp", ".h")):
+        return {}
+
+    messages = []
+    messages.append(f"[hook] C++ file modified: {path} — use /build-loop to iterate or build in VS")
+
+    # Feature #1: Set dirty flag for codebase.db auto-refresh
+    try:
+        CODEBASE_DIRTY_FLAG.parent.mkdir(parents=True, exist_ok=True)
+        CODEBASE_DIRTY_FLAG.write_text(
+            json.dumps({"dirty_since": datetime.now(timezone.utc).isoformat(), "file": path}),
+            encoding="utf-8",
+        )
+    except Exception:
+        log.exception("failed to write codebase dirty flag")
+
+    # Feature #2: Check digest staleness for this file
+    basename = Path(path).stem  # e.g., "SpellEffects" from SpellEffects.cpp
+    digest_file = DIGEST_CACHE_DIR / f"{basename}.digest.md"
+    if digest_file.exists():
+        try:
+            src_mtime = Path(path).stat().st_mtime if Path(path).exists() else 0
+            dig_mtime = digest_file.stat().st_mtime
+            if src_mtime > dig_mtime:
+                age_hours = (src_mtime - dig_mtime) / 3600
+                messages.append(
+                    f"[hook] Digest for {basename} is stale (source modified {age_hours:.0f}h after digest). "
+                    f"Consider re-generating with: python tools/digest_source.py {basename}"
+                )
+        except Exception:
+            pass
+
+    # Feature #9: Track new C++ lines for Triad reminder
+    tool_input = _get_tool_input(data)
+    new_str = tool_input.get("new_string", "")
+    old_str = tool_input.get("old_string", "")
+    if new_str and old_str:
+        new_lines = new_str.count("\n") - old_str.count("\n")
+        if new_lines > 0:
+            SESSION_CPP_NEW_LINES += new_lines
+            if SESSION_CPP_NEW_LINES > 100:
+                messages.append(
+                    f"[hook] {SESSION_CPP_NEW_LINES} new C++ lines this session without a ChatGPT spec. "
+                    f"Consider: did the Triad design this? Run `python tools/api_architect/run_architect.py` for a spec."
+                )
+
+    return {"systemMessage": "\n".join(messages)}
 
 
 # ── handle_edit_verifier ─────────────────────────────────────────────────
@@ -603,7 +656,51 @@ def _detect_prompt_context(prompt: str) -> "list[str]":
             "CONTEXT: Visual system. Effects: Noblegarden::EffectsHandler. "
             "Display: RoleplayCore::DisplayHandler. Morph: player_morph_scripts.cpp"
         )
+
+    # Feature #4: FTS5 smart context — query codebase.db for relevant files
+    if len(prompt.strip()) > 20 and CODEBASE_DB_PATH.exists():
+        fts_context = _fts5_context_lookup(prompt)
+        if fts_context:
+            parts.append(fts_context)
+
     return parts
+
+
+def _fts5_context_lookup(prompt: str) -> "str | None":
+    """Query codebase.db FTS5 index for files relevant to the user's prompt.
+    Returns a context string with top 3 matching file paths, or None."""
+    # Extract meaningful keywords (skip common short words)
+    stop_words = {"the", "a", "an", "is", "are", "was", "were", "be", "been", "to", "of",
+                  "and", "or", "in", "on", "at", "for", "with", "this", "that", "it", "can",
+                  "you", "we", "do", "how", "what", "why", "where", "when", "please", "also",
+                  "just", "make", "fix", "add", "get", "set", "use", "run", "check", "look"}
+    words = [w for w in re.findall(r"[a-zA-Z_]{3,}", prompt.lower()) if w not in stop_words]
+    if len(words) < 1:
+        return None
+    # Use top 3 keywords for FTS5 query
+    query_terms = " ".join(words[:3])
+    try:
+        conn = sqlite3.connect(str(CODEBASE_DB_PATH), timeout=1.0)
+        conn.execute("PRAGMA query_only = ON")
+        rows = conn.execute(
+            "SELECT name, kind, file_path FROM fts_search WHERE fts_search MATCH ? LIMIT 5",
+            (query_terms,),
+        ).fetchall()
+        conn.close()
+        if not rows:
+            return None
+        # Deduplicate file paths
+        seen = set()
+        files = []
+        for name, kind, file_path in rows:
+            if file_path and file_path not in seen:
+                seen.add(file_path)
+                files.append(f"{file_path} ({kind}: {name})")
+        if not files:
+            return None
+        return "CONTEXT [FTS5]: Relevant codebase files: " + "; ".join(files[:3])
+    except Exception:
+        return None
 
 
 async def handle_prompt_context_injector(data: dict) -> dict:
@@ -1098,11 +1195,90 @@ async def _cowork_sync_task() -> None:
         log.exception("cowork_sync error")
 
 
+# ── handle_codebase_refresh ─────────────────────────────────────────────
+
+async def handle_codebase_refresh(data: dict) -> dict:
+    """Called by durable cron job. Checks dirty flag, runs incremental rebuild if needed."""
+    if not CODEBASE_DIRTY_FLAG.exists():
+        return {"systemMessage": "[cron] Codebase index is clean — no rebuild needed."}
+    try:
+        flag_data = json.loads(CODEBASE_DIRTY_FLAG.read_text(encoding="utf-8"))
+        dirty_since = flag_data.get("dirty_since", "unknown")
+    except Exception:
+        dirty_since = "unknown"
+
+    build_script = PROJECT_DIR / "tools" / "build_code_index.py"
+    if not build_script.exists():
+        return {"systemMessage": "[cron] build_code_index.py not found — skipping rebuild."}
+
+    # Run incremental rebuild in background
+    asyncio.create_task(_run_codebase_rebuild(build_script, dirty_since))
+    return {"systemMessage": f"[cron] Codebase dirty since {dirty_since} — incremental rebuild started."}
+
+
+async def _run_codebase_rebuild(script: Path, dirty_since: str) -> None:
+    try:
+        proc = await asyncio.create_subprocess_exec(
+            sys.executable, str(script), "--layers", "1-6",
+            cwd=str(PROJECT_DIR),
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+        )
+        try:
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=120.0)
+            # Clear dirty flag on success
+            if proc.returncode == 0:
+                try:
+                    CODEBASE_DIRTY_FLAG.unlink()
+                except Exception:
+                    pass
+                log.info("codebase_refresh: rebuild complete (dirty since %s)", dirty_since)
+            else:
+                log.warning("codebase_refresh: rebuild exited %d", proc.returncode)
+        except asyncio.TimeoutError:
+            log.warning("codebase_refresh: rebuild timed out after 120s")
+            try:
+                proc.kill()
+            except Exception:
+                pass
+    except Exception:
+        log.exception("codebase_refresh: rebuild error")
+
+
 # ═══════════════════════════════════════════════════════════════════════
 # SECTION G — Route table
 # ═══════════════════════════════════════════════════════════════════════
 
+async def handle_block_recurring_cron(data: dict) -> dict:
+    """Block recurring CronCreate calls — they freeze tabs.
+
+    One-shot reminders (recurring: false) are allowed.
+    Recurring jobs (recurring: true, the default) are blocked.
+    """
+    tool_input = data.get("tool_input", {})
+
+    # CronCreate defaults recurring to True if not specified
+    is_recurring = tool_input.get("recurring", True)
+
+    if is_recurring:
+        log.warning("BLOCKED recurring CronCreate — freezes tabs")
+        return {
+            "decision": "block",
+            "reason": (
+                "Recurring cron jobs are BANNED — they freeze Claude Code tabs by "
+                "firing prompts into the REPL when idle. Use `recurring: false` for "
+                "one-shot reminders only. For recurring work, use Windows Task "
+                "Scheduler + scripts that write results to files."
+            ),
+        }
+
+    # One-shot is fine
+    log.info("Allowed one-shot CronCreate")
+    return {}
+
+
 ROUTE_TABLE = {
+    "/hook/block-recurring-cron": handle_block_recurring_cron,
     "/hook/sql-safety": handle_sql_safety,
     "/hook/release-gate-enforce": handle_release_gate_enforce,
     "/hook/sensitive-file-guard": handle_sensitive_file_guard,
@@ -1121,6 +1297,7 @@ ROUTE_TABLE = {
     "/hook/docx-auto-extract": handle_docx_auto_extract,
     "/hook/file-changed-monitor": handle_file_changed_monitor,
     "/hook/cowork-sync": handle_cowork_sync,
+    "/hook/codebase-refresh": handle_codebase_refresh,
 }
 
 
@@ -1153,7 +1330,24 @@ def is_daemon_already_running() -> bool:
         return False
     if pid == os.getpid():
         return False  # our own PID file from a previous boot — not "another" instance
-    return _is_pid_alive(pid)
+    if not _is_pid_alive(pid):
+        return False
+    # PID is alive — but is it actually listening? (zombie check)
+    try:
+        conn = http.client.HTTPConnection(HOST, PORT, timeout=0.5)
+        conn.request("GET", "/health")
+        r = conn.getresponse()
+        if r.status == 200:
+            return True
+    except Exception:
+        pass
+    # PID alive but not listening — stale zombie. Clean up.
+    log.warning("PID %d alive but not listening on port %d — removing stale PID file", pid, PORT)
+    try:
+        PID_FILE.unlink()
+    except Exception:
+        pass
+    return False
 
 
 def write_pid_file() -> None:
@@ -1232,12 +1426,45 @@ def _cli_health() -> int:
         return 1
 
 
+def _cli_ensure() -> int:
+    """Start daemon if not already running. Used as bootstrap from command-type hooks.
+    Returns 0 immediately — either daemon was already running or we spawned it detached."""
+    if is_daemon_already_running():
+        return 0
+    # Also check port reachability (PID file may be stale)
+    try:
+        conn = http.client.HTTPConnection(HOST, PORT, timeout=0.3)
+        conn.request("GET", "/health")
+        r = conn.getresponse()
+        if r.status == 200:
+            return 0  # Running but PID file missing — that's fine
+    except Exception:
+        pass  # Not running — proceed to start
+    # Spawn self detached
+    DETACHED_PROCESS = 0x00000008
+    CREATE_NEW_PROCESS_GROUP = 0x00000200
+    try:
+        subprocess.Popen(
+            [sys.executable, str(Path(__file__).resolve())],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            creationflags=DETACHED_PROCESS | CREATE_NEW_PROCESS_GROUP,
+            close_fds=True,
+        )
+    except Exception as e:
+        print(f"Failed to start hook daemon: {e}", file=sys.stderr)
+        return 1
+    return 0
+
+
 if __name__ == "__main__":
     if "--health" in sys.argv:
         sys.exit(_cli_health())
     if "--version" in sys.argv:
         print(DAEMON_VERSION)
         sys.exit(0)
+    if "--ensure" in sys.argv:
+        sys.exit(_cli_ensure())
     try:
         asyncio.run(main())
     except KeyboardInterrupt:
