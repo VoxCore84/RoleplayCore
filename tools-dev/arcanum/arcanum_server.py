@@ -31,7 +31,7 @@ from pathlib import Path
 if sys.platform == "win32":
     sys.stdin.reconfigure(encoding="utf-8")
     sys.stdout.reconfigure(encoding="utf-8")
-    sys.stderr.reconfigure(encoding="utf-8")
+    sys.stderr.reconfigure(encoding="utf-8", line_buffering=True)
 
 # Ensure this directory is importable so `arcanum_logic` resolves regardless
 # of the CWD the MCP launcher uses.
