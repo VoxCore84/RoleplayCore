@@ -9,13 +9,14 @@ The canonical storage for handoffs is **per-project** at `<project>/AI_Studio/Ha
 
 | Date | Project | Topic | Branch | Last Commit | Size | Path |
 |------|---------|-------|--------|-------------|------|------|
+| 2026-04-12 | calmcore | handoff-architecture-v1 | master | 5952cd3316 | 10.3 KB | [open](../../CalmCore/AI_Studio/Handoffs/2026-04-12_handoff-architecture-v1.md) |
 | 2026-04-12 | calmsniffer | aes-gcm-decrypt | master | 258b79c | 6.0 KB | [open](../../CalmSniffer/AI_Studio/Handoffs/2026-04-12_aes-gcm-decrypt.md) |
 
 ## Project Activity Summary
 
 | Project | Handoff Count | Oldest | Newest | Days Since Last |
 |---------|---------------|--------|--------|-----------------|
-| calmcore | 0 | — | — | — |
+| calmcore | 1 | 2026-04-12 | 2026-04-12 | 0 |
 | voxcore | 0 | — | — | — |
 | calmsniffer | 1 | 2026-04-12 | 2026-04-12 | 0 |
 
