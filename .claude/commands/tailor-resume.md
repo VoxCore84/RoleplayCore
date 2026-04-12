@@ -30,10 +30,22 @@ From resume-package.md, the 4 lanes are:
 |---|---|---|
 | Clinical_LCSW | VA/community BH/private practice | 8 therapy modalities, suppresses tech |
 | Federal_Contractor | GS-12+/cleared contractor | AFSOC ops + clearance + policy |
-| Systems_Architect | Tech/defense-tech | VoxCore leads, military compressed |
+| Systems_Architect | Tech/defense-tech/private AI | VoxCore leads, military compressed |
 | Wounded_Warrior | AFW2/OWF/peer support | Lived experience, explicitly names HWE filing |
 
-Based on the posting, pick the LANE (one of: Clinical, Federal, Systems, Wounded Warrior). Justify in 1-2 sentences.
+Based on the posting, pick the LANE. Justify in 1-2 sentences.
+
+#### GS-14/15 Federal Technical — use Systems_Architect as BASE, overlay Federal conventions
+When the posting is **federal GS-14 or GS-15** and **technical** (IT Specialist APPSW/AI/SYSADMIN, Computer Scientist GS-1550, Enterprise Architect, AI Policy), do NOT use Federal_Contractor alone — it's tuned for cleared contractor work, not in-service federal grades. Use **Systems_Architect as the content base** and apply the GS-14/15 tailoring rules from the resume-tailor agent's "Federal GS-14/15 Technical Tailoring" section:
+
+1. Add a **Specialized-Experience Equivalency** block to the cover letter that maps each announcement criterion to a specific O-3E accomplishment with metrics.
+2. Address all **4 OPM IT Competencies** (Attention to Detail, Customer Service, Oral Communication, Problem Solving) in the cover letter narrative.
+3. Apply the **2026 refreshed keyword pool** (see agent file for frequency table) — favor "enterprise architecture," "Senior Executives," "technical strategy," "emerging technologies," "responsible AI," "scalable, secure," "AI/ML" where truthful.
+4. Include bullets from the **Personal AI Infrastructure Bullet Bank** (agent file) where they hit a posting requirement.
+5. Never include TOGAF/Zachman/FEAF/DoDAF certs (not held). Cloud platforms (AWS/Azure/GCP) — only mention if Docker/containerized deployment is being discussed; don't fake cloud depth.
+6. If the posting has the **"implement AI solutions in production or test environments"** selective factor (Treasury pattern), lead the cover letter's first paragraph with the 5-MCP-server + Triad architecture evidence — this is a knock-out gate.
+
+Reference: `AI_Studio/Reports/career/gs14-15-keyword-analysis.md` for the live posting analysis.
 
 ### Step 3 — Read the chosen variant source
 Read `C:/Users/atayl/Desktop/IMPORTANT DOCS/Resume Stuff/Resume_<Variant>.md` in full.
@@ -42,10 +54,11 @@ Also read `Master_Resume.md` for additional content pool.
 ### Step 4 — Security hygiene checks (BLOCKING)
 
 Check the chosen variant for:
-- **Clearance status**: per memory, clearance is TERMINATED. Flag if variant leads with "Active TS/SCI" or similar — this must be softened or removed unless the posting specifically asks about cleared *experience* (past tense OK).
+- **Clearance status**: Master resume says "SECRET (2014–2025; under review)." Use that exact phrasing in federal applications. If variant source or memory says "terminated" / "suspended" / "rebuttal submitted" — flag the inconsistency and default to master-resume language unless the user explicitly confirms otherwise this session. Never lead with "Active TS/SCI." Past-tense "held SECRET clearance" is acceptable for roles that explicitly ask about cleared experience history.
 - **HWE filing reference**: only the Wounded_Warrior variant should mention Hostile Work Environment complaint. If you picked a different variant and the source contains HWE references, STRIP them.
 - **LCSW portability**: LCSW is NC-only. If the posting is clinical in a non-NC state, add a portability note.
 - **Retaliation language**: never include in Federal/Systems/Clinical variants.
+- **CADC cert #2735**: EXPIRED Feb 2024 — never list as current on any variant.
 
 Report security-hygiene findings BEFORE the tailored output.
 
@@ -77,8 +90,10 @@ Finally, list any **honest mismatches** — requirements in the posting that Cap
 **Why this lane:** [1-2 sentences]
 
 ### Security Hygiene
-- Clearance: [OK / flagged and corrected]
+- Clearance: [OK / flagged and corrected — default to master-resume "SECRET (2014–2025; under review)"]
 - HWE: [OK / stripped]
+- CADC: [OK / stripped if listed as current]
+- LCSW portability: [OK / caveat added]
 - Other: [...]
 
 ### Keyword Match
@@ -86,14 +101,23 @@ Finally, list any **honest mismatches** — requirements in the posting that Cap
 - Added: [...]
 - Missing (gap): [...]
 
+### Specialized-Experience Equivalency Block (federal GS-14/15 only)
+[Map each posting criterion to O-3E accomplishment with metric. Skip this section for non-federal or non-GS-14/15 postings.]
+
+### 4 OPM IT Competencies Addressed (federal GS-14/15 IT posts only)
+- Attention to Detail: [1 sentence]
+- Customer Service: [1 sentence]
+- Oral Communication: [1 sentence]
+- Problem Solving: [1 sentence]
+
 ### Tailored Resume
 [markdown content]
 
 ### Cover Letter Draft
-[markdown content]
+[markdown content — for federal GS-14/15, lead paragraph must address the selective factor verbatim if present]
 
 ### Honest Gaps
-1. [requirement] — [do we meet it? if no, why]
+1. [requirement] — [do we meet it? if no, why, and is it pass-or-play]
 2. ...
 ```
 
