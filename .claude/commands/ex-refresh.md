@@ -99,6 +99,18 @@ mcp__docs-rag__docs_rag_status()
 
 Compare chunk count before/after. If shrinking unexpectedly, flag.
 
+### Phase 7.5 — Quality probe (regression gate)
+
+After FTS5 rebuild + docs-rag verification, run the retrieval quality probe:
+
+```bash
+python tools/quality_probe.py --engine hybrid
+```
+
+Compare hybrid pass rate to the **64% baseline** (session 258, 50 queries, nomic-embed-text). If pass rate drops below 60%, emit a WARNING in the report — the refresh introduced a regression. Do NOT auto-fix; report the delta and let the user investigate.
+
+This step is mandatory. Skipping it means regressions go undetected until the next `/ex ask` returns garbage.
+
 ### Phase 8 — Report
 
 Write report to either stdout (interactive) or `AI_Studio/Reports/scheduled/ex_refresh_<timestamp>.md` (scheduled).
@@ -135,6 +147,11 @@ Write report to either stdout (interactive) or `AI_Studio/Reports/scheduled/ex_r
 
 ### Warnings
 - [any stale-flag from Phase 7]
+
+### Quality probe
+- Hybrid pass rate: N/50 (X%) — baseline 64%
+- Delta: +/-N pts
+- [OK if ≥60% | WARNING: REGRESSION if <60%]
 
 ### Next suggested action
 - [e.g. "Run /ex-refresh --audio overnight" or "Run /ex-absorb on _Needs Sorted"]
