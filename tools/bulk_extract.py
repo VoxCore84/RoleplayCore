@@ -34,6 +34,25 @@ from email import policy
 
 
 def extract_pdf(path):
+    # Try pdfplumber first (better for forms, tables, medical records)
+    try:
+        import pdfplumber
+        pages = []
+        with pdfplumber.open(path) as pdf:
+            for i, page in enumerate(pdf.pages):
+                text = page.extract_text()
+                if text:
+                    pages.append(f"--- Page {i+1} ---\n{text}")
+                # Also extract tables if present
+                tables = page.extract_tables()
+                for table in tables:
+                    for row in table:
+                        if row:
+                            pages.append("\t".join(str(cell or "") for cell in row))
+        return "\n\n".join(pages) if pages else "(no extractable text)"
+    except ImportError:
+        pass
+    # Fallback to PyPDF2
     try:
         from PyPDF2 import PdfReader
         reader = PdfReader(path)
@@ -44,7 +63,7 @@ def extract_pdf(path):
                 pages.append(f"--- Page {i+1} ---\n{text}")
         return "\n\n".join(pages) if pages else "(no extractable text)"
     except ImportError:
-        return "(PyPDF2 not installed — pip install PyPDF2)"
+        return "(Neither pdfplumber nor PyPDF2 installed — pip install pdfplumber)"
     except Exception as e:
         return f"(PDF extraction error: {e})"
 
@@ -127,12 +146,24 @@ def extract_msg(path):
         return f"(MSG extraction error: {e})"
 
 
+def extract_text_passthrough(filepath):
+    """Direct read for native-text formats (md/txt/rtf). No parsing — just copy."""
+    try:
+        with open(filepath, "r", encoding="utf-8", errors="replace") as f:
+            return f.read()
+    except Exception as e:
+        return f"[passthrough error: {e}]"
+
+
 EXTRACTORS = {
     ".pdf": extract_pdf,
     ".docx": extract_docx,
     ".doc": extract_docx,  # python-docx sometimes handles .doc
     ".eml": extract_eml,
     ".msg": extract_msg,
+    ".md": extract_text_passthrough,
+    ".txt": extract_text_passthrough,
+    ".rtf": extract_text_passthrough,  # best-effort; no rich-text stripper
 }
 
 

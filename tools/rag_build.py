@@ -40,12 +40,21 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CHROMA_DIR = REPO_ROOT / ".cache" / "rag" / "chroma"
-OLLAMA_URL = "http://localhost:11434"
-EMBED_MODEL = "nomic-embed-text"
-EMBED_DIM = 768
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
+# EMBED_MODEL can be swapped via env var. Options:
+#   nomic-embed-text  — 768-dim, default, ~2ms per chunk
+#   bge-large-en-v1.5 — 1024-dim, slower but higher precision on legal corpora
+#   mxbai-embed-large — 1024-dim, comparable to bge-large
+EMBED_MODEL = os.environ.get("EMBED_MODEL", "nomic-embed-text")
+EMBED_DIM = int(os.environ.get("EMBED_DIM", "768"))  # must match model; set 1024 for bge/mxbai
 CHUNK_SIZE = 600  # approx tokens (we use chars/4 as proxy)
 CHUNK_OVERLAP = 100
 CHARS_PER_TOKEN = 4  # rough estimate for English
+
+# Pre-truncation cap — Ollama's nomic-embed-text returns 400 on chunks over ~8192 tokens.
+# 256 chunks were dropped on the last full rebuild due to this. Hard cap in chars
+# before hitting the API. Safe for all supported embedding models.
+MAX_CHUNK_CHARS = 7000  # ≈1750 tokens, well under any model's limit
 
 
 def chunk_text(text: str, chunk_size_tokens: int = CHUNK_SIZE, overlap_tokens: int = CHUNK_OVERLAP) -> list[dict]:
@@ -135,12 +144,19 @@ def iter_text_files(root: Path):
 
 
 def embed_batch(texts: list[str], model: str = EMBED_MODEL) -> list[list[float]]:
-    """Call Ollama /api/embed. Returns list of vectors."""
+    """Call Ollama /api/embed. Returns list of vectors.
+
+    Pre-truncates each text to MAX_CHUNK_CHARS to prevent Ollama 400 errors on
+    oversized inputs. Pre-truncation is safer than batch-retry because a single
+    oversized chunk in a batch used to drop the entire batch.
+    """
     import urllib.request
     import json as _json
+    # Pre-truncate in-place to avoid API rejection
+    truncated = [t if len(t) <= MAX_CHUNK_CHARS else t[:MAX_CHUNK_CHARS] for t in texts]
     req = urllib.request.Request(
         f"{OLLAMA_URL}/api/embed",
-        data=_json.dumps({"model": model, "input": texts}).encode("utf-8"),
+        data=_json.dumps({"model": model, "input": truncated}).encode("utf-8"),
         headers={"Content-Type": "application/json"},
     )
     try:
@@ -149,7 +165,23 @@ def embed_batch(texts: list[str], model: str = EMBED_MODEL) -> list[list[float]]
         return data.get("embeddings", [])
     except Exception as e:
         print(f"  ERROR: Ollama embed failed: {e}", file=sys.stderr)
-        return []
+        # Fallback: retry one-by-one with harder truncation
+        results = []
+        for t in truncated:
+            shorter = t[:MAX_CHUNK_CHARS // 2]
+            try:
+                single_req = urllib.request.Request(
+                    f"{OLLAMA_URL}/api/embed",
+                    data=_json.dumps({"model": model, "input": shorter}).encode("utf-8"),
+                    headers={"Content-Type": "application/json"},
+                )
+                with urllib.request.urlopen(single_req, timeout=60) as resp:
+                    data = _json.loads(resp.read().decode("utf-8"))
+                embs = data.get("embeddings", [])
+                results.extend(embs if embs else [])
+            except Exception:
+                results.append([0.0] * EMBED_DIM)  # placeholder to keep alignment
+        return results if len(results) == len(texts) else []
 
 
 def main() -> int:

@@ -18,6 +18,18 @@
 | Writing to `tools/publishable/` directory | `/pre-ship` — ask if ready for audit |
 | User says "ship it", "release", "v1.0", "zip it up" | `/pre-ship` — run before packaging |
 | Working on Case_Reference or legal case files | `/case-status` — run at session start for case work |
+| Starting a focused work session on the case/career/finance corpus | `/ex-sme` — primes Claude as SME across the Excluded/ tree |
+| Specific question about the case that requires evidence + citations | `/ex-ask "question"` — swarm answer with confidence rating |
+| "What should I work on today?" / morning brief | `/ex-posture` — deadlines, urgency, new evidence |
+| New file/folder/recording/email arrived | `/ex-absorb <path>` — one-shot ingestion + memory update proposals |
+| User asks "is the corpus up to date?" / "what's stale?" | `/ex-status` — health dashboard |
+| User explicitly requests corpus refresh (never auto-invoke) | `/ex-refresh [folder]` |
+| User asks about a specific person (role/org/all mentions) | `python tools/persons_resolve.py "<name>"` — entity resolve + hits |
+| User pastes keyword/phrase to find | Try `python tools/excluded_hybrid_search.py "query"` first — FTS5+vector RRF fusion |
+| User asks about an email thread / conversation | `python tools/mbox_thread.py --subject "<term>"` — reply-chain expansion |
+| User asks "how good is retrieval" / "regression" | `python tools/quality_probe.py --engine all` — 50-query scoreboard |
+| User asks to build/update persons list from data | `python tools/persons_ner_seed.py` — NER sweep, ~50 min |
+| User says "ship retrieval improvement" / "compare models" | Run `/ex probe` BEFORE the change, make change, run AGAIN, compare |
 | User pastes output from ChatGPT/Gemini/Grok for case | Spawn `case-intake` agent to parse and plan edits |
 | User asks "who handles X" or "which lawyer" | `/lane-map` — show legal lane ownership |
 | User asks for a summary, brief, or one-pager | `/one-pager [audience]` — generate executive summary |
