@@ -9,6 +9,7 @@ The canonical storage for handoffs is **per-project** at `<project>/AI_Studio/Ha
 
 | Date | Project | Topic | Branch | Last Commit | Size | Path |
 |------|---------|-------|--------|-------------|------|------|
+| 2026-04-12 | calmcore | session-258-tier0-tier1-and-gatsby-pilot | master | f1c179f7ff | 10.0 KB | [open](../../CalmCore/AI_Studio/Handoffs/2026-04-12_session-258-tier0-tier1-and-gatsby-pilot.md) |
 | 2026-04-12 | calmcore | handoff-architecture-v1 | master | 5952cd3316 | 10.3 KB | [open](../../CalmCore/AI_Studio/Handoffs/2026-04-12_handoff-architecture-v1.md) |
 | 2026-04-12 | calmsniffer | aes-gcm-decrypt | master | 258b79c | 6.0 KB | [open](../../CalmSniffer/AI_Studio/Handoffs/2026-04-12_aes-gcm-decrypt.md) |
 
@@ -16,7 +17,7 @@ The canonical storage for handoffs is **per-project** at `<project>/AI_Studio/Ha
 
 | Project | Handoff Count | Oldest | Newest | Days Since Last |
 |---------|---------------|--------|--------|-----------------|
-| calmcore | 1 | 2026-04-12 | 2026-04-12 | 0 |
+| calmcore | 2 | 2026-04-12 | 2026-04-12 | 0 |
 | voxcore | 0 | — | — | — |
 | calmsniffer | 1 | 2026-04-12 | 2026-04-12 | 0 |
 
