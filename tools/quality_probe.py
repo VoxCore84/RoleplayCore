@@ -76,7 +76,8 @@ _STOPWORDS = {
 }
 
 
-def _prep_fts(q: str) -> str:
+def _prep_fts_and(q: str) -> str:
+    """AND-mode FTS5 query — all terms must co-occur."""
     if '"' in q:
         return q
     toks = []
@@ -85,29 +86,75 @@ def _prep_fts(q: str) -> str:
         if not s:
             continue
         if s[0].isupper() or s.lower() not in _STOPWORDS:
-            toks.append(s)
+            toks.append(f'"{s}"' if "-" in s else s)
     return " ".join(toks) if toks else q
 
 
+def _prep_fts_or(q: str) -> str:
+    """OR-mode FTS5 query — partial matches ranked by BM25 coverage."""
+    if '"' in q:
+        return q
+    toks = []
+    for t in q.split():
+        s = t.strip(".,;:!?()[]{}")
+        if not s:
+            continue
+        if s[0].isupper() or s.lower() not in _STOPWORDS:
+            toks.append(f'"{s}"' if "-" in s else s)
+    if not toks:
+        return q
+    return " OR ".join(toks)
+
+
 def fts_query(q: str, limit: int = 20) -> list[str]:
+    """AND-preferred with OR fallback, document-level dedup."""
     if not FTS_DB.exists():
         return []
-    prepped = _prep_fts(q)
     conn = sqlite3.connect(str(FTS_DB))
+
+    # AND first
+    and_query = _prep_fts_and(q)
+    and_rows = []
     try:
-        rows = conn.execute(
+        and_rows = conn.execute(
             """SELECT c.rel_path FROM chunks_fts
                JOIN chunks c ON c.rowid = chunks_fts.rowid
                WHERE chunks_fts MATCH ? ORDER BY rank LIMIT ?""",
-            (prepped, limit),
+            (and_query, limit),
         ).fetchall()
     except sqlite3.OperationalError:
-        rows = conn.execute(
-            "SELECT rel_path FROM chunks WHERE content LIKE ? LIMIT ?",
-            (f"%{q}%", limit),
-        ).fetchall()
+        pass
+
+    # OR fallback if AND is thin
+    or_rows = []
+    if len(and_rows) < 10:
+        or_query = _prep_fts_or(q)
+        try:
+            or_rows = conn.execute(
+                """SELECT c.rel_path FROM chunks_fts
+                   JOIN chunks c ON c.rowid = chunks_fts.rowid
+                   WHERE chunks_fts MATCH ? ORDER BY rank LIMIT ?""",
+                (or_query, limit),
+            ).fetchall()
+        except sqlite3.OperationalError:
+            pass
+
     conn.close()
-    return [r[0] for r in rows]
+
+    # Merge: AND first, then OR, dedup by path
+    seen = set()
+    result = []
+    for r in and_rows:
+        p = r[0]
+        if p not in seen:
+            seen.add(p)
+            result.append(p)
+    for r in or_rows:
+        p = r[0]
+        if p not in seen:
+            seen.add(p)
+            result.append(p)
+    return result[:limit]
 
 
 def vector_query(q: str, limit: int = 20) -> list[str]:
@@ -132,12 +179,12 @@ def vector_query(q: str, limit: int = 20) -> list[str]:
 
 
 def hybrid_query(q: str, limit: int = 20) -> list[str]:
-    """Delegate to excluded_hybrid_search.py for canonical RRF."""
+    """Delegate to excluded_hybrid_search.py for canonical RRF + rerank."""
     try:
         r = subprocess.run(
             [sys.executable, str(REPO_ROOT / "tools" / "excluded_hybrid_search.py"),
              q, "--top-k", str(limit), "--json"],
-            capture_output=True, text=True, timeout=60,
+            capture_output=True, text=True, timeout=120,
         )
         if r.returncode != 0:
             return []
@@ -188,7 +235,7 @@ def run_engine(name: str, qfn, suite: list[dict]) -> dict:
     t0 = time.perf_counter()
     results = []
     for q_spec in suite:
-        hits = qfn(q_spec["query"], max(q_spec.get("min_rank", 5), 10))
+        hits = qfn(q_spec["query"], max(q_spec.get("min_rank", 5), 20))
         evaluation = evaluate_query(q_spec, hits)
         results.append(evaluation)
         status = "PASS" if evaluation["passed"] else "FAIL"

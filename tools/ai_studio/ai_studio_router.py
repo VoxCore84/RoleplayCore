@@ -1,3 +1,13 @@
+"""AI Studio Background Router.
+
+Watches a source dir (defaults to C:/Users/atayl/Desktop/Excluded) for files with
+allowed extensions and moves them into the current project's
+AI_Studio/1_Inbox/ for pickup by downstream bridges (ChatGPT, Gemini, etc.).
+
+Paths are derived from __file__ so the same script works in both CalmCore and
+VoxCore without modification. Override via AI_ROUTER_EXCLUDED_DIR /
+AI_ROUTER_INBOX_DIR env vars if needed.
+"""
 import os
 import time
 import shutil
@@ -6,19 +16,36 @@ from datetime import datetime
 import pystray
 from PIL import Image, ImageDraw
 
-EXCLUDED_DIR = r"C:\Users\atayl\Desktop\Excluded"
-INBOX_DIR = r"C:\Users\atayl\VoxCore\AI_Studio\1_Inbox"
+# Project root = parent of tools/ai_studio/ (so tools/ai_studio/ai_studio_router.py → project)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(SCRIPT_DIR))
+
+EXCLUDED_DIR = os.environ.get(
+    "AI_ROUTER_EXCLUDED_DIR",
+    r"C:\Users\atayl\Desktop\Excluded",
+)
+INBOX_DIR = os.environ.get(
+    "AI_ROUTER_INBOX_DIR",
+    os.path.join(PROJECT_ROOT, "AI_Studio", "1_Inbox"),
+)
+LOG_PATH = os.environ.get(
+    "AI_ROUTER_LOG",
+    os.path.join(PROJECT_ROOT, "tools", "ai_router_log.txt"),
+)
 ALLOWED_EXTENSIONS = {".md", ".txt", ".json", ".csv", ".sql", ".lua"}
 running = True
 routing_enabled = True
 
+
 def log(msg: str):
-    with open(r"C:\Users\atayl\VoxCore\tools\ai_router_log.txt", "a") as f:
+    with open(LOG_PATH, "a") as f:
         f.write(f"[{datetime.now().strftime('%H:%M:%S')}] {msg}\n")
+
 
 def ensure_dir(path: str):
     if not os.path.exists(path):
         os.makedirs(path)
+
 
 def router_loop():
     ensure_dir(EXCLUDED_DIR)
@@ -31,21 +58,22 @@ def router_loop():
                     if ext in ALLOWED_EXTENSIONS:
                         src_path = os.path.join(EXCLUDED_DIR, filename)
                         dst_path = os.path.join(INBOX_DIR, filename)
-                        
+
                         try:
                             os.rename(src_path, src_path)
                         except OSError:
-                            continue # File is locked
-                            
+                            continue  # File is locked
+
                         try:
                             shutil.move(src_path, dst_path)
-                            log(f"Routed: {filename} -> AI Studio Inbox")
+                            log(f"Routed: {filename} -> {INBOX_DIR}")
                         except Exception as e:
                             log(f"Failed to move {filename}: {e}")
             except Exception as e:
                 log(f"Error reading directory: {e}")
-            
+
         time.sleep(3.0)
+
 
 def create_image(enabled=True):
     width = 64
@@ -59,6 +87,7 @@ def create_image(enabled=True):
         dc.rectangle((width // 3, height // 3, width * 2 // 3, height * 2 // 3), fill=(255, 255, 255))
     return image
 
+
 def toggle_routing(icon, item):
     global routing_enabled
     routing_enabled = not routing_enabled
@@ -66,8 +95,10 @@ def toggle_routing(icon, item):
     icon.title = f"AI Studio Router : {'Enabled' if routing_enabled else 'Disabled'}"
     log(f"Routing {'enabled' if routing_enabled else 'disabled'} via System Tray.")
 
+
 def get_toggle_text(item):
     return "Disable Router" if routing_enabled else "Enable Router"
+
 
 def on_quit(icon, item):
     global running
@@ -75,25 +106,27 @@ def on_quit(icon, item):
     log("Shutting down AI Studio Router via System Tray.")
     icon.stop()
 
+
 def main():
-    log("Starting AI Studio Background Router...")
-    
+    log(f"Starting AI Studio Background Router (project={PROJECT_ROOT})...")
+
     t = threading.Thread(target=router_loop)
     t.start()
-    
+
     menu = pystray.Menu(
         pystray.MenuItem(get_toggle_text, toggle_routing),
         pystray.Menu.SEPARATOR,
-        pystray.MenuItem("Quit", on_quit)
+        pystray.MenuItem("Quit", on_quit),
     )
-    
+
     icon = pystray.Icon(
-        "AI_Studio_Router", 
-        create_image(routing_enabled), 
-        "AI Studio Router : Enabled", 
-        menu=menu
+        "AI_Studio_Router",
+        create_image(routing_enabled),
+        "AI Studio Router : Enabled",
+        menu=menu,
     )
     icon.run()
+
 
 if __name__ == "__main__":
     main()

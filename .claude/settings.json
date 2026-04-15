@@ -1,11 +1,30 @@
 {
   "permissions": {
     "allow": [
+      "Bash(*)",
+      "Read(*)",
       "Edit(C:/Users/atayl/VoxCore/**)",
       "Edit(C:/Users/atayl/Desktop/**)",
       "Write(C:/Users/atayl/VoxCore/**)",
       "Write(C:/Users/atayl/Desktop/**)",
-      "mcp__arcanum__*"
+      "Glob(*)",
+      "Grep(*)",
+      "Agent(*)",
+      "LSP",
+      "NotebookEdit(*)",
+      "TaskCreate(*)",
+      "TaskGet(*)",
+      "TaskList(*)",
+      "TaskOutput(*)",
+      "TaskStop(*)",
+      "TaskUpdate(*)",
+      "TeamCreate(*)",
+      "TeamDelete(*)",
+      "mcp__arcanum__*",
+      "mcp__docs-rag__*",
+      "mcp__voxcore-db__*",
+      "mcp__voxcore-server__*",
+      "mcp__local-llm__*"
     ]
   },
   "hooks": {
@@ -74,6 +93,16 @@
             "type": "http",
             "url": "http://127.0.0.1:19484/hook/large-file-guard",
             "timeout": 2
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .claude/hooks/check_write_size.py",
+            "timeout": 5
           }
         ]
       }

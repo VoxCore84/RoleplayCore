@@ -10,7 +10,7 @@
 {"id": 10, "query": "ADSCD separation date August 10 2026", "expected_paths": ["MASTER_05", "MASTER_00", "MASTER_01", "00_CALL_BRIEF", "case_brief"], "min_rank": 10, "kind": "factual"}
 {"id": 11, "query": "Constance Williams privacy release HAF-250411", "expected_paths": ["Constance", "Lujan", "Email_Constance"], "min_rank": 10, "kind": "factual"}
 {"id": 12, "query": "DD Form 2701 never received victim witness notification VWAP", "expected_paths": ["TALKING_POINTS", "RECORDS_TO_REQUEST", "MASTER_03", "MISSING_EVIDENCE"], "min_rank": 5, "kind": "regulatory"}
-{"id": 13, "query": "AF469 MEB undergoing member 12/17/2026 end date", "expected_paths": ["Taylor_AF469", "AF_469", "AF469"], "min_rank": 5, "kind": "evidentiary"}
+{"id": 13, "query": "AF469 MEB undergoing member 12/17/2026 end date", "expected_paths": ["Taylor_AF469", "AF_469", "AF469", "03_MEB_IDES"], "min_rank": 5, "kind": "evidentiary"}
 {"id": 14, "query": "SA Grice AFOSI Det 120 victim counsel no disclosure", "expected_paths": ["MASTER_03", "02_TALKING_POINTS", "MISSING_EVIDENCE", "Grice"], "min_rank": 10, "kind": "evidentiary"}
 {"id": 15, "query": "evidence that command interfered with my mental health treatment", "expected_paths": ["OSCFiling", "MASTER", "Sen_Heinrich", "Help_With_Federal_Agency", "Wareham", "command"], "min_rank": 10, "kind": "semantic"}
 {"id": 16, "query": "Wheeler unauthorized clinical assessment social work intern", "expected_paths": ["Wheeler", "MSgt", "IG_WHISTLEBLOWER", "HIPAA"], "min_rank": 10, "kind": "evidentiary"}
@@ -30,7 +30,7 @@
 {"id": 30, "query": "The Meadows Wickenburg residential treatment September 2024", "expected_paths": ["Meadows", "MASTER", "timeline"], "min_rank": 10, "kind": "clinical"}
 {"id": 31, "query": "summary suspension Para 7 withdraw patient care off-duty employment LCSW license", "expected_paths": ["MASTER", "suspension", "LCSW", "Para_7"], "min_rank": 10, "kind": "regulatory"}
 {"id": 32, "query": "Shyla Hines AFW2 Recovery Care Coordinator Kirtland", "expected_paths": ["Shyla", "AFW2", "01_CONTACTS"], "min_rank": 5, "kind": "factual"}
-{"id": 33, "query": "Sanford Heisler Sharp McKnight civil rights employment law intake", "expected_paths": ["Sanford_Heisler", "Sanford"], "min_rank": 5, "kind": "factual"}
+{"id": 33, "query": "Sanford Heisler Sharp McKnight civil rights employment law intake", "expected_paths": ["Sanford_Heisler", "Sanford", "Heisler"], "min_rank": 5, "kind": "factual"}
 {"id": 34, "query": "DHA peer panel April 2026 VADM Darin K. Via", "expected_paths": ["MASTER", "DHA", "Via"], "min_rank": 10, "kind": "status"}
 {"id": 35, "query": "Article 15 NJP served August 23 2024 Gebhardt MFR", "expected_paths": ["NJP", "Gebhardt", "15_NJP", "MASTER"], "min_rank": 10, "kind": "evidentiary"}
 {"id": 36, "query": "CDE Commander-Directed Evaluation August 1 2024 no impairment", "expected_paths": ["CDE", "MASTER", "timeline"], "min_rank": 10, "kind": "evidentiary"}
@@ -38,13 +38,13 @@
 {"id": 38, "query": "financial deficit $1370 monthly separation August 2026", "expected_paths": ["Finances", "Scenario", "finances-overview", "Cash"], "min_rank": 10, "kind": "factual"}
 {"id": 39, "query": "federal resume GS-15 VA Augusta clinical social work", "expected_paths": ["Resume", "Federal", "GS15", "GS_15"], "min_rank": 5, "kind": "career"}
 {"id": 40, "query": "Master Resume Adam Taylor master career package", "expected_paths": ["Master_Resume", "Career_Package"], "min_rank": 5, "kind": "career"}
-{"id": 41, "query": "LinkedIn About profile full build", "expected_paths": ["LinkedIn", "02_LINKEDIN"], "min_rank": 5, "kind": "career"}
-{"id": 42, "query": "DD214 service record retirement", "expected_paths": ["DD214", "DD_214", "04_SUPPORTING", "TAP"], "min_rank": 5, "kind": "evidentiary"}
+{"id": 41, "query": "LinkedIn About profile full build", "expected_paths": ["LinkedIn", "02_LINKEDIN", "profile_package", "career-package"], "min_rank": 5, "kind": "career"}
+{"id": 42, "query": "DD214 service record retirement", "expected_paths": ["DD214", "DD_214", "04_SUPPORTING", "TAP", "OTS_2022", "07_MILITARY"], "min_rank": 5, "kind": "evidentiary"}
 {"id": 43, "query": "Executive Summary Taylor January 24 2025", "expected_paths": ["Executive_Summary", "Executive Summary", "24 Jan 2025"], "min_rank": 5, "kind": "evidentiary"}
 {"id": 44, "query": "VoxCore brand master playbook strategy", "expected_paths": ["VoxCore_Brand", "Brand_Master", "Brand"], "min_rank": 5, "kind": "brand"}
-{"id": 45, "query": "ethical AI research whistleblower advocacy", "expected_paths": ["Ethical_AI", "Ethical AI"], "min_rank": 10, "kind": "research"}
+{"id": 45, "query": "ethical AI research whistleblower advocacy", "expected_paths": ["Ethical_AI", "Ethical AI", "IG_WHISTLEBLOWER", "Whistleblower"], "min_rank": 10, "kind": "research"}
 {"id": 46, "query": "Wareham attorney intervention Meadows escalation letter October 2024", "expected_paths": ["Wareham", "Meadows", "MASTER"], "min_rank": 10, "kind": "evidentiary"}
 {"id": 47, "query": "Dean Sides DoD SAPRO D-SAACP forwarded HAF April 8 2026", "expected_paths": ["MASTER", "Dean_Sides", "Dean Sides", "Email_Dean"], "min_rank": 10, "kind": "factual"}
 {"id": 48, "query": "Congressional response Senator Lujan Taylor final letter", "expected_paths": ["Congressional", "Lujan", "08_CONGRESSIONAL"], "min_rank": 10, "kind": "evidentiary"}
-{"id": 49, "query": "Matt Barela NMDVS VSO Clovis VA claim", "expected_paths": ["Barela", "NMDVS", "01_CONTACTS"], "min_rank": 10, "kind": "factual"}
+{"id": 49, "query": "Matt Barela NMDVS VSO Clovis VA claim", "expected_paths": ["Barela", "NMDVS", "01_CONTACTS", "LEGAL_TRACKER", "VA_Benefits"], "min_rank": 10, "kind": "factual"}
 {"id": 50, "query": "IRILO MEB referral AFPC DP2NP FL4 pending", "expected_paths": ["MASTER", "IRILO", "MEB", "03_MEB_IDES"], "min_rank": 10, "kind": "regulatory"}

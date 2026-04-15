@@ -44,17 +44,11 @@ CMakeLists.txt.user
 
 # -- External tools & data (own repos, large binaries) ------------------------
 runtime/
-ExtTools/
-wago/
-wago-pipeline/
 tools-dev/
 website/
-addons/
 archive/
-
-# -- In-tree addon dev branches (own repos) -----------------------------------
-TransmogBridge_vNext/
-TransmogSpy_vNext/
+# NOTE (2026-04-12): ExtTools/, wago/, addons/, TransmogBridge*, TransmogSpy* moved to CalmCore
+# (WoW-only per project principle — see CalmCore/CLAUDE.md).
 
 # -- Caches & generated data --------------------------------------------------
 cache/
@@ -169,6 +163,7 @@ tools/api_architect/*_source*.txt
 
 # -- Temp scripts (tools/) ----------------------------------------------------
 tools/_*.py
+tools/_diverged_backup/
 
 # -- Temp files at repo root ---------------------------------------------------
 .tmp_*
