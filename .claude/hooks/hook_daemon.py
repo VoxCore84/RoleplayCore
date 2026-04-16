@@ -714,9 +714,72 @@ async def handle_prompt_context_injector(data: dict) -> dict:
 
 
 # ── handle_precompact_snapshot ───────────────────────────────────────────
+
+def _read_todo_next_session(max_items: int = 5) -> "list[str]":
+    """Read the Next Session items from todo.md."""
+    # Memory files live in ~/.claude/projects/..., not in PROJECT_DIR
+    todo_path = Path(os.path.expanduser(
+        "~/.claude/projects/C--Users-atayl-VoxCore/memory/todo.md"
+    ))
+    items: "list[str]" = []
+    try:
+        text = todo_path.read_text(encoding="utf-8")
+    except (FileNotFoundError, OSError):
+        return items
+    in_next = False
+    for line in text.splitlines():
+        if line.strip().startswith("## Next Session"):
+            in_next = True
+            continue
+        if in_next:
+            if line.strip().startswith("## "):
+                break  # hit next section
+            stripped = line.strip()
+            if stripped.startswith("- [ ]"):
+                items.append(stripped[5:].strip())
+                if len(items) >= max_items:
+                    break
+    return items
+
+
+def _read_active_tab_assignment() -> str:
+    """Read this tab's assignment from session_state.md Active Tabs table."""
+    ss_path = PROJECT_DIR / "doc" / "session_state.md"
+    try:
+        text = ss_path.read_text(encoding="utf-8")
+    except (FileNotFoundError, OSError):
+        return ""
+    # Extract rows with ACTIVE status
+    active_rows: "list[str]" = []
+    for line in text.splitlines():
+        if "ACTIVE" in line and "|" in line:
+            parts = [p.strip() for p in line.split("|") if p.strip()]
+            if len(parts) >= 3:
+                active_rows.append(f"{parts[0]}: {parts[1]}")
+    return "; ".join(active_rows[:3]) if active_rows else ""
+
+
+def _find_latest_checkpoint() -> str:
+    """Find the most recent checkpoint file from this session."""
+    reports_dir = PROJECT_DIR / "AI_Studio" / "Reports"
+    try:
+        today = datetime.now().strftime("%Y-%m-%d")
+        checkpoints = sorted(
+            reports_dir.glob(f"checkpoint_{today}_*.md"), reverse=True
+        )
+        if checkpoints:
+            return str(checkpoints[0])
+    except (OSError, StopIteration):
+        pass
+    return ""
+
+
 async def handle_precompact_snapshot(data: dict) -> dict:
     """PreCompact: dump recent activity to precompact-state.json so the
-    SessionStart compact-reinject hook can restore real context."""
+    SessionStart compact-reinject hook can restore real context.
+
+    Captures: recent files, tool counts, work signals, todo items,
+    active tab assignment, and latest checkpoint path."""
     recent = _read_jsonl_recent(STATS_FILE, minutes=120)
     recent_tools: "list[str]" = []
     recent_files: "list[str]" = []
@@ -740,9 +803,6 @@ async def handle_precompact_snapshot(data: dict) -> dict:
 
     cpp_files = [f for f in unique_files if f.endswith((".cpp", ".h"))]
     sql_files = [f for f in unique_files if f.endswith(".sql")]
-    transmog_files = [
-        f for f in unique_files if "transmog" in f.lower() or "display" in f.lower()
-    ]
 
     work_signals: "list[str]" = []
     if cpp_files:
@@ -753,10 +813,13 @@ async def handle_precompact_snapshot(data: dict) -> dict:
         work_signals.append(
             f"SQL work: {', '.join(os.path.basename(f) for f in sql_files[:5])}"
         )
-    if transmog_files:
-        work_signals.append("Transmog system work detected")
     if tool_counts.get("Agent", 0) > 0:
         work_signals.append(f"Spawned {tool_counts['Agent']} subagent(s)")
+
+    # Capture task state — the key missing piece
+    todo_items = _read_todo_next_session()
+    active_tab = _read_active_tab_assignment()
+    checkpoint = _find_latest_checkpoint()
 
     snapshot = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -766,6 +829,9 @@ async def handle_precompact_snapshot(data: dict) -> dict:
         "work_signals": work_signals,
         "cpp_files_touched": cpp_files,
         "sql_files_touched": sql_files,
+        "todo_items": todo_items,
+        "active_tab": active_tab,
+        "checkpoint": checkpoint,
     }
     try:
         PRECOMPACT_STATE.parent.mkdir(parents=True, exist_ok=True)

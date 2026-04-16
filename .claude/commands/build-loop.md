@@ -6,6 +6,10 @@ paths: src/**/*.cpp, src/**/*.h, src/**/*.hpp, CMakeLists.txt, CMakePresets.json
 
 # Build-Fix Loop
 
+## Next Step
+
+After a successful build and server restart, run `/check-logs` to verify no runtime errors.
+
 ## Instructions
 
 Run an iterative build-fix cycle on the VoxCore project.

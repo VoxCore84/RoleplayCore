@@ -7,6 +7,10 @@ description: Prepare a legal filing — pull requirements, search evidence, draf
 
 Prepare a draft legal filing by pulling form requirements, searching the case archive for relevant evidence, and drafting the narrative sections with citations.
 
+## Next Step
+
+After drafting, check evidence completeness with `/evidence-gap <filing-type>`. Then draft the transmittal email with `/draft-email`.
+
 ## Arguments
 
 The user specifies:

@@ -35,3 +35,10 @@ Example: `/new-sql-update world fix missing spawns`
 
    ```
 5. Report the created file path so the user can start editing
+
+## Next Step
+
+After editing the SQL:
+- If it contains SmartAI: run `/smartai-check <file>` to validate
+- Then apply with `/apply-sql <db> <file>`
+- Or run `/sql-pipeline <db>` to do the full lifecycle in one command

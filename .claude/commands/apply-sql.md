@@ -25,3 +25,8 @@ Example: `/apply-sql world sql/fixes/my_fix.sql`
 2. Verify the SQL file exists using Read (first 20 lines to confirm content)
 3. Apply it using: `echo "SET innodb_lock_wait_timeout=120;" | cat - <file> | "C:/Program Files/MySQL/MySQL Server 8.0/bin/mysql.exe" -u root -padmin <database>`
 4. Report success or failure concisely
+
+## Next Step
+
+After applying, verify no DB errors were introduced:
+- Run `/check-logs` to scan for new errors in DBErrors.log and Server.log

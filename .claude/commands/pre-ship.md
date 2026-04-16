@@ -13,6 +13,10 @@ Combines automated mechanical checks with multi-agent adversarial review.
 
 $ARGUMENTS — Path to the project directory (e.g., `tools/publishable/VoxGM`) and optionally the project type: `addon`, `python`, `cpp`, or `hybrid`. If type is omitted, detect from file extensions.
 
+## Next Step
+
+If blockers found, fix them with `/release-gate-fix <path>` then re-run this audit. Or use `/ship <path>` for the full audit-fix-reaudit loop.
+
 ## Phase 1: Identify the Project
 
 1. Parse $ARGUMENTS to get the project path and type

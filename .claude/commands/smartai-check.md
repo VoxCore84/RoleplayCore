@@ -60,3 +60,9 @@ $ARGUMENTS should be a path to a SQL file containing `INSERT` or `DELETE`/`INSER
 3. Run the script
 4. If no issues found, say "All checks passed"
 5. If issues found, list them clearly with suggested fixes
+
+## Next Step
+
+After validation passes, apply the SQL:
+- Run `/apply-sql <db> <file>` to apply to the database
+- Then `/check-logs` to verify no DB errors

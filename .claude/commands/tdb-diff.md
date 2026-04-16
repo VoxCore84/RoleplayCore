@@ -8,6 +8,10 @@ paths: sql/**/*.sql
 
 Compare a local database table against the latest TrinityCore TDB release to find missing or divergent rows.
 
+## Next Step
+
+After generating the diff SQL, apply it with `/apply-sql <db> <generated-file>`, then `/check-logs` to verify.
+
 ## Arguments
 
 $ARGUMENTS — required: table name (e.g., `spell_script_names`, `creature_template`, `conditions`) and optionally `--download` to force re-download

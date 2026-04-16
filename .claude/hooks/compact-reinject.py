@@ -21,13 +21,14 @@ import sys
 SNAPSHOT_FILE = os.path.expanduser("~/.claude/precompact-state.json")
 
 STATIC_REMINDERS = """POST-COMPACTION CONTEXT REMINDER:
-- Building from Claude Code IS allowed (ninja -j32). VS IDE also works
 - DESCRIBE tables before writing SQL (Anti-Theater Protocol)
 - Check doc/session_state.md before touching shared files (multi-tab locking)
-- Use /wrap-up at end of session
-- 5 custom agents: researcher (haiku), sql-writer (sonnet), log-analyst (haiku), packet-analyzer (haiku), code-writer (opus)
-- 7 rules files in .claude/rules/ — loaded on-demand when touching relevant code
-- 19 skills in .claude/commands/ — proactively remind user of relevant ones"""
+- Use /wrap-up at end of session — NEVER skip
+- 60+ skills in .claude/commands/ — proactively remind user of relevant ones
+- 16+ custom agents in .claude/agents/ — use appropriate subagent_type
+- 10+ rules files in .claude/rules/ — loaded on-demand when touching relevant code
+- Re-read MEMORY.md routing table if unsure which topic files to consult
+- Legal/case work: cite sources, use confidence tiers, Case_Reference is READ-ONLY"""
 
 
 def load_dynamic_state() -> str:
@@ -63,6 +64,21 @@ def load_dynamic_state() -> str:
     sql = snapshot.get("sql_files_touched", [])
     if sql:
         parts.append(f"SQL files touched (may need /apply-sql): {', '.join(os.path.basename(f) for f in sql[:5])}")
+
+    # Task state — the key addition for context continuity
+    todo_items = snapshot.get("todo_items", [])
+    if todo_items:
+        parts.append("PENDING TASKS from todo.md:")
+        for item in todo_items:
+            parts.append(f"  - {item}")
+
+    active_tab = snapshot.get("active_tab", "")
+    if active_tab:
+        parts.append(f"ACTIVE TAB ASSIGNMENT: {active_tab}")
+
+    checkpoint = snapshot.get("checkpoint", "")
+    if checkpoint:
+        parts.append(f"SESSION CHECKPOINT available — read {checkpoint} to restore full state")
 
     return "\n".join(parts)
 

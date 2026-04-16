@@ -7,6 +7,10 @@ description: Generate a 1-page executive summary for a specific audience (attorn
 
 Generate a focused, 500-word executive summary of the case tailored to a specific audience.
 
+## Next Step
+
+After generating the summary, draft the transmittal email with `/draft-email <recipient>`.
+
 ## Arguments
 
 The user provides the target audience:

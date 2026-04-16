@@ -59,6 +59,23 @@
 | DB errors, orphan references, data quality concerns | `/db-lint [db]` — scan for common issues, generate fix SQL |
 | Comparing local DB against upstream TrinityCore | `/tdb-diff <table>` — download TDB, diff, generate update SQL |
 
+## Workflow Chains — Suggest Combos When Steps Are Manual
+
+When the user is doing steps from a chain manually, suggest the combo skill instead.
+
+| Pattern Detected | Suggest |
+|---|---|
+| User creates SQL file, then validates, then applies | `/sql-pipeline <db>` — full lifecycle in one command |
+| User runs `/case-status` then `/deadlines` then `/lane-map` | `/case-brief` — all three in one view |
+| User runs `/pre-ship` then `/release-gate-fix` then re-audits | `/ship <path>` — audit-fix-reaudit loop |
+| User fetches a USAJobs posting then tailors resume | `/apply-job <url>` — fetch + tailor in one command |
+| User runs `/desktop-triage` then `/file-sort` | `/triage [dir]` — combined triage + sort with approval gates |
+| User runs `/one-pager` then `/draft-email` | Suggest: "Want me to draft the email to send this?" |
+| User runs `/filing-prep` then `/evidence-gap` | Suggest: "Want me to check evidence gaps for this filing?" |
+| User runs `/tdb-diff` then manually applies the SQL | Suggest: "Want me to apply the generated SQL with `/apply-sql`?" |
+| User runs `/build-loop` and server restarts | Auto-run `/check-logs` — always safe, read-only |
+| User runs `/ex-status` and stale items appear | Suggest: "Stale items found — run `/ex-refresh` when ready?" (never auto-invoke) |
+
 **Rules:**
 - If in doubt, ask. A one-line reminder is cheap; forgetting `/wrap-up` loses work.
 - Never skip `/wrap-up` at end of session.

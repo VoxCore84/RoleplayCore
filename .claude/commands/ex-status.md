@@ -7,6 +7,10 @@ description: Use when you want to know what's stale, what's missing, or what nee
 
 Display the operational health of `C:\Users\atayl\Desktop\Excluded\` — what's extracted, what's indexed, what's stale, what's missing. This is the "situation report" for the most important corpus in the workspace.
 
+## Next Step
+
+If stale items found, fix them with `/ex-refresh [folder]` (user must explicitly request — never auto-invoke).
+
 ## Invocation
 
 `/ex-status` — full dashboard
