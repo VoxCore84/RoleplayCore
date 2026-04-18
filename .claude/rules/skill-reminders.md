@@ -8,6 +8,7 @@
 | Server restart, crash, debugging begins | `/check-logs` — just run it |
 | Build error pasted | `/parse-errors` — just run it |
 | C++ file edited, work complete | Remind: "Ready to build" — use `_build_ps.ps1` or VS |
+| Claiming completion on any deliverable | Run `python tools/validate_deliverable.py <path>` — catch hallucination + structure issues |
 | User asks to audit code quality, find bugs, review custom systems | `/code-audit [dir]` — fan out parallel agents |
 | SQL file created/edited | `/smartai-check` (if SmartAI) or `/apply-sql` |
 | Writing new SQL update | `/new-sql-update` — run for filename |

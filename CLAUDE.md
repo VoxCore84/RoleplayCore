@@ -85,3 +85,5 @@ Before shipping any addon, tool, or app: run `/pre-ship <path>`. It runs automat
 ## Reference (loaded on-demand from `.claude/rules/`)
 - **Project structure, build, DBs, systems, key files, tools** → `project-reference.md`
 - **C++ coding conventions** → `coding-conventions.md`
+- **Protocol/binary work gate (dump before implement)** → `protocol-gate.md`
+- **Compaction survival (auto-write state to disk)** → `compaction-survival.md`
