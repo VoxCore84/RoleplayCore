@@ -4,12 +4,9 @@ import json
 import datetime
 from pathlib import Path
 
-# Setup Pathing per Aegis Contract
 TOOLS_DIR = Path(__file__).resolve().parent.parent
 VOXCORE_ROOT = TOOLS_DIR.parent
-sys.path.append(str(VOXCORE_ROOT / "scripts" / "bootstrap"))
 
-import resolve_roots
 
 def _format_architectural_decisions(decisions: list) -> str:
     out = ""

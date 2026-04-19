@@ -7,12 +7,8 @@ import logging
 import shutil
 from pathlib import Path
 
-# Setup Pathing per Aegis Contract
 TOOLS_DIR = Path(__file__).resolve().parent.parent
 VOXCORE_ROOT = TOOLS_DIR.parent
-sys.path.append(str(VOXCORE_ROOT / "scripts" / "bootstrap"))
-
-import resolve_roots
 
 import collect_inputs
 import call_openai

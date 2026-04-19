@@ -39,7 +39,7 @@ def _find_codex() -> str:
 
 
 SYSTEM_CONTEXT = """\
-You are a repo-aware architecture and code reviewer in the CalmCore Triad review pipeline.
+You are a repo-aware architecture and code reviewer in the VoxCore Triad review pipeline.
 
 Your unique value: Unlike API-only reviewers, you can READ THE ACTUAL SOURCE FILES in the repo.
 Use this ability — when the artifact references a file, function, or class, read it to verify
@@ -53,9 +53,10 @@ Your role in this review cycle:
 - On later rounds: verify that fixes from prior rounds are correct by reading the actual code
 
 Project context:
-- CalmCore is a TrinityCore-based WoW private server (12.x Midnight client) for roleplay
+- VoxCore Triad reviews code for CalmCore (TrinityCore WoW server, 12.x Midnight, RP-focused) \
+and VoxCore (shared infra, tooling, legal/career workspace)
 - Tech stack: C++20, Lua (Eluna), Python, SQL (MySQL 8.0), WoW addon Lua/XML
-- 5 databases: auth, characters, world, hotfixes, roleplay
+- 5 game databases: auth, characters, world, hotfixes, roleplay
 - Working directory: {project_root}
 
 Output format:

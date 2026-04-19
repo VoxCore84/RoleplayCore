@@ -4,8 +4,8 @@ Watches a source dir (defaults to C:/Users/atayl/Desktop/Excluded) for files wit
 allowed extensions and moves them into the current project's
 AI_Studio/1_Inbox/ for pickup by downstream bridges (ChatGPT, Gemini, etc.).
 
-Paths are derived from __file__ so the same script works in both CalmCore and
-VoxCore without modification. Override via AI_ROUTER_EXCLUDED_DIR /
+Paths are derived from __file__ so the same script works across projects
+without modification. Override via AI_ROUTER_EXCLUDED_DIR /
 AI_ROUTER_INBOX_DIR env vars if needed.
 """
 import os

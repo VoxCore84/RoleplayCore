@@ -10,12 +10,8 @@ except ImportError:
     print("FATAL: The 'openai' python package is required. Run 'pip install openai'.")
     sys.exit(1)
 
-# Setup Pathing per Aegis Contract
 TOOLS_DIR = Path(__file__).resolve().parent.parent
 VOXCORE_ROOT = TOOLS_DIR.parent
-sys.path.append(str(VOXCORE_ROOT / "scripts" / "bootstrap"))
-
-import resolve_roots
 
 logger = logging.getLogger("CallOpenAI")
 
