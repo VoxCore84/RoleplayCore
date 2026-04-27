@@ -1592,6 +1592,53 @@ async def handle_build_failure_chain(data: dict) -> dict:
 
 
 # ── DB failure: match against known gotchas ──────────────────────────────
+_TABLE_FROM_SQL_RE = re.compile(
+    r"\b(?:FROM|INTO|UPDATE|JOIN|TABLE|DESCRIBE)\s+`?(\w+)`?", re.I
+)
+_TABLE_FROM_ERROR_RE = re.compile(r"Table '(?:\w+\.)?(\w+)'", re.I)
+_TRIBAL_KNOWLEDGE_PATH = PROJECT_DIR / "tools" / "mcp-voxcore-db" / "data" / "tribal_knowledge.json"
+_tribal_cache: "list[dict] | None" = None
+
+
+def _extract_table_names(sql: str, error_msg: str) -> "list[str]":
+    """Extract table names from SQL statement and/or MySQL error message."""
+    tables: "set[str]" = set()
+    for m in _TABLE_FROM_SQL_RE.finditer(sql):
+        tables.add(m.group(1).lower())
+    for m in _TABLE_FROM_ERROR_RE.finditer(error_msg):
+        tables.add(m.group(1).lower())
+    return list(tables)
+
+
+def _lookup_tribal_by_tables(table_names: "list[str]") -> "list[dict]":
+    """Load tribal_knowledge.json and find entries matching extracted table names."""
+    global _tribal_cache
+    if _tribal_cache is None:
+        if not _TRIBAL_KNOWLEDGE_PATH.is_file():
+            return []
+        try:
+            with open(_TRIBAL_KNOWLEDGE_PATH, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            _tribal_cache = data.get("rules", []) if isinstance(data, dict) else data
+        except Exception:
+            return []
+
+    matches: "list[dict]" = []
+    table_set = set(table_names)
+    for entry in _tribal_cache:
+        entry_tables = entry.get("tables", [])
+        if isinstance(entry_tables, str):
+            entry_tables = [entry_tables]
+        if {t.lower() for t in entry_tables} & table_set:
+            matches.append(entry)
+            continue
+        wrong = entry.get("wrong", "").lower()
+        if any(t in wrong for t in table_names):
+            matches.append(entry)
+
+    return matches
+
+
 DB_GOTCHAS = [
     (re.compile(r"Table '(\w+)\.item_template'", re.I),
      "item_template doesn't exist — use hotfixes.item / hotfixes.item_sparse"),
@@ -1638,7 +1685,17 @@ async def handle_db_failure_chain(data: dict) -> dict:
     if sql:
         parts.append(f"\n  Failed SQL (truncated): {sql[:200]}")
 
-    if not matched_gotchas:
+    table_names = _extract_table_names(sql, raw_response)
+    if table_names:
+        tribal_matches = _lookup_tribal_by_tables(table_names)
+        if tribal_matches:
+            parts.append("\n  TRIBAL KNOWLEDGE (table-matched):")
+            for tk in tribal_matches:
+                parts.append(f"    [{tk.get('id', '?')}] {tk.get('summary', '?')}")
+                if tk.get("guidance"):
+                    parts.append(f"      → {tk['guidance']}")
+
+    if not matched_gotchas and not (table_names and tribal_matches):
         parts.append("\n  No known gotcha matched — DESCRIBE the target table to verify schema")
 
     return {"systemMessage": "\n".join(parts)}
