@@ -105,6 +105,30 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "http",
+            "url": "http://127.0.0.1:19484/hook/tab-ownership-check",
+            "timeout": 2,
+            "statusMessage": "Checking tab ownership..."
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "prompt",
+            "if": "Write(*publishable*)|Edit(*publishable*)",
+            "model": "haiku",
+            "timeout": 15,
+            "prompt": "You are a pre-publish quality gate for a WoW addon/tool. Check if this code contains any of: (1) debug print/console.log/print() statements, (2) hardcoded test values or localhost URLs, (3) TODO/FIXME/HACK comments, (4) commented-out code blocks >3 lines, (5) API keys or credentials. Content being written: $ARGUMENTS. Respond ONLY with JSON: {\"decision\": \"allow\"} if clean, or {\"decision\": \"block\", \"reason\": \"[specific issue found]\"} if problems detected. Be strict — this is shipping to users.",
+            "statusMessage": "Publish quality gate..."
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -151,9 +175,57 @@
             "timeout": 2
           }
         ]
+      },
+      {
+        "matcher": "mcp__voxcore-server__restart|mcp__voxcore-server__start",
+        "hooks": [
+          {
+            "type": "mcp_tool",
+            "server": "voxcore-server",
+            "tool": "tail_log",
+            "input": { "log": "server", "lines": 30, "pattern": "ERROR|FATAL|WARNING|World initialized" },
+            "timeout": 10,
+            "statusMessage": "Auto-checking server log..."
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__voxcore-db__safe_apply",
+        "hooks": [
+          {
+            "type": "mcp_tool",
+            "server": "voxcore-server",
+            "tool": "tail_log",
+            "input": { "log": "dberrors", "lines": 20 },
+            "timeout": 10,
+            "statusMessage": "Auto-checking DB error log..."
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__voxcore-server__build",
+        "hooks": [
+          {
+            "type": "mcp_tool",
+            "server": "voxcore-server",
+            "tool": "tail_log",
+            "input": { "log": "dberrors", "lines": 15 },
+            "timeout": 10,
+            "statusMessage": "Checking for DB errors post-build..."
+          }
+        ]
       }
     ],
     "PostToolUseFailure": [
+      {
+        "hooks": [
+          {
+            "type": "http",
+            "url": "http://127.0.0.1:19484/hook/session-stats",
+            "timeout": 2
+          }
+        ]
+      },
       {
         "matcher": "Read",
         "hooks": [
@@ -161,6 +233,89 @@
             "type": "http",
             "url": "http://127.0.0.1:19484/hook/docx-auto-extract",
             "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__voxcore-db__query|mcp__voxcore-db__safe_apply",
+        "hooks": [
+          {
+            "type": "mcp_tool",
+            "server": "voxcore-db",
+            "tool": "tribal_knowledge",
+            "input": { "keyword": "${tool_input.database}" },
+            "timeout": 5,
+            "statusMessage": "Fetching DB tribal knowledge..."
+          },
+          {
+            "type": "http",
+            "url": "http://127.0.0.1:19484/hook/db-failure-chain",
+            "timeout": 3,
+            "statusMessage": "Analyzing DB failure..."
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__voxcore-server__start|mcp__voxcore-server__restart",
+        "hooks": [
+          {
+            "type": "mcp_tool",
+            "server": "voxcore-server",
+            "tool": "tail_log",
+            "input": { "log": "server", "lines": 50, "pattern": "ERROR|FATAL|ABORT|Cannot bind" },
+            "timeout": 10,
+            "statusMessage": "Diagnosing server startup failure..."
+          },
+          {
+            "type": "http",
+            "url": "http://127.0.0.1:19484/hook/server-failure-chain",
+            "timeout": 5,
+            "statusMessage": "Analyzing startup failure..."
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__voxcore-server__build",
+        "hooks": [
+          {
+            "type": "http",
+            "url": "http://127.0.0.1:19484/hook/build-failure-chain",
+            "timeout": 5,
+            "statusMessage": "Analyzing build failure..."
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pythonw \"$CLAUDE_PROJECT_DIR/.claude/hooks/daemon_shim.py\"",
+            "timeout": 5,
+            "statusMessage": "Starting hook daemon..."
+          }
+        ]
+      },
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pythonw \"$CLAUDE_PROJECT_DIR/.claude/hooks/compact-reinject.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "http",
+            "url": "http://127.0.0.1:19484/hook/cowork-sync",
+            "timeout": 60,
+            "statusMessage": "Full bridge sync..."
           }
         ]
       }
@@ -177,6 +332,22 @@
             "type": "http",
             "url": "http://127.0.0.1:19484/hook/cowork-sync",
             "timeout": 2
+          },
+          {
+            "type": "http",
+            "url": "http://127.0.0.1:19484/hook/session-stats",
+            "timeout": 2
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "http",
+            "url": "http://127.0.0.1:19484/hook/session-stats",
+            "timeout": 2
           }
         ]
       }
@@ -188,6 +359,17 @@
             "type": "http",
             "url": "http://127.0.0.1:19484/hook/subagent-complete",
             "timeout": 3
+          }
+        ]
+      }
+    ],
+    "ConfigChange": [
+      {
+        "hooks": [
+          {
+            "type": "http",
+            "url": "http://127.0.0.1:19484/hook/session-stats",
+            "timeout": 2
           }
         ]
       }

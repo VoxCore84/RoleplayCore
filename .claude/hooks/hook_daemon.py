@@ -53,7 +53,7 @@ LOG_FILE = USER_CLAUDE / "hook_daemon.log"
 STATS_FILE = USER_CLAUDE / "session-stats.jsonl"
 PRECOMPACT_STATE = USER_CLAUDE / "precompact-state.json"
 
-DAEMON_VERSION = "1.1.0"
+DAEMON_VERSION = "1.3.0"
 START_TIME = time.time()
 IN_FLIGHT: "set[asyncio.Task]" = set()
 SHUTDOWN_EVENT: "asyncio.Event | None" = None  # set in main()
@@ -64,6 +64,14 @@ CODEBASE_DB_PATH = PROJECT_DIR / ".cache" / "codebase.db"
 
 # ── Feature #2: Digest staleness tracking ────────────────────────────────
 DIGEST_CACHE_DIR = PROJECT_DIR / ".cache" / "source_digests"
+
+# ── Server runtime paths (from tools/mcp-config.toml) ───────────────────
+RUNTIME_DIR = Path("C:/Users/atayl/CalmCore/out/build/x64-RelWithDebInfo/bin/RelWithDebInfo")
+SERVER_LOG = RUNTIME_DIR / "Server.log"
+DBERRORS_LOG = RUNTIME_DIR / "DBErrors.log"
+
+# ── Auto-calibrated thresholds file ─────────────────────────────────────
+THRESHOLDS_FILE = USER_CLAUDE / "tool-thresholds.json"
 
 # ── Feature #9: Triad reminder — track new C++ lines per session ────────
 SESSION_CPP_NEW_LINES = 0
@@ -821,11 +829,28 @@ async def handle_precompact_snapshot(data: dict) -> dict:
     active_tab = _read_active_tab_assignment()
     checkpoint = _find_latest_checkpoint()
 
+    # Duration stats for performance context across compaction
+    durations: "dict[str, list[float]]" = {}
+    for entry in recent:
+        ms = entry.get("duration_ms")
+        tool = entry.get("tool", "")
+        if ms is not None and tool:
+            durations.setdefault(tool, []).append(float(ms))
+    perf_summary: "dict[str, dict]" = {}
+    for tool, vals in durations.items():
+        s = sorted(vals)
+        perf_summary[tool] = {
+            "count": len(s),
+            "median_ms": round(s[len(s) // 2]),
+            "max_ms": round(max(s)),
+        }
+
     snapshot = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "trigger": data.get("trigger", "unknown"),
         "recent_files": unique_files,
         "tool_usage": dict(tool_counts.most_common(10)),
+        "tool_performance": perf_summary,
         "work_signals": work_signals,
         "cpp_files_touched": cpp_files,
         "sql_files_touched": sql_files,
@@ -961,8 +986,51 @@ async def handle_docx_auto_extract(data: dict) -> dict:
 # ═══════════════════════════════════════════════════════════════════════
 
 # ── handle_session_stats ─────────────────────────────────────────────────
+SLOW_TOOL_DEFAULTS_MS = {
+    "mcp__codeintel__find_definition": 15000,
+    "mcp__codeintel__hover_info": 20000,
+    "mcp__codeintel__call_hierarchy": 20000,
+    "mcp__docs-rag__docs_rag_search": 15000,
+    "mcp__arcanum__arcanum_search": 10000,
+    "mcp__voxcore-db__query": 10000,
+    "mcp__voxcore-db__safe_apply": 30000,
+    "mcp__voxcore-server__build": 600000,
+    "Agent": 120000,
+    "Bash": 60000,
+}
+SLOW_TOOL_DEFAULT_MS = 30000
+SLOW_TOOL_THRESHOLDS_MS: "dict[str, int]" = {}  # populated on startup
+
+
+def _load_slow_tool_thresholds() -> "dict[str, int]":
+    """Merge hardcoded defaults with auto-calibrated thresholds from disk."""
+    merged = dict(SLOW_TOOL_DEFAULTS_MS)
+    if THRESHOLDS_FILE.exists():
+        try:
+            data = json.loads(THRESHOLDS_FILE.read_text(encoding="utf-8"))
+            for tool, info in data.items():
+                if isinstance(info, dict) and "threshold_ms" in info:
+                    merged[tool] = int(info["threshold_ms"])
+            log.info("Loaded %d calibrated thresholds from %s", len(data), THRESHOLDS_FILE.name)
+        except Exception:
+            log.exception("Failed to load calibrated thresholds")
+    return merged
+
+
 async def handle_session_stats(data: dict) -> dict:
     asyncio.create_task(_session_stats_write(data))
+    duration = data.get("duration_ms")
+    tool = data.get("tool_name", "")
+    if duration is not None and tool:
+        threshold = SLOW_TOOL_THRESHOLDS_MS.get(tool, SLOW_TOOL_DEFAULT_MS)
+        if duration > threshold:
+            secs = duration / 1000
+            return {
+                "systemMessage": (
+                    f"[perf] {tool} took {secs:.1f}s (threshold: {threshold/1000:.0f}s). "
+                    f"Consider: is this tool call necessary, or is there a faster path?"
+                )
+            }
     return {}
 
 
@@ -973,6 +1041,9 @@ async def _session_stats_write(data: dict) -> None:
         "tool": data.get("tool_name", ""),
         "session": data.get("session_id", ""),
     }
+    duration = data.get("duration_ms")
+    if duration is not None:
+        entry["duration_ms"] = duration
     tool_input = _get_tool_input(data)
     for key in ("file_path", "path", "pattern"):
         if key in tool_input:
@@ -1343,6 +1414,286 @@ async def handle_block_recurring_cron(data: dict) -> dict:
     return {}
 
 
+# ── handle_tab_ownership_check ──────────────────────────────────────────
+SHARED_FILES = {"session_state.md", "0_central_brain.md", "central_brain.md", "todo.md"}
+SESSION_STATE_PATH = PROJECT_DIR / "doc" / "session_state.md"
+
+
+def _parse_active_tabs(text: str) -> "list[dict]":
+    """Parse the Active Tabs table from session_state.md.
+    Returns list of {tab, status, owns, assignment} dicts for ACTIVE rows."""
+    tabs: "list[dict]" = []
+    in_table = False
+    col_map: "list[str]" = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if "active tabs" in stripped.lower() and stripped.startswith("#"):
+            in_table = True
+            continue
+        if in_table and "|" in stripped:
+            cells = [c.strip() for c in stripped.split("|") if c.strip()]
+            if not col_map:
+                col_map = [c.lower() for c in cells]
+                continue
+            if all(set(c) <= {"-", ":"} for c in cells):
+                continue
+            if stripped.startswith("#"):
+                break
+            row: "dict[str, str]" = {}
+            for i, col in enumerate(col_map):
+                row[col] = cells[i] if i < len(cells) else ""
+            if "active" in row.get("status", "").upper():
+                tabs.append(row)
+        elif in_table and stripped.startswith("#"):
+            break
+    return tabs
+
+
+async def handle_tab_ownership_check(data: dict) -> dict:
+    """PreToolUse(Edit|Write): block if file is owned by another active tab.
+    Checks both exact basename match (shared coordination files) and
+    directory-prefix match (e.g., tab claims 'src/server/game/Companion/')."""
+    tool_name = data.get("tool_name", "")
+    if tool_name not in ("Edit", "Write"):
+        return {}
+    file_path = _get_tool_input(data).get("file_path", "")
+    if not file_path:
+        return {}
+    if not SESSION_STATE_PATH.exists():
+        return {}
+
+    basename = os.path.basename(file_path).lower()
+    norm_path = _normalize_path(file_path)
+
+    text = await asyncio.to_thread(
+        lambda: SESSION_STATE_PATH.read_text(encoding="utf-8", errors="replace")
+    )
+    active_tabs = _parse_active_tabs(text)
+    if len(active_tabs) < 2:
+        return {}
+
+    for tab in active_tabs:
+        owns = tab.get("owns", "").lower()
+        tab_name = tab.get("tab", tab.get("name", "unknown"))
+        owned_items = [o.strip() for o in owns.split(",") if o.strip()]
+        for item in owned_items:
+            item_norm = item.replace("\\", "/").lower()
+            if basename == item_norm:
+                return _tab_conflict_block(basename, tab_name)
+            if item_norm.endswith("/") and item_norm in norm_path:
+                return _tab_conflict_block(item.strip(), tab_name)
+            if not item_norm.endswith("/") and "/" in item_norm and item_norm in norm_path:
+                return _tab_conflict_block(item.strip(), tab_name)
+    return {}
+
+
+def _tab_conflict_block(matched: str, tab_name: str) -> dict:
+    return {
+        "decision": "block",
+        "reason": (
+            f"TAB OWNERSHIP CONFLICT: '{matched}' is claimed by tab '{tab_name}' "
+            f"in doc/session_state.md. Coordinate via the patch-file handoff pattern "
+            f"(write to AI_Studio/Reports/ with merge instructions) instead of "
+            f"editing directly. Or re-read session_state.md to update tab assignments."
+        ),
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════
+# SECTION G.1 — Chain handlers (reactive pipeline: tool event → analyze → suggest)
+# These read tool_response from completed/failed tools and provide
+# composite analysis that single MCP tool hooks can't do.
+# ═══════════════════════════════════════════════════════════════════════
+
+def _tail_log_sync(log_path: Path, n: int = 30, pattern: "str | None" = None) -> "list[str]":
+    """Read last N lines from a log file. Optionally filter by regex."""
+    if not log_path.exists():
+        return []
+    try:
+        with open(log_path, "r", encoding="utf-8", errors="replace") as f:
+            lines = f.readlines()
+        tail = lines[-n:]
+        if pattern:
+            pat = re.compile(pattern, re.I)
+            tail = [l for l in tail if pat.search(l)]
+        return [l.rstrip() for l in tail]
+    except Exception:
+        return []
+
+
+# ── Build errors: common MSVC/ninja patterns ────────────────────────────
+_MSVC_ERROR = re.compile(r":\s*(?:fatal\s+)?error\s+(C\d+|LNK\d+):\s*(.+)", re.I)
+_MSVC_WARNING = re.compile(r":\s*warning\s+(C\d+):\s*(.+)", re.I)
+_MISSING_INCLUDE = re.compile(r"cannot open include file:\s*'([^']+)'", re.I)
+_UNDEF_SYMBOL = re.compile(r"unresolved external symbol\s+(.+)", re.I)
+
+
+async def handle_build_failure_chain(data: dict) -> dict:
+    """PostToolUseFailure(build): parse errors, read DBErrors.log, surface diagnosis."""
+    raw = str(data.get("tool_response", ""))
+
+    errors: "list[str]" = []
+    warnings: "list[str]" = []
+    missing_includes: "list[str]" = []
+    undef_symbols: "list[str]" = []
+
+    for line in raw.splitlines():
+        m = _MSVC_ERROR.search(line)
+        if m:
+            errors.append(f"{m.group(1)}: {m.group(2).strip()}")
+        elif _MSVC_WARNING.search(line):
+            warnings.append(line.strip())
+
+        mi = _MISSING_INCLUDE.search(line)
+        if mi:
+            missing_includes.append(mi.group(1))
+
+        us = _UNDEF_SYMBOL.search(line)
+        if us:
+            undef_symbols.append(us.group(1).strip()[:80])
+
+    db_errors = await asyncio.to_thread(_tail_log_sync, DBERRORS_LOG, 15, "ERROR")
+
+    parts = ["[chain] BUILD FAILURE ANALYSIS:"]
+
+    if errors:
+        parts.append(f"\n  Compile/link errors: {len(errors)}")
+        for e in errors[:5]:
+            parts.append(f"    {e[:200]}")
+        if len(errors) > 5:
+            parts.append(f"    ... and {len(errors) - 5} more")
+
+    if missing_includes:
+        unique = list(dict.fromkeys(missing_includes))
+        parts.append(f"\n  Missing includes: {', '.join(unique[:5])}")
+        parts.append("    FIX: Check #include paths, verify header exists, run CMake configure")
+
+    if undef_symbols:
+        unique = list(dict.fromkeys(undef_symbols))
+        parts.append(f"\n  Unresolved symbols: {len(unique)}")
+        for s in unique[:3]:
+            parts.append(f"    {s}")
+        parts.append("    FIX: Check custom_script_loader.cpp registration, verify .cpp is in CMakeLists")
+
+    if warnings:
+        parts.append(f"\n  Warnings: {len(warnings)}")
+
+    if db_errors:
+        parts.append(f"\n  Recent DB errors (may be related): {len(db_errors)}")
+        for e in db_errors[:3]:
+            parts.append(f"    {e[:200]}")
+
+    if errors or missing_includes or undef_symbols:
+        parts.append("\n  SUGGESTED: /parse-errors for full categorization, or /build-loop for iterative fix")
+    elif not errors and not db_errors:
+        parts.append("\n  No MSVC errors parsed from output — check raw build output for details")
+
+    return {"systemMessage": "\n".join(parts)}
+
+
+# ── DB failure: match against known gotchas ──────────────────────────────
+DB_GOTCHAS = [
+    (re.compile(r"Table '(\w+)\.item_template'", re.I),
+     "item_template doesn't exist — use hotfixes.item / hotfixes.item_sparse"),
+    (re.compile(r"Table '(\w+)\.broadcast_text'", re.I),
+     "broadcast_text not in world — use hotfixes.broadcast_text"),
+    (re.compile(r"Unknown column '(?:FactionID|faction_id)'", re.I),
+     "creature_template uses 'faction' (not FactionID)"),
+    (re.compile(r"Column count doesn't match", re.I),
+     "Column count mismatch — DESCRIBE the table first to verify column count and order"),
+    (re.compile(r"Duplicate entry '(\S+)' for key", re.I),
+     "Primary key conflict — check if this entry already exists (use INSERT IGNORE or REPLACE)"),
+    (re.compile(r"Table '(\S+)' doesn't exist", re.I),
+     "Table doesn't exist — check database name and verify schema (DESCRIBE first)"),
+    (re.compile(r"Unknown column '(\S+)'", re.I),
+     "Unknown column — DESCRIBE the table to see actual column names. Common gotchas: "
+     "'faction' not 'FactionID', 'npcflag' is bigint, spell_name has composite PK"),
+    (re.compile(r"Access denied", re.I),
+     "Access denied — check credentials (default: root/admin on port 3306)"),
+    (re.compile(r"Can't connect|Lost connection|server has gone away", re.I),
+     "Connection lost — is MySQL running? Check UniServerZ status"),
+]
+
+
+async def handle_db_failure_chain(data: dict) -> dict:
+    """PostToolUseFailure(query|safe_apply): parse MySQL error, match gotchas, suggest fix."""
+    tool_input = _get_tool_input(data)
+    raw_response = str(data.get("tool_response", ""))
+    sql = tool_input.get("sql", "")[:500]
+    database = tool_input.get("database", "?")
+
+    parts = [f"[chain] DB FAILURE ANALYSIS (database: {database}):"]
+    parts.append(f"  Error: {raw_response[:300]}")
+
+    matched_gotchas: "list[str]" = []
+    for pattern, fix in DB_GOTCHAS:
+        if pattern.search(raw_response):
+            matched_gotchas.append(fix)
+
+    if matched_gotchas:
+        parts.append("\n  KNOWN GOTCHAS matched:")
+        for g in matched_gotchas:
+            parts.append(f"    → {g}")
+
+    if sql:
+        parts.append(f"\n  Failed SQL (truncated): {sql[:200]}")
+
+    if not matched_gotchas:
+        parts.append("\n  No known gotcha matched — DESCRIBE the target table to verify schema")
+
+    return {"systemMessage": "\n".join(parts)}
+
+
+# ── Server startup failure: read log, diagnose ──────────────────────────
+SERVER_FAILURE_PATTERNS = [
+    (re.compile(r"Cannot bind|Address already in use", re.I),
+     "Port already in use — another worldserver or process is bound to the port. "
+     "Check with: tasklist | findstr worldserver"),
+    (re.compile(r"mysql_real_connect|Can't connect to MySQL", re.I),
+     "MySQL not running — start UniServerZ MySQL first"),
+    (re.compile(r"Table '(\S+)' doesn't exist", re.I),
+     "Missing table — run pending SQL migrations. Check sql/updates/pending/"),
+    (re.compile(r"Assertion|ASSERT", re.I),
+     "Assertion failure — likely a code bug. Check the assertion message for file:line"),
+    (re.compile(r"FATAL", re.I),
+     "Fatal error during startup — check Server.log for the full stack"),
+]
+
+
+async def handle_server_failure_chain(data: dict) -> dict:
+    """PostToolUseFailure(start|restart): read server log, diagnose startup failure."""
+    raw_response = str(data.get("tool_response", ""))
+
+    log_lines = await asyncio.to_thread(
+        _tail_log_sync, SERVER_LOG, 50, r"ERROR|FATAL|ABORT|Cannot bind|ASSERT"
+    )
+
+    parts = ["[chain] SERVER STARTUP FAILURE ANALYSIS:"]
+
+    if raw_response:
+        parts.append(f"  MCP response: {raw_response[:300]}")
+
+    matched: "list[str]" = []
+    combined = raw_response + "\n".join(log_lines)
+    for pattern, diagnosis in SERVER_FAILURE_PATTERNS:
+        if pattern.search(combined):
+            matched.append(diagnosis)
+
+    if matched:
+        parts.append("\n  DIAGNOSIS:")
+        for d in matched:
+            parts.append(f"    → {d}")
+
+    if log_lines:
+        parts.append(f"\n  Recent error log ({len(log_lines)} lines):")
+        for line in log_lines[:10]:
+            parts.append(f"    {line[:200]}")
+    else:
+        parts.append("\n  No error lines found in Server.log — check if log file exists")
+
+    return {"systemMessage": "\n".join(parts)}
+
+
 ROUTE_TABLE = {
     "/hook/block-recurring-cron": handle_block_recurring_cron,
     "/hook/sql-safety": handle_sql_safety,
@@ -1364,6 +1715,10 @@ ROUTE_TABLE = {
     "/hook/file-changed-monitor": handle_file_changed_monitor,
     "/hook/cowork-sync": handle_cowork_sync,
     "/hook/codebase-refresh": handle_codebase_refresh,
+    "/hook/tab-ownership-check": handle_tab_ownership_check,
+    "/hook/build-failure-chain": handle_build_failure_chain,
+    "/hook/db-failure-chain": handle_db_failure_chain,
+    "/hook/server-failure-chain": handle_server_failure_chain,
 }
 
 
@@ -1432,13 +1787,44 @@ def delete_pid_file() -> None:
 # SECTION I — main
 # ═══════════════════════════════════════════════════════════════════════
 
+STATS_MAX_BYTES = 10_000_000  # 10MB — rotate when exceeded
+STATS_KEEP_LINES = 20000     # keep most recent 20K entries after rotation
+
+
+def _rotate_stats_file() -> None:
+    """Trim session-stats.jsonl if it exceeds STATS_MAX_BYTES.
+    Keeps the most recent STATS_KEEP_LINES entries."""
+    if not STATS_FILE.exists():
+        return
+    try:
+        size = STATS_FILE.stat().st_size
+        if size <= STATS_MAX_BYTES:
+            return
+        with open(STATS_FILE, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+        kept = lines[-STATS_KEEP_LINES:]
+        backup = STATS_FILE.with_suffix(".jsonl.old")
+        try:
+            backup.unlink(missing_ok=True)
+            STATS_FILE.rename(backup)
+        except Exception:
+            pass
+        with open(STATS_FILE, "w", encoding="utf-8") as f:
+            f.writelines(kept)
+        log.info(
+            "Rotated session-stats.jsonl: %d → %d lines (was %.1f MB)",
+            len(lines), len(kept), size / 1_000_000,
+        )
+    except Exception:
+        log.exception("stats rotation failed")
+
+
 async def main() -> None:
     global SHUTDOWN_EVENT
     SHUTDOWN_EVENT = asyncio.Event()
     loop = asyncio.get_running_loop()
 
     def _handle_signal(signum, frame):
-        # signal handlers run on the main thread; schedule the event set onto the loop
         loop.call_soon_threadsafe(SHUTDOWN_EVENT.set)
 
     signal.signal(signal.SIGINT, _handle_signal)
@@ -1447,6 +1833,9 @@ async def main() -> None:
     if is_daemon_already_running():
         log.warning("Daemon already running per PID file; exiting.")
         return
+
+    _rotate_stats_file()
+    SLOW_TOOL_THRESHOLDS_MS.update(_load_slow_tool_thresholds())
 
     try:
         server = await asyncio.start_server(client_connected, HOST, PORT)
