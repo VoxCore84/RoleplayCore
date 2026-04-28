@@ -394,7 +394,7 @@ def process_ner_result(conn: sqlite3.Connection, ner: dict, chunk_id: str,
         if not isinstance(a, dict):
             continue
         val = (a.get("value") or "").strip()
-        if not val:
+        if not val or len(val) <= 1:
             continue
         canonical = _canonicalize("amount", val)
         meta = {"context": str(a.get("context", ""))} if a.get("context") else {}
@@ -402,11 +402,18 @@ def process_ner_result(conn: sqlite3.Connection, ner: dict, chunk_id: str,
         _insert_mention(conn, eid, chunk_id, doc_path, context)
         entity_ids.append(eid)
 
-    # Co-occurrence relations
+    # Co-occurrence relations (skip self-references, limit to avoid combinatorial explosion)
     unique_ids = list(set(entity_ids))
+    pairs_inserted = 0
     for i, a in enumerate(unique_ids):
         for b in unique_ids[i + 1:]:
-            _insert_relation(conn, a, "mentioned_with", b, chunk_id)
+            if a != b:
+                _insert_relation(conn, a, "mentioned_with", b, chunk_id)
+                pairs_inserted += 1
+                if pairs_inserted >= 50:
+                    break
+        if pairs_inserted >= 50:
+            break
 
     return entity_ids
 

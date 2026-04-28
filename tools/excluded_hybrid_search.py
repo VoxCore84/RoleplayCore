@@ -40,6 +40,8 @@ PERSONS_FILE = REPO_ROOT / ".cache" / "persons" / "persons.json"
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 EMBED_MODEL = os.environ.get("EMBED_MODEL", "nomic-embed-text")
 RERANK_MODEL = os.environ.get("RERANK_MODEL", "gemma4:26b")
+CROSSENCODER_MODEL = "qllama/bge-reranker-v2-m3"
+KG_DB = REPO_ROOT / ".cache" / "excluded_kg.db"
 RRF_K = 60
 
 # ---------------------------------------------------------------------------
@@ -333,6 +335,157 @@ def vector_search(query: str, limit: int) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
+# KG entity-linked retrieval (Step 4: third channel)
+# ---------------------------------------------------------------------------
+def _normalize_kg_path(doc_path: str) -> str:
+    """Normalize KG doc_path to match FTS5/ChromaDB rel_path format.
+
+    KG stores full paths from extraction: C:/Users/atayl/Desktop/Excluded/IMPORTANT DOCS/...
+    FTS5 stores relative to extraction bucket: Case_Reference/01_APPEALS/file.pdf.txt
+    ChromaDB stores similar relative paths.
+
+    Strategy: strip the common prefix down to the content-meaningful part.
+    """
+    # Common prefixes to strip (in order of specificity)
+    prefixes = [
+        "C:/Users/atayl/Desktop/Excluded/IMPORTANT DOCS/",
+        "C:/Users/atayl/Desktop/Excluded/",
+        "C:/Users/atayl/.claude/projects/C--Users-atayl-VoxCore/memory/",
+    ]
+    normalized = doc_path.replace("\\", "/")
+    for prefix in prefixes:
+        if normalized.startswith(prefix):
+            normalized = normalized[len(prefix):]
+            break
+    # FTS5 appends .txt to extracted files
+    if not normalized.endswith(".txt"):
+        normalized += ".txt"
+    return normalized
+
+
+def kg_search(query: str, limit: int = 50) -> list[dict]:
+    """Query the Knowledge Graph for entity-linked document mentions."""
+    if not KG_DB.exists():
+        return []
+    conn = sqlite3.connect(str(KG_DB))
+    conn.row_factory = sqlite3.Row
+
+    # Extract search terms and look for matching entities
+    terms = [t.strip(".,;:!?()[]{}") for t in query.split()
+             if len(t.strip(".,;:!?()[]{}")) >= 3 and t.lower() not in _STOPWORDS]
+
+    entity_ids = set()
+    for term in terms:
+        rows = conn.execute(
+            "SELECT id FROM entities WHERE canonical LIKE ? OR name LIKE ? LIMIT 5",
+            (f"%{term.lower()}%", f"%{term}%"),
+        ).fetchall()
+        for r in rows:
+            entity_ids.add(r["id"])
+
+    if not entity_ids:
+        conn.close()
+        return []
+
+    # Get mentions for matched entities
+    placeholders = ",".join("?" * len(entity_ids))
+    mentions = conn.execute(f"""
+        SELECT m.doc_path, m.context, m.entity_id, e.name, e.kind
+        FROM mentions m
+        JOIN entities e ON e.id = m.entity_id
+        WHERE m.entity_id IN ({placeholders})
+        ORDER BY m.confidence DESC
+        LIMIT ?
+    """, [*entity_ids, limit]).fetchall()
+    conn.close()
+
+    # Aggregate to doc-level (best mention per normalized path)
+    doc_hits: dict[str, dict] = {}
+    for m in mentions:
+        dp = _normalize_kg_path(m["doc_path"])
+        if dp not in doc_hits:
+            doc_hits[dp] = {
+                "id": f"kg:{dp}:0",
+                "doc_type": "kg",
+                "source_root": "",
+                "rel_path": dp,
+                "chunk_idx": 0,
+                "content": m["context"],
+                "snippet": m["context"][:300],
+                "kg_entities": [f"{m['name']} ({m['kind']})"],
+                "_doc_chunk_count": 1,
+            }
+        else:
+            doc_hits[dp]["_doc_chunk_count"] += 1
+            ent_tag = f"{m['name']} ({m['kind']})"
+            if ent_tag not in doc_hits[dp]["kg_entities"]:
+                doc_hits[dp]["kg_entities"].append(ent_tag)
+
+    return list(doc_hits.values())[:limit]
+
+
+# ---------------------------------------------------------------------------
+# Cross-encoder reranker (bge-reranker-v2-m3 via Ollama embed endpoint)
+# ---------------------------------------------------------------------------
+def _crossencoder_rerank(query: str, hits: list[dict], top_n: int = 20) -> list[dict]:
+    """Rerank using bge-reranker-v2-m3 cross-encoder via Ollama.
+
+    The BGE reranker scores query-passage pairs jointly. Higher score = more relevant.
+    Uses the embed endpoint with concatenated query+passage as input.
+    """
+    if not hits:
+        return hits
+    candidates = hits[:top_n]
+    rest = hits[top_n:]
+
+    pairs = []
+    for hit in candidates:
+        passage = (hit.get("content") or hit.get("snippet") or "")[:400]
+        pairs.append(f"query: {query} passage: {passage}")
+
+    try:
+        req = urllib.request.Request(
+            f"{OLLAMA_URL}/api/embed",
+            data=json.dumps({"model": CROSSENCODER_MODEL, "input": pairs}).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=30) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        embeddings = data.get("embeddings", [])
+
+        # For a cross-encoder, the "embedding" is actually a relevance score vector
+        # Take the mean of the embedding as the score (BGE reranker outputs a scalar-like vector)
+        for i, hit in enumerate(candidates):
+            if i < len(embeddings) and embeddings[i]:
+                # BGE reranker embeds produce a vector — use L2 norm as relevance proxy
+                emb = embeddings[i]
+                score = sum(v * v for v in emb) ** 0.5
+                hit["crossencoder_score"] = score
+            else:
+                hit["crossencoder_score"] = 0.0
+
+        # Normalize scores to 0-1 range
+        max_score = max((h["crossencoder_score"] for h in candidates), default=1.0)
+        min_score = min((h["crossencoder_score"] for h in candidates), default=0.0)
+        score_range = max_score - min_score if max_score > min_score else 1.0
+        for hit in candidates:
+            hit["crossencoder_norm"] = (hit["crossencoder_score"] - min_score) / score_range
+
+        # Blend: 60% cross-encoder, 40% original RRF
+        max_rrf = max((h["rrf_score"] for h in candidates), default=1.0)
+        for hit in candidates:
+            rrf_norm = hit["rrf_score"] / max_rrf if max_rrf > 0 else 0
+            hit["combined_score"] = 0.6 * hit["crossencoder_norm"] + 0.4 * rrf_norm
+
+        candidates.sort(key=lambda h: -h["combined_score"])
+    except Exception as e:
+        print(f"WARN: cross-encoder rerank failed: {e}", file=sys.stderr)
+        # Fall through with original order
+
+    return candidates + rest
+
+
+# ---------------------------------------------------------------------------
 # Cross-chunk document aggregation
 # ---------------------------------------------------------------------------
 def _aggregate_to_docs(hits: list[dict]) -> list[dict]:
@@ -403,11 +556,13 @@ def _noise_penalty(rel_path: str) -> float:
 def rrf_fuse(
     fts_docs: list[dict],
     vec_docs: list[dict],
+    kg_docs: list[dict] | None = None,
     k: int = RRF_K,
     fts_weight: float = 1.0,
+    kg_weight: float = 1.2,
     entity_names: list[str] | None = None,
 ) -> list[dict]:
-    """Merge two document-level ranked lists via reciprocal rank fusion.
+    """Merge document-level ranked lists via reciprocal rank fusion (triple-channel).
 
     Enhancements:
     - fts_weight: boost FTS5 for entity-heavy queries
@@ -440,6 +595,17 @@ def rrf_fuse(
             representatives[rp] = hit
         else:
             representatives[rp].setdefault("distance", hit.get("distance"))
+
+    # KG channel (entity-linked retrieval)
+    if kg_docs:
+        for rank, hit in enumerate(kg_docs):
+            rp = hit["rel_path"]
+            base = kg_weight * (1.0 / (k + rank + 1))
+            entity_count_bonus = 1.0 + 0.1 * (hit.get("_doc_chunk_count", 1) - 1)
+            scores[rp] += base * entity_count_bonus
+            sources[rp].add("kg")
+            if rp not in representatives:
+                representatives[rp] = hit
 
     # Apply noise penalties
     for rp in scores:
@@ -538,9 +704,11 @@ def hybrid_search(
     top_k: int = 10,
     fts_k: int = 150,
     vec_k: int = 100,
+    kg_k: int = 50,
     rerank: bool = False,
+    crossencoder: bool = False,
 ) -> dict:
-    """Top-level: expand, retrieve, aggregate, fuse, optionally rerank."""
+    """Top-level: expand, retrieve (3 channels), aggregate, fuse, optionally rerank."""
     entity_density = _query_entity_density(query)
     fts_weight = 2.5 if entity_density > 0.6 else 1.0
     entity_names = _match_persons(query)
@@ -555,13 +723,22 @@ def hybrid_search(
     vec_docs = _aggregate_to_docs(vec_hits)
     vec_ms = (time.perf_counter() - t1) * 1000
 
-    merged = rrf_fuse(fts_docs, vec_docs, fts_weight=fts_weight, entity_names=entity_names)
+    t2 = time.perf_counter()
+    kg_hits = kg_search(query, kg_k)
+    kg_ms = (time.perf_counter() - t2) * 1000
+
+    merged = rrf_fuse(fts_docs, vec_docs, kg_docs=kg_hits,
+                      fts_weight=fts_weight, entity_names=entity_names)
 
     rerank_ms = 0.0
-    if rerank and merged:
-        t2 = time.perf_counter()
+    if crossencoder and merged:
+        t3 = time.perf_counter()
+        merged = _crossencoder_rerank(query, merged, top_n=min(20, len(merged)))
+        rerank_ms = (time.perf_counter() - t3) * 1000
+    elif rerank and merged:
+        t3 = time.perf_counter()
         merged = _rerank_with_ollama(query, merged, top_n=min(10, len(merged)))
-        rerank_ms = (time.perf_counter() - t2) * 1000
+        rerank_ms = (time.perf_counter() - t3) * 1000
 
     merged = merged[:top_k]
     return {
@@ -574,12 +751,14 @@ def hybrid_search(
         "fts_docs_count": len(fts_docs),
         "vec_hits_count": len(vec_hits),
         "vec_docs_count": len(vec_docs),
+        "kg_hits_count": len(kg_hits),
         "merged_count": len(merged),
         "fts_ms": round(fts_ms, 1),
         "vec_ms": round(vec_ms, 1),
+        "kg_ms": round(kg_ms, 1),
         "rerank_ms": round(rerank_ms, 1),
-        "total_ms": round(fts_ms + vec_ms + rerank_ms, 1),
-        "reranked": rerank,
+        "total_ms": round(fts_ms + vec_ms + kg_ms + rerank_ms, 1),
+        "reranked": rerank or crossencoder,
         "hits": merged,
     }
 
@@ -620,11 +799,14 @@ def main() -> int:
     ap.add_argument("--top-k", type=int, default=10, help="Final merged result count")
     ap.add_argument("--fts-k", type=int, default=150, help="FTS5 candidate pool size")
     ap.add_argument("--vec-k", type=int, default=100, help="Vector candidate pool size")
+    ap.add_argument("--kg-k", type=int, default=50, help="KG entity-linked pool size")
     ap.add_argument("--rerank", action="store_true", help="Enable LLM reranker on top-10")
+    ap.add_argument("--crossencoder", action="store_true", help="Enable bge-reranker cross-encoder on top-20")
     ap.add_argument("--json", action="store_true", help="Emit JSON instead of formatted text")
     args = ap.parse_args()
 
-    res = hybrid_search(args.query, args.top_k, args.fts_k, args.vec_k, rerank=args.rerank)
+    res = hybrid_search(args.query, args.top_k, args.fts_k, args.vec_k, args.kg_k,
+                        rerank=args.rerank, crossencoder=args.crossencoder)
     if args.json:
         for h in res["hits"]:
             h.pop("content", None)

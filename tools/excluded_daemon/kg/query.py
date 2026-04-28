@@ -70,8 +70,13 @@ def _connect() -> sqlite3.Connection:
 
 def lookup_entity(name: str, kind: str | None = None) -> list[Entity]:
     """Fuzzy match against canonical + name columns."""
+    if not name or not name.strip():
+        return []
     conn = _connect()
     needle = _canonicalize(kind or "person", name)
+    if not needle:
+        conn.close()
+        return []
     params: list = []
     clauses = []
 
