@@ -42,6 +42,11 @@
 | User asks to read/ingest/analyze a folder of images | `python tools/ingest_images.py <dir>` — NEVER read images into conversation context |
 | User needs to read a .docx file | `/read-doc [path]` — extract text |
 | User asks about a specific person in the case | `/person-dossier [name]` — full mention search |
+| User asks "who is X", "everything about X", entity lookup | `/kg-query [name]` — instant KG entity resolution (25K entities, 178K mentions) |
+| User asks about entity relationships, co-mentions | `/kg-query relations [id]` — graph traversal |
+| User asks "what regulations apply" or regulation lookup | `/kg-query --kind regulation` — 3,377 regulations indexed |
+| User asks for contradiction check, memory drift, accuracy | `/kg-query scan` — run contradiction scanner |
+| User asks about KG status, entity counts | `/kg-query stats` or `/kg-query build` |
 | User preparing a filing (DD7050, AFBCMR, NPDB, etc.) | `/filing-prep [type]` — draft with evidence citations |
 | User asks "do we have evidence for X" before filing | `/evidence-gap [filing]` — requirements vs archive |
 | User asks to update or regenerate the timeline | `/case-timeline [update]` — rebuild from all sources |
@@ -55,6 +60,8 @@
 | Launching agents that need case/file context | Pre-read `memory/` topic files and pass relevant context in prompt |
 | Fresh TDB import or migration completed | `mysql -u root -padmin < sql/RoleplayCore/custom_tables.sql` — recreate custom tables |
 | Memory files seem stale, MEMORY.md over 200 lines | `/memory-audit` — check health, find orphans, flag issues |
+| Edited settings.json hooks, added/changed hooks or daemon code | `/sync-infra` — check CalmCore parity. Also: `python ~/.claude/hooks/check_hook_sync.py` for quick count |
+| Session touches .claude/ infra in either project | `/sync-infra` — drift audit |
 | End of session, gists may be stale | `/publish-gists` — check and update changed gists |
 | Handing off to another tab or ending complex session | `/handoff [label]` — auto-generate context for next tab |
 | DB errors, orphan references, data quality concerns | `/db-lint [db]` — scan for common issues, generate fix SQL |
