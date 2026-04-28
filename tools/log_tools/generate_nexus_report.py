@@ -50,9 +50,9 @@ Central Brain State:
             response = model.generate_content(prompt)
             report = response.text
         except Exception as e:
-            print(f"Warning: Primary model generation failed ({e}). Attempting fallback to gemini-2.5-pro...")
+            print(f"Warning: Primary model generation failed ({e}). Attempting fallback...")
             try:
-                fallback_model = GenerativeModel("gemini-2.5-pro")
+                fallback_model = GenerativeModel("gemini-3.1-pro")
                 response = fallback_model.generate_content(prompt)
                 report = response.text
             except Exception as e2:

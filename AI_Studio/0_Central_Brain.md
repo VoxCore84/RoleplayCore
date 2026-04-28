@@ -38,11 +38,11 @@ Claude Code (Primary Terminal / Implementer / Coordinator)
 |----------|--------|-----|-------|--------|
 | ChatGPT Bridge | `tools/ai_studio/chatgpt_bridge.py` | OpenAI | gpt-5.4 | OPERATIONAL |
 | ChatGPT Reviewer | `tools/ai_studio/call_chatgpt_review.py` | OpenAI | gpt-5.4 | OPERATIONAL |
-| Gemini Reviewer | `tools/ai_studio/call_gemini.py` | Google AI | gemini-2.5-pro | OPERATIONAL |
-| Claude Reviewer | `tools/ai_studio/call_claude.py` | Anthropic | claude-sonnet-4-6 | OPERATIONAL |
+| Gemini Reviewer | `tools/ai_studio/call_gemini.py` | Google AI | gemini-3.1-pro | OPERATIONAL |
+| Claude Reviewer | `tools/ai_studio/call_claude.py` | Anthropic | claude-opus-4-7 | OPERATIONAL |
 | Codex Reviewer | `tools/ai_studio/call_codex_review.py` | OpenAI (Codex CLI) | gpt-5.4 | OPERATIONAL |
 | Parallel Cycle | `tools/ai_studio/review_cycle.py` | All 4 | All 4 | OPERATIONAL |
-| Triad Orchestrator | `tools/ai_studio/orchestrator.py` | Anthropic + Google AI | claude-sonnet-4-6 + gemini-2.5-pro | OPERATIONAL |
+| Triad Orchestrator | `tools/ai_studio/orchestrator.py` | Anthropic + Google AI | claude-opus-4-7 + gemini-3.1-pro | OPERATIONAL |
 | API Architect | `tools/api_architect/call_openai.py` | OpenAI | gpt-5.4 | OPERATIONAL |
 | Nexus Reports | `tools/log_tools/generate_nexus_report.py` | Vertex AI | gemini-3.1-pro | OPERATIONAL |
 

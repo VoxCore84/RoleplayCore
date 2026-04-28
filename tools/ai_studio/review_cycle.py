@@ -39,8 +39,8 @@ sys.path.insert(0, str(SCRIPT_DIR))
 MODELS = {
     "codex": os.environ.get("REVIEW_MODEL_CODEX", "gpt-5.4"),
     "chatgpt": os.environ.get("REVIEW_MODEL_CHATGPT", "gpt-5.4"),
-    "gemini": os.environ.get("REVIEW_MODEL_GEMINI", "gemini-2.5-pro"),
-    "claude": os.environ.get("REVIEW_MODEL_CLAUDE", "claude-sonnet-4-6"),
+    "gemini": os.environ.get("REVIEW_MODEL_GEMINI", "gemini-3.1-pro"),
+    "claude": os.environ.get("REVIEW_MODEL_CLAUDE", "claude-opus-4-7"),
 }
 
 # --- Context file loading ---

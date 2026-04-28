@@ -123,6 +123,30 @@ MAX_AUDIO_WORKERS = 1    # GPU-bound if nightly torch installed
 MAX_LLM_WORKERS = 2
 MAX_INDEX_WORKERS = 1    # single writer owns ChromaDB + FTS5
 
+# ---------------------------------------------------------------------------
+# Knowledge Graph
+# ---------------------------------------------------------------------------
+
+KG_DB = CACHE_ROOT / "excluded_kg.db"
+KG_SCHEMA = Path(__file__).resolve().parent / "kg" / "schema.sql"
+
+# ---------------------------------------------------------------------------
+# Ollama / local LLM
+# ---------------------------------------------------------------------------
+
+OLLAMA_URL = "http://localhost:11434"
+NER_MODEL = "qwen3.5:27b-q4_K_M"
+NER_TIMEOUT = 120          # seconds per chunk
+NER_CHUNK_SIZE = 2000      # chars per NER request
+NER_CHUNK_OVERLAP = 200
+
+# ---------------------------------------------------------------------------
+# Contradiction scanner
+# ---------------------------------------------------------------------------
+
+CONTRADICTION_INTERVAL = 21600  # 6 hours
+PERSONS_ROSTER = CACHE_ROOT / "persons" / "persons.json"
+
 # Debounce window before firing a pipeline on a file — word processors emit
 # many events during save. We coalesce to the final quiet state.
 DEBOUNCE_SECONDS = 5.0

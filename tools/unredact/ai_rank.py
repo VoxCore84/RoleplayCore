@@ -157,7 +157,7 @@ def call_gemini(prompt: str, model: str = "gemini-3.1-pro", timeout: int = 120) 
     except Exception:
         # Try older model name if the requested one isn't available
         resp = client.models.generate_content(
-            model="gemini-2.5-pro",
+            model="gemini-3.1-pro",
             contents=full,
             config=types.GenerateContentConfig(
                 temperature=0.1,

@@ -32,6 +32,7 @@ class Pipeline(Enum):
     OCR = "ocr"
     AUDIO = "audio"
     MBOX = "mbox"
+    LLM = "llm"             # NER post-processing → Knowledge Graph
     SKIP = "skip"
     SECURITY = "security"   # log + refuse
 

@@ -114,7 +114,7 @@ class ClaudeAPI:
         self.config = config
         self.prompts_dir = Path(prompts_dir)
         self.model_default = config.get("model_default", "claude-sonnet-4-6")
-        self.model_complex = config.get("model_complex", "claude-opus-4-6")
+        self.model_complex = config.get("model_complex", "claude-opus-4-7")
         self.max_retries = config.get("max_retries", 3)
 
         # Initialize client

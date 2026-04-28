@@ -90,5 +90,5 @@ Usage:
   /triad orchestrate "<prompt>"   Full Triad loop (Gemini->Claude->Gemini)
 
 Reports saved to: AI_Studio/Reports/Audits/
-Fleet: ChatGPT (gpt-5.4) | Gemini (gemini-2.5-pro) | Claude (claude-sonnet-4-6) | Codex CLI
+Fleet: ChatGPT (gpt-5.4) | Gemini (gemini-3.1-pro) | Claude (claude-opus-4-7) | Codex CLI
 ```

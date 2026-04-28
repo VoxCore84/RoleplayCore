@@ -29,8 +29,10 @@ from tools.excluded_daemon.router import Pipeline
 from tools.excluded_daemon.watcher import ExcludedWatcher, WorkItem
 from tools.excluded_daemon.workers.extract_worker import extract
 from tools.excluded_daemon.workers.ocr_worker import ocr
+from tools.excluded_daemon.workers.llm_worker import ner_process
 from tools.excluded_daemon.workers.index_worker import rebuild_fts, on_indexed
 from tools.excluded_daemon.watcher import clear_dirty_flag, is_dirty
+from tools.excluded_daemon.jobs.contradiction import run_forever as contradiction_loop
 
 
 log = logging.getLogger("excluded_daemon")
@@ -70,12 +72,26 @@ async def worker_loop(name: str, queue: asyncio.PriorityQueue,
                     if result.get("ok", False):
                         dirty = True
                         await on_indexed(item.path)
+                        await queue.put(WorkItem(
+                            priority=2, ts=time.time(), path=item.path,
+                            action="ner", pipeline=Pipeline.LLM,
+                            reason="post-extract NER",
+                        ))
                 elif item.pipeline == Pipeline.OCR:
                     result = await ocr(item.path)
                     log.info(f"[{name}] ocr {item.path.name}: ok={result.get('ok')}")
                     if result.get("ok", False):
                         dirty = True
                         await on_indexed(item.path)
+                        await queue.put(WorkItem(
+                            priority=2, ts=time.time(), path=item.path,
+                            action="ner", pipeline=Pipeline.LLM,
+                            reason="post-ocr NER",
+                        ))
+                elif item.pipeline == Pipeline.LLM:
+                    result = await ner_process(item.path)
+                    log.info(f"[{name}] ner {item.path.name}: ok={result.get('ok')} "
+                             f"entities={result.get('entities_found', 0)}")
                 elif item.pipeline == Pipeline.AUDIO:
                     log.info(f"[{name}] audio {item.path.name}: deferred (no GPU venv yet)")
                 elif item.pipeline == Pipeline.MBOX:
@@ -142,6 +158,13 @@ async def amain(args) -> int:
         asyncio.create_task(_watcher_task(), name="watcher"),
         asyncio.create_task(worker_loop("w0", queue, stopping), name="worker-0"),
         asyncio.create_task(worker_loop("w1", queue, stopping), name="worker-1"),
+        asyncio.create_task(
+            contradiction_loop(
+                interval_seconds=getattr(config, "CONTRADICTION_INTERVAL", 21600),
+                stop_event=stopping,
+            ),
+            name="contradiction-scanner",
+        ),
     ]
 
     # Wait on stop signal

@@ -38,6 +38,7 @@ if sys.platform == "win32":
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from fastmcp import FastMCP
+from mcp_large_result import enable_large_results
 import arcanum_logic  # noqa: E402  (must come after sys.path mutation)
 
 # ---------------------------------------------------------------------------
@@ -55,6 +56,7 @@ mcp = FastMCP(
         "documents, and arcanum_index to browse the topic tree."
     ),
 )
+enable_large_results(mcp)
 
 
 @mcp.tool()

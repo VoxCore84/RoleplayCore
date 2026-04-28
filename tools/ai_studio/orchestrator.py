@@ -34,7 +34,7 @@ def _get_gemini_client():
     return genai.Client(api_key=api_key)
 
 
-GEMINI_MODEL = os.environ.get("ORCHESTRATOR_GEMINI_MODEL", "gemini-2.5-pro")
+GEMINI_MODEL = os.environ.get("ORCHESTRATOR_GEMINI_MODEL", "gemini-3.1-pro")
 
 
 class TriadOrchestrator:
@@ -97,7 +97,7 @@ class TriadOrchestrator:
         print(f"{Fore.GREEN}[Executor]{Style.RESET_ALL} Analyzing spec for implementation plan...")
 
         response = self.anthropic_client.messages.create(
-            model="claude-sonnet-4-6",
+            model="claude-opus-4-7",
             max_tokens=4096,
             system="You are the Frontline Executor in a Triad AI system. Your job is to read the markdown specification from the Architect and return a JSON list of file paths that you theoretically would have modified based on the spec. Focus on practical VoxCore project structure.",
             messages=[
