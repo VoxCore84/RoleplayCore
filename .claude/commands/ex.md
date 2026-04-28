@@ -93,6 +93,75 @@ Uses local Ollama qwen2.5 to extract person entities across all extracted texts.
 
 For `status`, `posture`, `sme`, `ask`, `absorb`, `refresh`: load the corresponding `.claude/commands/ex-<action>.md` and follow its instructions. Those files contain the full workflow for that action — `/ex` is a thin router.
 
+## Pre-flight: KG entity context (for `ask`)
+
+**Run BEFORE loading `ex-ask.md` whenever the action is `ask`.** Synchronous Knowledge Graph pre-fetch — pre-populates entity facts so each of the 4 fan-out agents starts KG-aware instead of having to rediscover persons, orgs, regulations, and case numbers via grep.
+
+### Step A — Identify candidate entities in the question
+
+Scan the question for:
+- **Person names** — capitalized name tokens (e.g. "McMaster", "Amy Little", "Tolin"), military ranks ("Col Johnston", "Lt Col Earles")
+- **Organizations / acronyms** — uppercase 2-6 letter tokens ("ET", "AFPC", "DCSA", "AFBCMR", "HAF/A1ZA"), org words ("USAF", "Cannon AFB")
+- **Regulation citations** — patterns like "10 USC 1034", "DoDI 6495.02", "DAFI 36-3211", "45 CFR 60.21"
+- **Case numbers** — "DSAID", "OSI", "AFBCMR" + alphanumeric IDs
+- **Specific dates** — ISO or written ("2026-04-21", "Apr 13", "Aug 10 2026")
+
+Cap at 8 entities to keep the pre-fetch fast (<2s). Skip generic words (the, what, did, etc.).
+
+**Ambiguity caveat**: The KG uses fuzzy matching, so a 2-letter token like "ET" can resolve to a substring match (e.g. "DHA Market/Intermediate Headquarters" contains "et"). When an entity has fewer than ~50 mentions OR its canonical name barely overlaps the query token, mark it `[ambiguous]` in the context block. The fan-out agents can then search the corpus directly to correct the resolution rather than trusting a misleading KG hit.
+
+### Step B — Resolve each entity via KG MCP
+
+For each candidate, call `mcp__docs-rag__kg_entity(name=<token>, kind="")`. If the response has `count > 0`, take the top entity (highest mention_count). Skip entities with `count == 0` — they're not in the KG.
+
+For the top 3 highest-mention-count entities, ALSO call `mcp__docs-rag__kg_relations(entity_id=<id>, depth=1)` to surface their direct connections. This is the "who else was involved" lookup.
+
+For 1 entity (typically the central person/org of the question), call `mcp__docs-rag__kg_relations(entity_id=<id>, depth=2)` for multi-hop reach. Skip if the question is purely regulatory.
+
+### Step C — Build the Entity Context Block
+
+Format the KG findings as a compact markdown block (target <800 tokens):
+
+```markdown
+## Entity Context (KG pre-fetch)
+
+| Entity | Kind | Canonical | Mentions | KG ID |
+|--------|------|-----------|----------|-------|
+| Amy Little | person | amy little | 102 | 7568 |
+| McMaster | person | mcmaster | 374 | ... |
+
+### Top connections (1-hop)
+- **Amy Little** ↔ Tolin (715), Adam Taylor (5466), HAF/A1ZA, Earles (278)
+- **McMaster** ↔ Adam Taylor, Johnston, AFPC, ...
+
+### Multi-hop reach (from <central_entity>)
+- Hop 1: <count> entities — top 5 by salience: ...
+- Hop 2: <count> entities — top 5 by salience: ...
+
+### Top doc paths surfaced
+- `Case_Reference/04_LEGAL_CORRESPONDENCE/<file>.pdf`
+- `Case_Reference/01_APPEALS_AND_QAI/<file>.pdf`
+- ...
+```
+
+### Step D — Inject into the workflow
+
+Once the Entity Context Block is built, **then** load `.claude/commands/ex-ask.md` and proceed with its phases. The block becomes part of working memory and MUST be:
+
+1. **Included in the Phase 0 plan** as resolved entities (skip rediscovery)
+2. **Prepended to each agent prompt** in Phase 1 — every agent (evidence, mbox, regulation, timeline) starts with "Given the Entity Context Block: <block>, your job is to..."
+3. **Cited in the synthesis** — Phase 2's Key Evidence section can reference KG-resolved canonical names instead of raw mentions
+
+### When to skip pre-flight
+
+- Question has no resolvable entities (pure conceptual: "explain hostile work environment")
+- KG MCP tools return `error: KG not built` — note this in the report header and proceed without
+- User passed `--skip-prefetch` flag (escape hatch for debugging)
+
+### Cost / latency
+
+~5-8 MCP calls, each ~50-200ms (SQLite-backed). Total pre-flight overhead: 1-2 seconds. Negligible vs the 30-90s the 4-agent fan-out takes, and saves each agent from re-running the same entity grep.
+
 ## Disambiguation
 
 If user types `/ex` with a string that doesn't match an action but could be a question or query:
