@@ -1,152 +1,192 @@
 ---
 allowed-tools: Bash(git:*), Bash(gh:*), Bash(python3:*), Read, Edit, Write, Grep, Glob, Agent
-description: End-of-session routine — commit changes, push, sync bridge, update gists, and refresh memory
+description: End-of-session routine — commit, push, sync bridge, update memory, capture resume evidence, automation retro with compounding score, build quick wins.
 ---
 
 # Wrap Up Session
 
 ## Arguments
 
-- `$ARGUMENTS` — optional: a commit message or specific instructions (e.g., "skip gists", "no push", "just commit", "quick")
+- `$ARGUMENTS` — optional override:
+  - `quick` → only Steps 1–3 (commit/push/bridge), skip the rest
+  - `no push` / `skip push` → no `git push`
+  - `no build` → skip Step 6 quick-win build (still log them as QUEUED)
+  - free text → used as commit message
 
-## Instructions
+## Philosophy
 
-Run the full end-of-session wrap-up for VoxCore. Execute steps in parallel where possible.
+Every session leaves behind two things: (1) the work product, (2) a small automation improvement that makes the NEXT session faster. Wrap-up is where #2 gets captured AND executed. **Build, don't just log.**
 
-If user passes **"quick"** in `$ARGUMENTS`, only do Steps 1-3 (commit, push, bridge). Skip gists and memory.
+Target: ~3 minutes excluding quick-win builds. Soft cap on quick-win build time: 30 minutes total.
 
-### Step 1: Assess current state (parallel)
+---
 
-Run these simultaneously:
-- `git status --porcelain` — machine-parseable change detection
-- `git log --oneline -5` — recent commits for message style
-- `git diff --stat` — unstaged changes
-- `git diff --cached --stat` — staged changes
+## Step 1 — Commit and push (~30s)
 
-If there are NO uncommitted changes (no M or A lines in porcelain output), skip to Step 3.
+Run in parallel:
+- `git status --porcelain`
+- `git log --oneline -5`
+- `git diff --stat`
+- `git diff --cached --stat`
 
-### Step 2: Commit and push
+If no uncommitted changes (no M/A/D in porcelain), skip to Step 2.
 
-1. **Stage changes**: Only stage files that show as modified (M) or added (A) in `git status --porcelain`. Do NOT stage untracked files (`??`) unless they are clearly part of this session's work (e.g., a new `.cpp` file you just created). Never stage build artifacts, `*_vNext/` dirs, `" - Copy"` files, `.env`, or credential files.
-2. **Commit**: If the user provided a message in `$ARGUMENTS`, use it. Otherwise, analyze the diff and write a concise commit message summarizing what changed. Always include the co-author trailer.
-3. **Push**: `git push origin HEAD` — unless the user said "no push" or "skip push"
+Otherwise:
+1. **Stage** only modified (M), added (A), and deleted (D) files. Do NOT stage untracked (`??`) unless clearly part of this session's work. Never stage build artifacts, `.env`, credentials, or `* - Copy*` files.
+2. **Commit** with message from `$ARGUMENTS` if provided, else write one summarizing the diff. Always include co-author trailer.
+3. **Push** `git push origin HEAD` unless user said no push.
 
-### Step 3: Sync bridge for Cowork
+## Step 2 — Bridge sync (~3s)
 
-Run the bridge sync so Cowork has fresh data:
-```
+```bash
 python /c/Users/atayl/cowork/sync_bridge.py --full 2>&1
 ```
-If the script doesn't exist or fails, try the VoxCore copy:
-```
-python /c/Users/atayl/VoxCore/cowork/sync_bridge.py --full 2>&1
-```
-If neither exists or both fail, note it and continue. This step is critical — Cowork's scheduled tasks depend on fresh bridge data.
+Fallback: `python /c/Users/atayl/VoxCore/cowork/sync_bridge.py --full 2>&1`. If both fail, note and continue.
 
-### Step 4: Update gists (unless user said "skip gists" or "quick")
+## Step 3 — Memory updates (~60s)
 
-Check if gist source files have changed since last push by running `git log --oneline -1 -- doc/gist_*.md` to see recent touches. If stale, remind the user which gists need updating:
-- **DB Report** (`528e801b53f6c62ce2e5c2ffe7e63e29`) — from `doc/gist_db_report.md`
-- **Changelog** (`4c63baf8154753d2a89475d9a4f5b2cc`) — from `doc/gist_changelog.md`
-- **Open Issues** (`2b69757faa2a53172c7acb5bfa3ad3c4`) — from `doc/gist_open_issues.md`
-- **Runbook** (`84656ef0960c699927e3a555e8248f7b`) — from `doc/gist_runbook.md`
-- **Style Guide** — from `doc/gist_style_guide.md`
+Determine session number:
+1. Read last entry in `~/.claude/projects/C--Users-atayl-VoxCore/memory/recent-work.md`.
+2. If last entry's date == today AND last number was N (or N+letter), this is N+next-letter (a→b→c…). Convention: `270b` = wrapped 270, then kept going.
+3. Else this is N+1.
+4. Show chosen number to user before writing — easy to override.
 
-Also check if `doc/gist_changelog.md` should have this session's work appended (compare against recent-work.md entries).
+Update three files:
 
-Do NOT auto-push gist updates without confirmation. Just report which ones look stale.
-
-### Step 5: Update memory files (unless user said "quick")
-
-Read these memory files and check if anything from this session should be updated:
-- `C:\Users\atayl\.claude\projects\C--Users-atayl-VoxCore\memory\MEMORY.md` (main index)
-- `C:\Users\atayl\.claude\projects\C--Users-atayl-VoxCore\memory\recent-work.md` (work log)
-- `C:\Users\atayl\.claude\projects\C--Users-atayl-VoxCore\memory\todo.md` (task list)
-
-For **recent-work.md**: Add an entry for this session if meaningful work was done. Follow the existing format (date, session number, title, description, commit hash). Determine the session number by incrementing the highest number found in recent-work.md.
-
-For **todo.md**:
-- Mark any completed items with `~~strikethrough~~ DONE (session N)`
-- Add any new items discovered during the session to the appropriate priority section (HIGH/MEDIUM/LOW)
-- If the session uncovered blocked work or open questions, add them to DEFERRED/BLOCKED
-
-For **MEMORY.md**: Only update if something structural changed (new system, config change, new tool, etc.). Don't update for routine work.
-
-### Step 5b: Update session_state.md (unless user said "quick")
-
-If `doc/session_state.md` exists, update it:
-1. Mark this tab's row as COMPLETE in the Active Tabs table (add commit hash)
-2. Move any completed Tier items to the Recently Completed table
-3. Update any status fields that changed during this session
-
-### Step 5c: Update Central Brain (unless user said "quick")
-
-Update `AI_Studio/0_Central_Brain.md` with:
-1. **"Current Focus"** section — reflect what was completed this session
-2. **"Infrastructure State"** — update build/server/DB status if changed
-3. **"Inbox Status"** — update count if specs were processed or added
-4. **Timestamp** — update "Last updated" at top
-
-Keep Central Brain updates concise (1-2 lines per change). This file is read by Cowork's scheduled tasks and other Claude Code tabs.
-
-### Step 6: Update todo.md with next-session suggestions
-
-After completing Steps 1-5, review the current state and add a `## Next Session` section at the top of `todo.md` (after the title, before `## Completed`). This section should contain up to 10 actionable items for the next session, based on:
-
-1. **Uncommitted changes** — if `git status` still shows modified/deleted files not committed this session, list them as "Review and commit outstanding changes (N files)"
-2. **Blocked items unblocked** — scan DEFERRED/BLOCKED for anything that may now be actionable
-3. **Natural follow-ups** — work that logically continues from this session's changes
-4. **HIGH priority items** — pull the top 1-2 non-DONE items from the HIGH section
-
-Format:
+**`recent-work.md`** — prepend a new session entry (most recent at top). Format:
 ```markdown
-## Next Session
-- [ ] Item 1 — brief description
-- [ ] Item 2 — brief description
-- [ ] Item 3 — brief description
+## [Date] [Year] (session N — [title])
+- **[Category]**: [what was done, key outputs, metrics]
+- **[Category]**: [what was done, key outputs, metrics]
+- Commit: `[hash]`
 ```
 
-If a `## Next Session` section already exists, **replace it entirely** with fresh suggestions. Stale next-session items are worse than none.
+**`todo.md`** —
+- Mark completed items: `~~strikethrough~~ DONE (session N)`
+- Add new items to HIGH/MEDIUM/LOW
+- Replace the entire `## Next Session` section with fresh top-3-to-10 actionable items (never append, always replace — stale next-session items are worse than none)
 
-### Step 7: Session summary
+**Skip** these unless something structural changed: `MEMORY.md`, `session_state.md`, Central Brain. Cowork reads memory files via the bridge (Step 2), so Central Brain is no longer required at every wrap-up. If the user explicitly asks, update Central Brain manually.
 
-Write a **"What We Did"** section that gives the user (and future sessions) a clear picture of everything accomplished. This is the most valuable part of the wrap-up — it prevents re-analysis in future sessions.
+## Step 4 — Resume evidence capture (~30s)
 
-Structure it as a numbered list of major accomplishments. For each item:
-- **Bold title** — what category of work (e.g., "Server Log Audit", "Transmog Infrastructure")
-- 2-3 sentences of what was done, key findings, and artifacts produced
-- Reference specific files created/modified, commit hashes, or metrics where relevant
+**Skip if** session produced no measurable output. Capture only if AT LEAST ONE of:
+- A numeric metric (entities/files/% improvement/bugs/lines/latency)
+- A new system shipped (skill, tool, hook, script, MCP server, rule file)
+- An external artifact produced (filing, gist, release, briefing)
 
-Guidelines:
-- Group related work together (don't list every file edit separately)
-- Include quantitative results where available (rows fixed, bugs catalogued, files changed)
-- Mention any agents launched and what they found
-- Note anything deployed-but-unverified or left for next session
-- Keep each item to 3-4 lines max — this is a summary, not a narrative
+Pure research/discussion/status sessions get no entry. Skip without apology.
 
-Then output the operational summary:
+Append to `~/.claude/projects/C--Users-atayl-VoxCore/memory/resume-evidence.md`:
+
+```markdown
+### Session N — YYYY-MM-DD — [Title]
+**Quantifiable**: [numbers]
+**Technical**: [stack + named architecture pattern — e.g. "Modular RAG", "GraphRAG", "Reciprocal Rank Fusion", not "search thing"]
+**Outcome**: [what it enables]
+**STAR bullet**: [Situation/Task → Action → Result, one sentence, civilian-readable, no jargon without context]
+**Tags**: `tag1`, `tag2`
 ```
-## Session Wrap-Up
 
-### What We Did
-1. **Category** — description of work, key outputs, metrics
-2. **Category** — description of work, key outputs, metrics
-...
+Numbers matter: "25,000 entities" not "built a knowledge graph". Name the pattern: "Modular RAG" not "search thing". The STAR bullet must be paste-ready into a resume.
+
+## Step 5 — Automation retro (~60s)
+
+Append to `~/.claude/projects/C--Users-atayl-VoxCore/memory/automation-ledger.md`. This replaces the old narrative retro in `improvements.md`.
+
+For each pain point this session, fill the table:
+
+```markdown
+### Session N — YYYY-MM-DD — [Title]
+**Built**:
+- `/skill-name` — what it does
+- `tools/script.py` — what it does
+
+**Pain → Fix**:
+
+| # | Pain | First seen | Tags | Fix | Effort | Status |
+|---|------|-----------|------|-----|--------|--------|
+| 1 | [description] | NEW or s.N | `tag1`,`tag2` | [what was/should be built] | LOW/MED/HIGH | DONE/QUEUED/DEFERRED |
+```
+
+**First seen**: scan `automation-ledger.md` and `improvements.md` (for historical) for the same/similar pain. If found, write `s.N` (the earliest occurrence). If not found, write `NEW`.
+
+**Tags**: pull 1–3 from the controlled vocab. Add new tags ONLY when no existing one fits, and add the new tag to the vocab list at the top of `automation-ledger.md`.
+
+**Compounding score** — compute and write below the table:
+
+```markdown
+**Compounding**: X/N by tag-overlap, Y/N with judgment
+- Tag-matched: #K (`tag` ↔ s.M)
+- Judgment-additional: #L addressed by s.M [explain why]
+```
+
+Method:
+- **Tag-overlap (X/N, reproducible)**: count pain points whose tag set intersects any DONE entry from prior 5–10 sessions in `automation-ledger.md`.
+- **With judgment (Y/N, subjective)**: read the prior 5–10 entries. For pain points NOT counted by tag-overlap, decide if a prior fix actually addresses this pain by class even if tags differ slightly. Add to numerator.
+
+Show both. They diverge informatively.
+
+**Update the trend line** at the top of `automation-ledger.md` — append this session's `X/N` to the "Last 10 sessions" line, drop the oldest if >10.
+
+**Pattern detection / escalation**:
+- After writing the entry, scan `automation-ledger.md` + `improvements.md` for any pain whose tags or text recur 3+ times.
+- If yes: add to `todo.md` HIGH priority with `[ESCALATED — N occurrences]` tag. Update Status column in current entry to ESCALATED.
+
+## Step 6 — Quick-win gate (0–30 min)
+
+**This step fires BEFORE the session-complete summary.** It's the compounding engine.
+
+For each pain point with Status=QUEUED in this session's automation-ledger entry, check:
+1. **Effort = LOW** (< 15 min)
+2. **Removes a step that happened 2+ times THIS session** OR **is logged in `improvements.md`/`automation-ledger.md` as recurring** (not hypothetical)
+3. **Not already DONE** elsewhere in `automation-ledger.md`
+
+If any pain point meets all three → **build it now**, in priority order (highest impact first).
+
+**Cap**: 30 minutes total quick-win build time per wrap-up. If the cap is hit mid-build:
+- Finish the in-flight win
+- Move remaining wins to `todo.md` Next Session with `[from quick-win queue]` tag
+- Surface the queue to the user
+
+**On failure**: hard-stop, surface the error, do NOT roll back. Tell the user what failed and where so we can debug. The partial work may still be useful.
+
+Skip Step 6 if user passed `no build` in `$ARGUMENTS`.
+
+After building each quick win:
+- Update Status in the automation-ledger entry from QUEUED → DONE
+- Add a one-line entry to `recent-work.md` under this session
+- If a new skill was built, add a trigger row to `~/VoxCore/.claude/rules/skill-reminders.md`
+
+## Step 7 — Session-complete summary (~10s)
+
+Output to user:
+
+```
+## Session N Wrap-Up
 
 ### Committed
-- [commit hash] message (or "nothing to commit")
+- [hash] message (or "nothing to commit")
 
 ### Pushed
-- [branch] -> origin (or "skipped")
+- master → origin (or "skipped")
 
 ### Bridge
 - Synced (or "failed: reason")
 
-### Gists
-- [list any stale gists, or "all current"]
+### Resume Evidence
+[copy the entry just written, or "skipped — no measurable output"]
 
-### Memory
-- [what was updated, or "no changes needed"]
+### Automation Ledger
+- Built: [list]
+- Pain → Fix: N entries (M DONE / K QUEUED / L DEFERRED)
+- Compounding: X/N tag-overlap, Y/N with judgment
+- Trend: [last-5 trend line]
+
+### Quick Wins Built
+- [skill/tool] — [what it does] (~T min)
+[or "none — all pain points already addressed this session"]
+[or "queue overflowed cap; deferred N items to todo.md"]
 
 ### Next Session (written to todo.md)
 - [ ] item 1
@@ -154,42 +194,25 @@ Then output the operational summary:
 - [ ] item 3
 ```
 
-### Step 8: Session Retrospective (unless user said "quick")
+If `quick` was passed, output only Committed/Pushed/Bridge.
 
-Quick 5-bullet reflection on what could be improved. Takes 60 seconds and compounds across sessions.
+---
 
-Answer these 5 questions (one concise bullet each):
+## Rules
 
-1. **Pain point**: What slowed you down most this session? (missing tool, manual repetition, context loss, fragile workflow, bad path)
-2. **Missed automation**: What did you do manually 2+ times that should be a skill, agent, hook, or tool?
-3. **Ownership lens**: What would you have done differently if this was YOUR project/file/case/life — not a client's?
-4. **Accuracy check**: Any internal contradictions, factual errors, or completeness gaps in what we produced this session?
-5. **What did we miss?**: Anything the user asked for that didn't get delivered, or a better approach you thought of too late?
-
-**Write results to `memory/improvements.md`** (append, don't replace):
-
-```markdown
-### Session [N] — [date]
-1. **Pain**: [one-liner]
-2. **Automate**: [one-liner]
-3. **Ownership**: [one-liner]
-4. **Accuracy**: [one-liner or "clean"]
-5. **Missed**: [one-liner or "nothing"]
-> Quick win: [if any item is <30 min to build, note it here]
-```
-
-**Escalation rule**: After writing, scan `memory/improvements.md` for patterns. If any pain point or automation suggestion appears **3+ times** across sessions:
-1. Add it to the top of `todo.md` as a HIGH priority build task
-2. If it's clearly low-effort (<30 min), **build it right now** during wrap-up and tell the user what you built
-3. If medium+ effort, note it as "ESCALATED — build next session" in todo.md
-
-For a deeper analysis with effort/impact ratings and auto-building, suggest the user run `/retro`.
-
-### Rules
 - Never force-push
 - Never commit `.env`, credentials, or binary files
-- Never auto-update gists without user confirmation
-- If any step fails, continue with remaining steps and report the failure
-- Keep commit messages concise (1-2 lines)
-- If the user passes specific instructions in $ARGUMENTS, respect them (e.g., "just commit", "skip gists", "no push", "quick")
-- The `## Next Session` section in todo.md must always be fresh — replace it every wrap-up, never append
+- Never skip hooks (`--no-verify`)
+- If any step fails (other than Step 6 hard-stop), continue with remaining steps and report the failure
+- Keep commit messages concise (1–2 lines)
+- The `## Next Session` block in `todo.md` must always be fresh — replace it every wrap-up, never append
+- Never skip Step 5 (automation retro) — it's the compounding engine. Step 4 (resume evidence) is conditional; Step 5 is not.
+- If quick-win gate has nothing to build, say so explicitly (don't silently skip — the user wants to see the gate fired)
+
+## Migration notes (for future Claude reading this skill)
+
+- This skill replaced an 8-step version on 2026-04-28. Old version: gist check, session_state, Central Brain. New version: resume-evidence, automation-ledger, quick-win gate.
+- `/retro` was absorbed into Step 5. Do not re-create it.
+- `improvements.md` is now read-only history. Append retros to `automation-ledger.md`.
+- `/sync-brain` was deliberately not built — Cowork reads memory files via the bridge.
+- `/publish-gists` is a separate skill. The user runs it explicitly when they want to update gists.

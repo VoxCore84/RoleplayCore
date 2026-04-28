@@ -53,7 +53,7 @@
 | Need to draft/send an email | `/draft-email [recipient + topic]` — plain text, no markdown disasters |
 | Session running 30+ min, major topic shift, or heavy context | `/checkpoint [label]` — snapshot state to survive compaction |
 | User needs to read ANY document (PDF, DOCX, EML, MSG) | `/read-any [path]` — unified extractor with fallbacks |
-| End of wrap-up (Step 8) or user says "what could be better" | Step 8 runs automatically; suggest `/retro` for deep analysis |
+| End of wrap-up or user says "what could be better" | `/wrap-up` Step 5 runs the automation retro automatically (writes to `automation-ledger.md` with compounding score + tags); Step 6 builds qualifying quick wins. No separate `/retro` skill — absorbed into wrap-up as of session 273. |
 | Same pain point logged 3+ times in `memory/improvements.md` | Auto-escalate to `todo.md` HIGH and build if low-effort |
 | Financial planning, income/expense scenarios | `python tools/scenario_calc.py` — scenario comparison tables |
 | About to search a large directory for agents | `/index-folder` first, then pass manifest to agents |
