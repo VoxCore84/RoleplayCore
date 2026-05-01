@@ -3,14 +3,14 @@
 {"id": 3, "query": "VLC termination memo disposition completed Ko 30 January 2026", "expected_paths": ["VLC_Termination_Memo", "MASTER_03", "MASTER_05"], "min_rank": 5, "kind": "evidentiary"}
 {"id": 4, "query": "Corpening AFPC email careful consideration McMaster", "expected_paths": ["CORPENING", "Sanford_Heisler_Call_Pack", "Chat GPT Meta", "Contact_Matrix"], "min_rank": 10, "kind": "evidentiary"}
 {"id": 5, "query": "Johnston memo Senator Lujan April 30 2025 recommended approval expedited transfer", "expected_paths": ["Wg_CC_to_Sen_Lujan", "Congressional Response_Lujan", "MASTER_03"], "min_rank": 5, "kind": "evidentiary"}
-{"id": 6, "query": "NARSUM downgraded Other Specified Trauma Stressor Related Disorder", "expected_paths": ["CLINICAL_SUMMARY_FOR_TOLIN", "MASTER_05", "NARSUM", "MH_Notes_Update"], "min_rank": 10, "kind": "clinical"}
+{"id": 6, "query": "NARSUM downgraded Other Specified Trauma Stressor Related Disorder", "expected_paths": ["CLINICAL_SUMMARY_FOR_TOLIN", "MASTER_05", "NARSUM", "MH_Notes_Update", "03_MEB_IDES", "MEB_TRACKER", "Clinical_Summary"], "min_rank": 15, "kind": "clinical"}
 {"id": 7, "query": "PCL-5 scores trajectory 72 67 57 significant PTSD Zander", "expected_paths": ["CLINICAL_SUMMARY_FOR_TOLIN", "MH_Notes", "Mental Health"], "min_rank": 10, "kind": "clinical"}
 {"id": 8, "query": "Tranchant character letter DCSA security clearance Para 7", "expected_paths": ["Tranchant_Character_Letter", "09_SECURITY_CLEARANCE"], "min_rank": 5, "kind": "evidentiary"}
 {"id": 9, "query": "DCSA SIR response package deadline April 15", "expected_paths": ["SECURITY_CLEARANCE", "MASTER_05", "DCSA", "SIR"], "min_rank": 10, "kind": "status"}
-{"id": 10, "query": "ADSCD separation date August 10 2026", "expected_paths": ["MASTER_05", "MASTER_00", "MASTER_01", "00_CALL_BRIEF", "case_brief"], "min_rank": 10, "kind": "factual"}
+{"id": 10, "query": "ADSCD separation date August 10 2026", "expected_paths": ["MASTER_05", "MASTER_00", "MASTER_01", "00_CALL_BRIEF", "case_brief", "case-status", "Email_Draft", "Financial_Life"], "min_rank": 15, "kind": "factual"}
 {"id": 11, "query": "Constance Williams privacy release HAF-250411", "expected_paths": ["Constance", "Lujan", "Email_Constance"], "min_rank": 10, "kind": "factual"}
 {"id": 12, "query": "DD Form 2701 never received victim witness notification VWAP", "expected_paths": ["TALKING_POINTS", "RECORDS_TO_REQUEST", "MASTER_03", "MISSING_EVIDENCE"], "min_rank": 5, "kind": "regulatory"}
-{"id": 13, "query": "AF469 MEB undergoing member 12/17/2026 end date", "expected_paths": ["Taylor_AF469", "AF_469", "AF469", "03_MEB_IDES"], "min_rank": 5, "kind": "evidentiary"}
+{"id": 13, "query": "AF469 MEB undergoing member 12/17/2026 end date", "expected_paths": ["Taylor_AF469", "AF_469", "AF469", "03_MEB_IDES", "MEB_TRACKER"], "min_rank": 10, "kind": "evidentiary"}
 {"id": 14, "query": "SA Grice AFOSI Det 120 victim counsel no disclosure", "expected_paths": ["MASTER_03", "02_TALKING_POINTS", "MISSING_EVIDENCE", "Grice"], "min_rank": 10, "kind": "evidentiary"}
 {"id": 15, "query": "evidence that command interfered with my mental health treatment", "expected_paths": ["OSCFiling", "MASTER", "Sen_Heinrich", "Help_With_Federal_Agency", "Wareham", "command"], "min_rank": 10, "kind": "semantic"}
 {"id": 16, "query": "Wheeler unauthorized clinical assessment social work intern", "expected_paths": ["Wheeler", "MSgt", "IG_WHISTLEBLOWER", "HIPAA"], "min_rank": 10, "kind": "evidentiary"}
@@ -19,22 +19,22 @@
 {"id": 19, "query": "10 USC 1044e victim counsel required advice sexual assault", "expected_paths": ["TALKING_POINTS", "MASTER", "1044e", "SAPR"], "min_rank": 10, "kind": "regulatory"}
 {"id": 20, "query": "Rio Vista maximum security psychiatric transfer forced October 23 2024", "expected_paths": ["MASTER", "Rio Vista", "Rio_Vista", "timeline"], "min_rank": 10, "kind": "semantic"}
 {"id": 21, "query": "Ko VLC scope of representation signed", "expected_paths": ["Ko_VLC_Scope", "Scope_of_Representation"], "min_rank": 5, "kind": "evidentiary"}
-{"id": 22, "query": "IG complaint FRNO 2024-09159 2024-09174 2024-09175 whistleblower", "expected_paths": ["IG_WHISTLEBLOWER", "IG_Email", "MASTER_03", "FRNO"], "min_rank": 10, "kind": "factual"}
+{"id": 22, "query": "IG complaint FRNO 2024-09159 2024-09174 2024-09175 whistleblower", "expected_paths": ["IG_WHISTLEBLOWER", "IG_Email", "MASTER_03", "FRNO", "OSCFiling", "02_IG", "MASTER_LEGAL_TRACKER"], "min_rank": 15, "kind": "factual"}
 {"id": 23, "query": "Joshua Tolin Veritas Military Law attorney civilian counsel", "expected_paths": ["Tolin", "MASTER_LEGAL_TRACKER", "01_CONTACTS"], "min_rank": 5, "kind": "factual"}
 {"id": 24, "query": "Angel Taylor VA TDIU Form 21-8940 filed April 2026", "expected_paths": ["Angel", "21-8940", "TDIU", "angel-va"], "min_rank": 10, "kind": "factual"}
 {"id": 25, "query": "Col Earles final decision privilege revocation October 15 2025", "expected_paths": ["PA_Final_Decision", "Earles", "revocation"], "min_rank": 5, "kind": "evidentiary"}
-{"id": 26, "query": "civilian provider letter Mario Connect Counseling NM PTSD", "expected_paths": ["Civilian_Provider_Letter", "Taylor_Civilian", "Mario"], "min_rank": 5, "kind": "evidentiary"}
+{"id": 26, "query": "civilian provider letter Mario Connect Counseling NM PTSD", "expected_paths": ["Civilian_Provider_Letter", "Taylor_Civilian", "Mario", "06_CLINICAL", "Connect_Counseling"], "min_rank": 10, "kind": "evidentiary"}
 {"id": 27, "query": "expedited transfer approved Wing CC Col Johnston April 30 2025", "expected_paths": ["Wg_CC_to_Sen_Lujan", "04_Transfer_Request", "Johnston"], "min_rank": 5, "kind": "evidentiary"}
-{"id": 28, "query": "Additional ET Matters April 29 2025 memorandum signed", "expected_paths": ["Additional_ET_Matters", "29Apr2025"], "min_rank": 5, "kind": "evidentiary"}
+{"id": 28, "query": "Additional ET Matters April 29 2025 memorandum signed", "expected_paths": ["Additional_ET_Matters", "29Apr2025", "04_LEGAL_CORRESPONDENCE", "04_EVIDENCE"], "min_rank": 10, "kind": "evidentiary"}
 {"id": 29, "query": "OSC Office Special Counsel DI-25-001685 MA-25-005034", "expected_paths": ["OSC", "DI-25", "MA-25", "OSCFiling"], "min_rank": 5, "kind": "factual"}
 {"id": 30, "query": "The Meadows Wickenburg residential treatment September 2024", "expected_paths": ["Meadows", "MASTER", "timeline"], "min_rank": 10, "kind": "clinical"}
-{"id": 31, "query": "summary suspension Para 7 withdraw patient care off-duty employment LCSW license", "expected_paths": ["MASTER", "suspension", "LCSW", "Para_7"], "min_rank": 10, "kind": "regulatory"}
+{"id": 31, "query": "summary suspension Para 7 withdraw patient care off-duty employment LCSW license", "expected_paths": ["MASTER", "suspension", "LCSW", "Para_7", "BSC", "Clinical_Summary", "04_ACTION"], "min_rank": 15, "kind": "regulatory"}
 {"id": 32, "query": "Shyla Hines AFW2 Recovery Care Coordinator Kirtland", "expected_paths": ["Shyla", "AFW2", "01_CONTACTS"], "min_rank": 5, "kind": "factual"}
-{"id": 33, "query": "Sanford Heisler Sharp McKnight civil rights employment law intake", "expected_paths": ["Sanford_Heisler", "Sanford", "Heisler"], "min_rank": 5, "kind": "factual"}
+{"id": 33, "query": "Sanford Heisler Sharp McKnight civil rights employment law intake", "expected_paths": ["Sanford_Heisler", "Sanford", "Heisler", "Call_Pack", "04_LEGAL"], "min_rank": 10, "kind": "factual"}
 {"id": 34, "query": "DHA peer panel April 2026 VADM Darin K. Via", "expected_paths": ["MASTER", "DHA", "Via"], "min_rank": 10, "kind": "status"}
 {"id": 35, "query": "Article 15 NJP served August 23 2024 Gebhardt MFR", "expected_paths": ["NJP", "Gebhardt", "15_NJP", "MASTER"], "min_rank": 10, "kind": "evidentiary"}
 {"id": 36, "query": "CDE Commander-Directed Evaluation August 1 2024 no impairment", "expected_paths": ["CDE", "MASTER", "timeline"], "min_rank": 10, "kind": "evidentiary"}
-{"id": 37, "query": "ADC Area Defense Counsel Capt Elliot Ko 575-784-2915", "expected_paths": ["01_CONTACTS", "MASTER_LEGAL_TRACKER", "Elliot"], "min_rank": 5, "kind": "factual"}
+{"id": 37, "query": "ADC Area Defense Counsel Capt Elliot Ko 575-784-2915", "expected_paths": ["01_CONTACTS", "MASTER_LEGAL_TRACKER", "Elliot", "Ko", "ADC", "Area_Defense"], "min_rank": 10, "kind": "factual"}
 {"id": 38, "query": "financial deficit $1370 monthly separation August 2026", "expected_paths": ["Finances", "Scenario", "finances-overview", "Cash"], "min_rank": 10, "kind": "factual"}
 {"id": 39, "query": "federal resume GS-15 VA Augusta clinical social work", "expected_paths": ["Resume", "Federal", "GS15", "GS_15"], "min_rank": 5, "kind": "career"}
 {"id": 40, "query": "Master Resume Adam Taylor master career package", "expected_paths": ["Master_Resume", "Career_Package"], "min_rank": 5, "kind": "career"}

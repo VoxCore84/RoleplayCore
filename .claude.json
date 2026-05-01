@@ -3,11 +3,13 @@
     "wago-db2": {
       "command": "python",
       "args": ["C:/Users/atayl/VoxCore/wago/wago_db2_server.py"],
+      "alwaysLoad": true,
       "env": { "PYTHONUTF8": "1" }
     },
     "mysql": {
       "command": "npx",
       "args": ["-y", "@benborla29/mcp-server-mysql"],
+      "alwaysLoad": true,
       "env": {
         "MYSQL_HOST": "127.0.0.1",
         "MYSQL_PORT": "3306",
@@ -23,6 +25,7 @@
     "codeintel": {
       "command": "python",
       "args": ["C:/Users/atayl/VoxCore/tools-dev/code-intel/code_intel_server.py"],
+      "alwaysLoad": true,
       "env": {
         "PYTHONUTF8": "1",
         "PROJECT_ROOT": "C:/Users/atayl/VoxCore",
@@ -34,6 +37,7 @@
     "arcanum": {
       "command": "python",
       "args": ["C:/Users/atayl/VoxCore/tools-dev/arcanum/arcanum_server.py"],
+      "alwaysLoad": true,
       "env": { "PYTHONUTF8": "1" }
     }
   }

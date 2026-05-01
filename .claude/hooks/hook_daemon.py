@@ -1751,6 +1751,53 @@ async def handle_server_failure_chain(data: dict) -> dict:
     return {"systemMessage": "\n".join(parts)}
 
 
+# ── handle_grep_case_enricher (updatedToolOutput demo, 2.1.121+) ────────
+CASE_PATH_MARKERS = ("case_reference", "important docs", "excluded", "angel_va")
+
+
+async def handle_grep_case_enricher(data: dict) -> dict:
+    """PostToolUse(Grep) — enrich case file search results with evidence context.
+
+    Uses updatedToolOutput (2.1.121+) to append an evidence-handling footer
+    directly to Grep output when searching case-related paths.
+    """
+    tool_input = _get_tool_input(data)
+    search_path = _normalize_path(tool_input.get("path", ""))
+    if not any(marker in search_path for marker in CASE_PATH_MARKERS):
+        return {}
+
+    tool_response = data.get("tool_response")
+    if tool_response is None:
+        return {}
+    if isinstance(tool_response, dict):
+        tool_response = tool_response.get("content", json.dumps(tool_response))
+    elif isinstance(tool_response, (list, tuple)):
+        tool_response = "\n".join(str(item) for item in tool_response)
+    elif not isinstance(tool_response, str):
+        tool_response = str(tool_response)
+
+    if not tool_response.strip() or "No files found" in tool_response:
+        return {}
+
+    file_count = 0
+    for line in tool_response.split("\n"):
+        if line.strip() and not line.startswith(" ") and not line.startswith("\t"):
+            file_count += 1
+
+    footer = (
+        f"\n--- [hook: case evidence context] ---\n"
+        f"Search covered case archive path. {file_count} result lines returned.\n"
+        f"Reminder: cite file_path:line for all claims. "
+        f"Rate confidence: PROVEN > WELL-SUPPORTED > PARTIALLY-SUPPORTED > UNCERTAIN > UNSUPPORTED."
+    )
+
+    return {
+        "hookSpecificOutput": {
+            "updatedToolOutput": tool_response + footer
+        }
+    }
+
+
 ROUTE_TABLE = {
     "/hook/block-recurring-cron": handle_block_recurring_cron,
     "/hook/sql-safety": handle_sql_safety,
@@ -1776,6 +1823,7 @@ ROUTE_TABLE = {
     "/hook/build-failure-chain": handle_build_failure_chain,
     "/hook/db-failure-chain": handle_db_failure_chain,
     "/hook/server-failure-chain": handle_server_failure_chain,
+    "/hook/grep-case-enricher": handle_grep_case_enricher,
 }
 
 

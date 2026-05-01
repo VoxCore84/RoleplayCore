@@ -177,6 +177,16 @@
         ]
       },
       {
+        "matcher": "Grep",
+        "hooks": [
+          {
+            "type": "http",
+            "url": "http://127.0.0.1:19484/hook/grep-case-enricher",
+            "timeout": 3
+          }
+        ]
+      },
+      {
         "matcher": "mcp__voxcore-server__restart|mcp__voxcore-server__start",
         "hooks": [
           {

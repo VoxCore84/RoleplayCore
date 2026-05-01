@@ -611,15 +611,14 @@ def rrf_fuse(
     for rp in scores:
         scores[rp] *= _noise_penalty(rp)
 
-    # Entity boost: if a detected person name appears in the rel_path, boost 1.5x
+    # Entity boost: if a detected person/entity name appears in the rel_path, boost 2.0x
     if entity_names:
         for rp in scores:
             rp_lower = rp.lower()
             for name in entity_names:
-                # Match last name or full canonical in the path
                 parts = name.lower().split()
                 if any(part in rp_lower for part in parts if len(part) >= 3):
-                    scores[rp] *= 1.5
+                    scores[rp] *= 2.0
                     break
 
     merged = []
