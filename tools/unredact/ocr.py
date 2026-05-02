@@ -80,8 +80,8 @@ def parse_page_range(spec: str) -> set[int]:
 
 def find_image_only_pages_with_redactions(pdf_path: Path) -> list[int]:
     """Return 1-indexed page numbers that are image-only AND have black rects."""
-    import fitz
-    doc = fitz.open(str(pdf_path))
+    from tools import pdf_lib
+    doc = pdf_lib.open(str(pdf_path))
     pages = []
     try:
         for i in range(len(doc)):
@@ -119,12 +119,12 @@ def find_image_only_pages_with_redactions(pdf_path: Path) -> list[int]:
 
 def ocr_page(pdf_path: Path, page_num: int, dpi: int) -> tuple[int, str, int]:
     """Render one page to PNG bytes and OCR it. Returns (page_num, text, char_count)."""
-    import fitz
+    from tools import pdf_lib
     import pytesseract
     from io import BytesIO
     from PIL import Image
 
-    doc = fitz.open(str(pdf_path))
+    doc = pdf_lib.open(str(pdf_path))
     try:
         if page_num < 1 or page_num > len(doc):
             return (page_num, "", 0)
@@ -176,8 +176,8 @@ def ocr_pdf(pdf_path: Path, output_dir: Path, dpi: int = 300,
         pages = find_image_only_pages_with_redactions(pdf_path)
         kind = "image-only with redactions"
     else:
-        import fitz
-        doc = fitz.open(str(pdf_path))
+        from tools import pdf_lib
+        doc = pdf_lib.open(str(pdf_path))
         pages = list(range(1, len(doc) + 1))
         doc.close()
         kind = "all"

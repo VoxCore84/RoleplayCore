@@ -452,7 +452,7 @@ def match_pdf(pdf_path: Path, db_path: Path = DEFAULT_DB,
               only_page: int | None = None,
               max_matches_per_page: int = 5) -> dict:
     """For each page of ``pdf_path`` that has recoverable text, find cross-file matches."""
-    import fitz
+    from tools import pdf_lib
     conn = connect(db_path)
 
     if output_dir is None:
@@ -460,7 +460,7 @@ def match_pdf(pdf_path: Path, db_path: Path = DEFAULT_DB,
     output_dir.mkdir(parents=True, exist_ok=True)
 
     try:
-        doc = fitz.open(str(pdf_path))
+        doc = pdf_lib.open(str(pdf_path))
     except Exception as e:
         return {"error": f"open failed: {e}"}
 

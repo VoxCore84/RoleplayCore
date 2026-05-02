@@ -1,0 +1,8 @@
+# Auto-pinned variant generated 2026-05-02 02:39:36
+# Source: tools\voxcore-daemon\requirements.txt
+
+anthropic==0.84.0
+apscheduler==3.11.2
+pymysql==1.1.2
+python-dotenv==1.2.1
+requests==2.32.5

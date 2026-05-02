@@ -136,6 +136,55 @@ _SECURITY_TEXT_PATTERNS = [
     _re.compile(r"\bsk-[A-Za-z0-9]{20,}\b"),                    # OpenAI-style
 ]
 
+# Classification banner detection — DoD/IC markings that route documents to QUARANTINE.
+# Patterns target standard banner formats per DoDM 5200.01 vol 2 / 32 CFR 2001.
+# Word-boundary anchored to avoid false positives ("CONFIDENTIAL agreement" prose).
+# Tokens are uppercase-only to avoid grabbing case-folded prose.
+_CLASSIFICATION_PATTERNS = [
+    # Full-word banners only — bare-letter shorthand (`S//`, `C//`) false-positives
+    # on OCR noise from scanned forms (e.g., handwriting reads as "Cell #: C//v").
+    # DoD banner markings always include the // caveat per DoDM 5200.01 vol 2.
+    # Bare-word "SECRET" without // is data (clearance level on a form, etc.),
+    # not a classification banner. We intentionally do NOT match standalone
+    # SECRET / TOP SECRET lines.
+    _re.compile(r"\bTOP\s+SECRET//"),
+    _re.compile(r"\bSECRET//"),
+    _re.compile(r"\bCONFIDENTIAL//"),
+    # Caveats — only match when prefixed by the // separator
+    _re.compile(r"//(?:NOFORN|ORCON|REL\s+TO|FGI|HCS|HVCC|HUMINT|SAR|RD|FRD)\b"),
+    _re.compile(r"^\s*UNCLASSIFIED//FOUO\b", _re.MULTILINE),
+    _re.compile(r"\bCUI//(?:SP-|BASIC|PRVCY|PROCURE|EXPT)\b"),
+    # Explicit Classification line (any case, line-anchored)
+    _re.compile(r"^\s*Classification:\s*(?:TOP\s+SECRET|SECRET|CONFIDENTIAL)\b", _re.MULTILINE | _re.IGNORECASE),
+    # Marking-block declarations (require colon to anchor)
+    _re.compile(r"^\s*(?:DERIVED\s+FROM|CLASSIFIED\s+BY|DECLASSIFY\s+ON)\s*:", _re.MULTILINE | _re.IGNORECASE),
+    # Sealing / protective-order markers
+    _re.compile(r"\b(?:UNDER\s+SEAL|FILED\s+UNDER\s+SEAL|SEALED\s+BY\s+(?:COURT|ORDER))\b", _re.IGNORECASE),
+    _re.compile(r"\bPROTECTIVE\s+ORDER\b.*?\b(?:SEAL|RESTRICTED)\b", _re.IGNORECASE | _re.DOTALL),
+    # Grand-jury secrecy (Rule 6(e)). Trailing \b doesn't anchor after ')'
+    # because ')' is non-word; drop it.
+    _re.compile(r"\bRule\s+6\(e\)"),
+    _re.compile(r"\bGRAND\s+JURY\s+(?:MATERIAL|SECRECY)\b"),
+]
+
+
+def scan_classification_markers(text: str) -> str | None:
+    """Scan text for DoD/IC classification banners or court sealing markers.
+
+    Returns a short reason string if any marker is found (caller should QUARANTINE
+    the document and audit-log the decision). Returns None when clean.
+
+    Scope-limited to the first 16KB of text — banners always live near the top
+    of a classified document; scanning the whole body would produce noise from
+    prose mentioning the words.
+    """
+    sample = text[:16384]
+    for pat in _CLASSIFICATION_PATTERNS:
+        m = pat.search(sample)
+        if m:
+            return f"classification/sealing marker: {m.group(0)[:80]!r}"
+    return None
+
 # Tokens that mix letters/digits/special, 18+ chars, high entropy — password-shaped
 _HIGH_ENTROPY_RE = _re.compile(r"[A-Za-z0-9!@#$%^&*()_+\-={}\[\]|\\:;\"'<>,.?/~`]{18,}")
 
@@ -216,6 +265,11 @@ def scan_source(src: Path, include_exts: set[str]) -> dict[str, dict]:
             if reason:
                 security_skipped += 1
                 print(f"  SECURITY skip: {rel} ({reason})", file=sys.stderr)
+                try:
+                    from tools.governance_audit import log_decision
+                    log_decision("SECURITY_REFUSE_FILENAME", rel, reason, source="extract_cache")
+                except Exception:
+                    pass
                 continue
             out[rel] = {
                 "mtime": int(st.st_mtime),
@@ -247,7 +301,24 @@ def extract_one(src: Path, rel_path: str, cache_files_dir: Path) -> tuple[str, b
     # Post-extraction security scan — catches embedded credentials
     security_reason = scan_extracted_text(text, rel_path)
     if security_reason:
+        try:
+            from tools.governance_audit import log_decision
+            log_decision("SECURITY_REFUSE_CONTENT", rel_path, security_reason, source="extract_cache")
+        except Exception:
+            pass
         return rel_path, False, f"SECURITY-content: {security_reason}"
+
+    # Classification / sealing marker scan — quarantines TS/SECRET/CONFIDENTIAL,
+    # CUI, sealed-court material, and grand-jury Rule 6(e) content. The system
+    # never extracts classified text into the cache.
+    classification_reason = scan_classification_markers(text)
+    if classification_reason:
+        try:
+            from tools.governance_audit import log_decision
+            log_decision("QUARANTINE_CLASSIFIED", rel_path, classification_reason, source="extract_cache")
+        except Exception:
+            pass
+        return rel_path, False, f"QUARANTINE-classified: {classification_reason}"
 
     out_file = cache_files_dir / (rel_path + ".txt")
     out_file.parent.mkdir(parents=True, exist_ok=True)

@@ -110,35 +110,55 @@ If local-llm is unavailable, skip this phase and note it in the report header.
 
 Read the filtered agent outputs and produce the final answer.
 
+**One-Quote-Per-Claim Discipline (P0 — Span Correctness Gate)**
+
+Every factual sentence in the answer is one of two kinds, and you must label it accordingly:
+
+- **[grounded]** — The sentence states a single specific fact that appears verbatim in a single source. It MUST be followed by an inline citation in the form `` `path/to/file.ext`: "verbatim quote covering this exact fact" ``. The quote must contain the specific fact being asserted (date, name, amount, status, finding) — NOT a topically-related quote. If you cannot find a quote that directly contains the fact, the sentence is not grounded — either downgrade it to [synthesis] or drop it.
+- **[synthesis]** — The sentence is a derivation, summary, or inference across multiple sources, OR commentary on the evidence. It does NOT require a verbatim quote. Tag the sentence with `[synthesis]` (literal token, in the answer text) and list the supporting source paths in parentheses.
+
+**Forbidden:** Bundling 2+ independent facts into one sentence under one quote. Example of what NOT to do:
+
+> The same memo documents that Capt Taylor never received DD 2701, an OSI case number, or VWAP contact. `02_TALKING_POINTS.md`: "SA Grice did not confirm or deny..."
+
+That sentence asserts THREE facts (no DD 2701, no OSI case number, no VWAP contact) but pins them to a quote about something else (SA Grice's non-confirmation). The judge will correctly flag this IRRELEVANT. Instead, split:
+
+> Capt Taylor never received DD 2701. `02_TALKING_POINTS.md`: "Capt Taylor was never issued DD Form 2701 (Initial Information for Victims and Witnesses of Crime)."
+> He never received an OSI case number. `02_TALKING_POINTS.md`: "No OSI case number was ever provided to Capt Taylor."
+> He never received VWAP contact. `02_TALKING_POINTS.md`: "VWAP outreach was not initiated."
+
+If the source memo does NOT contain a verbatim sentence for one of these specific facts, that fact must be re-tagged as [synthesis] or dropped — even if the overall topic is in the memo.
+
 **Answer structure:**
 
 ```
 ## /ex-ask — [question]
 
 ### The short answer
-[2-4 sentences, direct, no hedging unless evidence is genuinely uncertain]
+[2-4 sentences. Each sentence is [grounded] with an inline quote, OR [synthesis] with source list.]
 
 ### Confidence
 [PROVEN / WELL-SUPPORTED / PARTIALLY-SUPPORTED / UNCERTAIN / UNSUPPORTED]
 Rationale: [what puts it at this level]
 
 ### Key evidence
-1. **[Claim 1]** — [file_path:chunk/line] — verbatim quote
-2. **[Claim 2]** — ...
+1. [grounded] **[Specific fact]** — `path/to/file`: "verbatim quote containing the specific fact"
+2. [grounded] **[Specific fact]** — `path/to/file`: "verbatim quote containing the specific fact"
+3. [synthesis] **[Derivation]** — (sources: `path1`, `path2`)
 
 ### Regulation that applies
-- [statute/paragraph] — verbatim — [why it applies]
+- [grounded] `regulation_file.md`: "verbatim paragraph" — [why it applies, as separate [synthesis] sentence]
 
 ### Timeline
-| Date | Event | Source |
-|------|-------|--------|
-| ... | | |
+| Date | Event | Source | Verbatim |
+|------|-------|--------|----------|
+| ... | | | "..." |
 
 ### Gaps / what we DON'T have
 - [what's missing that would strengthen the answer]
 
 ### Contradictions (if any)
-[explicit list where sources disagree]
+[explicit list where sources disagree, each side cited with its own [grounded] quote]
 
 ### Reports written
 - AI_Studio/Reports/ex_ask_<timestamp>/evidence.md
@@ -151,11 +171,15 @@ Rationale: [what puts it at this level]
 
 Before delivering, run a self-critique against the draft:
 
-1. **Does every non-trivial claim have a source citation?** If any don't, either cite or drop the claim.
-2. **Does each cited source actually contain the quoted text?** Spot-check 3 random citations by reading the source file. Flag if drift.
-3. **Is the confidence level honest?** If evidence is thin, drop to UNCERTAIN/UNSUPPORTED. Inflated confidence is worse than honest gaps.
-4. **Did I surface contradictions, or smooth them?** Re-read agent outputs for disagreements I missed.
-5. **Am I answering what was asked, or drifting?** Re-read the original question.
+1. **Quote discipline (P0).** For every sentence tagged [grounded]:
+   - Identify the specific fact(s) the sentence asserts.
+   - If the sentence asserts 2+ independent facts (count proper nouns, dates, amounts, statuses), SPLIT it into one sentence per fact, each with its own quote. Bundling = automatic FABRICATED verdict at scoring.
+   - Verify the inline quote actually contains the specific fact (not just the topic). If the quote is on-topic but doesn't contain the fact, either find a quote that does, or re-tag as [synthesis] and drop the inline quote.
+2. **Does every non-[synthesis] claim have a verbatim inline quote?** If any [grounded] sentence has no quote, either find one or re-tag.
+3. **Does each cited source actually contain the quoted text?** Spot-check 3 random citations by reading the source file. Flag if drift.
+4. **Is the confidence level honest?** If evidence is thin, drop to UNCERTAIN/UNSUPPORTED. Inflated confidence is worse than honest gaps.
+5. **Did I surface contradictions, or smooth them?** Re-read agent outputs for disagreements I missed.
+6. **Am I answering what was asked, or drifting?** Re-read the original question.
 
 If the reflection uncovers issues, patch and re-flect. If it still fails after 2 cycles, deliver with a `[SELF-AUDIT FAILED: <reason>]` tag prepended to the answer.
 

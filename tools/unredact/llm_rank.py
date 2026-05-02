@@ -158,11 +158,11 @@ def process_pdf(pdf_path: Path, output_dir: Path, model: str,
                 max_boxes: int | None = None,
                 min_candidates: int = 2) -> dict:
     """For each redaction box on each page of the PDF, ask the LLM to rank candidates."""
-    import fitz
+    from tools import pdf_lib
     from .box_width import load_candidates
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    doc = fitz.open(str(pdf_path))
+    doc = pdf_lib.open(str(pdf_path))
     candidates_list = DEFAULT_CANDIDATES
     total_pages = len(doc)
     pages_processed = 0

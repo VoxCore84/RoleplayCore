@@ -129,7 +129,7 @@ def process_pdf(pdf_path: Path, output_dir: Path, top_k: int = 5,
                 only_page: int | None = None,
                 doc_type: str | None = None,
                 collection_name: str = DEFAULT_COLLECTION) -> dict:
-    import fitz
+    from tools import pdf_lib
 
     output_dir.mkdir(parents=True, exist_ok=True)
     client = connect_chroma()
@@ -139,7 +139,7 @@ def process_pdf(pdf_path: Path, output_dir: Path, top_k: int = 5,
     if collection is None:
         return {"error": "collection unavailable"}
 
-    doc = fitz.open(str(pdf_path))
+    doc = pdf_lib.open(str(pdf_path))
     total_pages = len(doc)
     results: list[dict] = []
     t0 = time.time()

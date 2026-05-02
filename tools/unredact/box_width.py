@@ -295,10 +295,10 @@ def analyze_page(page, candidates: list[str], tolerance: float = 0.15) -> list[d
 
 def analyze_pdf(pdf_path: Path, output_dir: Path, candidates: list[str],
                 tolerance: float = 0.15, only_pages: set[int] | None = None) -> dict:
-    import fitz
+    from tools import pdf_lib
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    doc = fitz.open(str(pdf_path))
+    doc = pdf_lib.open(str(pdf_path))
     total_boxes = 0
     total_pages = len(doc)
     pages_analyzed = 0

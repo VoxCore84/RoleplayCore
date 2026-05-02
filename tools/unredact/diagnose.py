@@ -381,7 +381,7 @@ def write_report(
     ])
     if text["pages_recoverable"] > 0:
         lines.append("**KEY FINDING**: text layer exists under pages that visually appear redacted. "
-                     "Extract via `fitz.get_text()` or `pdftotext` to recover.")
+                     "Extract via `pdf_lib.Page.get_text()` or `pdftotext` to recover.")
         lines.append("")
     # Per-page table (top 20 most-interesting pages: those with redactions)
     interesting = [p for p in text["pages"] if p["black_rects"] > 0 or p["redact_annots"] > 0]
@@ -453,10 +453,10 @@ def write_report(
 
 def diagnose_file(pdf_path: Path, output_dir: Path, known_names: list[str],
                   dump_text: bool = True) -> dict:
-    import fitz  # PyMuPDF
+    from tools import pdf_lib  # pdfplumber + pypdfium2 (replaces PyMuPDF/AGPL)
     t0 = time.time()
     try:
-        doc = fitz.open(str(pdf_path))
+        doc = pdf_lib.open(str(pdf_path))
     except Exception as e:
         return {"path": str(pdf_path), "error": f"open failed: {e}"}
 
@@ -508,9 +508,9 @@ def main(argv: list[str] | None = None) -> int:
     args = p.parse_args(argv)
 
     try:
-        import fitz  # noqa: F401
+        from tools import pdf_lib  # noqa: F401
     except ImportError:
-        print("ERROR: PyMuPDF not installed. pip install pymupdf", file=sys.stderr)
+        print("ERROR: pdfplumber/pypdfium2 not installed. pip install pdfplumber pypdfium2", file=sys.stderr)
         return 2
 
     target = Path(args.target).resolve()

@@ -126,10 +126,12 @@ def extract_eml(path):
 
 
 def extract_msg(path):
-    # .msg is Outlook format — try extract_msg library, fall back to binary notice
+    # .msg is Outlook OLE2 format. Uses tools/msg_extract.py (olefile, BSD-3-Clause)
+    # in place of extract-msg (GPL) — same API surface, license-clean.
     try:
-        import extract_msg
-        msg = extract_msg.Message(path)
+        from tools import msg_extract
+        msg = msg_extract.Message(path)
+        attachments = [a.longFilename for a in (msg.attachments or [])]
         parts = [
             f"From: {msg.sender}",
             f"To: {msg.to}",
@@ -138,10 +140,12 @@ def extract_msg(path):
             "",
             msg.body or "(no body)",
         ]
+        if attachments:
+            parts.append(f"\nAttachments: {', '.join(attachments)}")
         msg.close()
         return "\n".join(parts)
     except ImportError:
-        return "(extract-msg not installed — pip install extract-msg)"
+        return "(msg_extract unavailable — ensure olefile is installed)"
     except Exception as e:
         return f"(MSG extraction error: {e})"
 

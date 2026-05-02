@@ -147,10 +147,10 @@ Return ONLY valid JSON matching the schema above."""
 
 def process_pdf(pdf_path: Path, output_dir: Path, model: str,
                 only_page: int | None = None) -> dict:
-    import fitz
+    from tools import pdf_lib
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    doc = fitz.open(str(pdf_path))
+    doc = pdf_lib.open(str(pdf_path))
     total_pages = len(doc)
     results: list[dict] = []
     t0 = time.time()

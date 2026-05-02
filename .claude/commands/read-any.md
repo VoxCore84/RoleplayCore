@@ -30,7 +30,7 @@ If multiple matches, show them and ask which one.
 
 | Extension | Primary Method | Fallback |
 |-----------|---------------|----------|
-| `.pdf` | Read tool (native PDF support) | `python3 -c "import fitz,sys; [print(p.get_text()) for p in fitz.open(sys.argv[1])]" PATH` |
+| `.pdf` | Read tool (native PDF support) | `python3 -c "import pdfplumber,sys; pdf=pdfplumber.open(sys.argv[1]); [print(p.extract_text() or '') for p in pdf.pages]" PATH` |
 | `.docx` | python-docx extraction (see below) | — |
 | `.doc` | Note: pre-2007 format, limited support | Try `python3 -c "import textract; print(textract.process(sys.argv[1]).decode())" PATH` |
 | `.eml` | Python email stdlib (see below) | — |
@@ -42,13 +42,13 @@ If multiple matches, show them and ask which one.
 **PDF extraction** (when Read tool fails):
 ```python
 python3 -c "
-import fitz, sys
-doc = fitz.open(sys.argv[1])
-for i, page in enumerate(doc):
-    text = page.get_text()
-    if text.strip():
-        print(f'--- Page {i+1} ---')
-        print(text)
+import pdfplumber, sys
+with pdfplumber.open(sys.argv[1]) as pdf:
+    for i, page in enumerate(pdf.pages):
+        text = page.extract_text() or ''
+        if text.strip():
+            print(f'--- Page {i+1} ---')
+            print(text)
 " "$ARGUMENTS"
 ```
 
@@ -85,11 +85,13 @@ if body:
 " "$ARGUMENTS"
 ```
 
-**MSG extraction**:
+**MSG extraction** (uses olefile via tools/msg_extract.py — BSD-3-Clause, replaces GPL extract-msg):
 ```python
 python3 -c "
-import extract_msg, sys
-msg = extract_msg.Message(sys.argv[1])
+import sys
+sys.path.insert(0, '.')
+from tools import msg_extract
+msg = msg_extract.Message(sys.argv[1])
 print(f'From: {msg.sender}')
 print(f'To: {msg.to}')
 print(f'Date: {msg.date}')

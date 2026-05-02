@@ -1,0 +1,7 @@
+# Auto-pinned variant generated 2026-05-02 02:39:36
+# Source: tools\ai_studio\requirements.txt
+
+openai==2.26.0
+anthropic==0.84.0
+python-dotenv==1.2.1
+colorama==0.4.6

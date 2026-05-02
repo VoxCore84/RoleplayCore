@@ -132,6 +132,16 @@ def assert_writable(path: Path, root: Path = config.EXCLUDED_ROOT) -> None:
     EXCLUDED_ROOT by construction.)
     """
     if is_readonly_path(path, root):
+        try:
+            from tools.governance_audit import log_decision
+            log_decision(
+                "READONLY_WRITE_BLOCKED",
+                str(path),
+                "Case_Reference is read-only (Rule 1)",
+                source="router",
+            )
+        except Exception:
+            pass
         raise PermissionError(
             f"Write blocked: {path} is under a read-only root (Case_Reference chain-of-custody). "
             f"See .claude/rules/excluded-corpus.md Rule 1."
@@ -166,6 +176,11 @@ def route(path: Path, root: Path = config.EXCLUDED_ROOT) -> RoutingDecision:
     reason = _hits_security_filter(path)
     if reason:
         log.warning(f"SECURITY refuse (stage 1): {path}: {reason}")
+        try:
+            from tools.governance_audit import log_decision
+            log_decision("SECURITY_REFUSE_FILENAME", str(path), reason, source="router", pipeline="SECURITY")
+        except Exception:
+            pass
         return RoutingDecision(path, Pipeline.SECURITY, reason, priority=0)
 
     # 2. Policy skips
@@ -196,6 +211,11 @@ def route(path: Path, root: Path = config.EXCLUDED_ROOT) -> RoutingDecision:
     reason = _hits_content_filter(path)
     if reason:
         log.warning(f"SECURITY refuse (stage 2): {path}: {reason}")
+        try:
+            from tools.governance_audit import log_decision
+            log_decision("SECURITY_REFUSE_CONTENT", str(path), reason, source="router", pipeline="SECURITY")
+        except Exception:
+            pass
         return RoutingDecision(path, Pipeline.SECURITY, reason, priority=0)
 
     # Priority bump if in HIGH_PRIORITY_FOLDERS — same pipeline, but priority=0 always

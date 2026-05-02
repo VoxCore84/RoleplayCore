@@ -268,13 +268,13 @@ def process_pdf(pdf_path: Path, output_dir: Path, *,
                 max_pages: int | None = None,
                 min_candidates: int = 2,
                 workers: int = 1) -> dict:
-    import fitz
+    from tools import pdf_lib
 
     load_env()
     output_dir.mkdir(parents=True, exist_ok=True)
     backend_fn = BACKENDS[backend]
 
-    doc = fitz.open(str(pdf_path))
+    doc = pdf_lib.open(str(pdf_path))
     total_pages = len(doc)
     tasks = []
 
