@@ -9,6 +9,9 @@
 | Build error pasted | `/parse-errors` — just run it |
 | C++ file edited, work complete | Remind: "Ready to build" — use `_build_ps.ps1` or VS |
 | Claiming completion on any deliverable | Run `python tools/validate_deliverable.py <path>` — catch hallucination + structure issues |
+| Producing case answers / filing prose / briefings with citations | **Use inline-grounded citation format** — every cited path paired with verbatim quoted span: `` `path.md`: "the actual text from the file" ``. Verifies in 1ms via `tools/inline_grounding.py`. 3.25× span-correctness lift over footnote-style citation. Forensically-defensible for legal use (Anthropic Citations API pattern). |
+| Scoring citation quality on any output | Run `python tools/citation_scorer.py --batch <input.jsonl> --output <out.json> --judge ollama` — full path-precision + recall + LLM-as-judge span correctness in one shot |
+| Verifying inline quotes exist verbatim in source | `python tools/inline_grounding.py verify --quote "..." --path "path/to/file.md"` — fast substring + Unicode-normalized fallback |
 | User asks to audit code quality, find bugs, review custom systems | `/code-audit [dir]` — fan out parallel agents |
 | SQL file created/edited | `/smartai-check` (if SmartAI) or `/apply-sql` |
 | Writing new SQL update | `/new-sql-update` — run for filename |
