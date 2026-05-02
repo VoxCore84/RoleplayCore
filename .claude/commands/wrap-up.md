@@ -1,6 +1,6 @@
 ---
 allowed-tools: Bash(git:*), Bash(gh:*), Bash(python3:*), Read, Edit, Write, Grep, Glob, Agent
-description: End-of-session routine — commit, push, sync bridge, update memory, capture resume evidence, automation retro with compounding score, build quick wins.
+description: End-of-session routine — commit, push, sync bridge, update memory, capture resume evidence, automation retro with compounding score, build quick wins, write session handoff.
 ---
 
 # Wrap Up Session
@@ -158,6 +158,33 @@ After building each quick win:
 - Add a one-line entry to `recent-work.md` under this session
 - If a new skill was built, add a trigger row to `~/VoxCore/.claude/rules/skill-reminders.md`
 
+## Step 6.5 — Session handoff doc (~60s)
+
+**Required.** Write a session-end handoff to `AI_Studio/Handoffs/voxcore/<YYYY-MM-DD>_session_<N>_<brief-tag>.md` so the next Claude Code tab can pick up without re-analysis. The Desktop has a `VoxCore Handoffs.lnk` shortcut to this folder — do NOT write the handoff to Desktop root.
+
+Filename format: `2026-05-02_session_277b_evening.md` (date + session number from Step 3 + 1-3-word tag from session focus).
+
+Required sections:
+
+1. **Frontmatter line** — session number, duration, commit hash from Step 1, total API spend.
+2. **What happened this session** — brief round-by-round narrative (3-8 sentences per round if multi-round; one paragraph if single-focus).
+3. **Headline numbers** — the diligence-grade pitch claim of the session, with confidence tier and evidence file paths. If no measurements were taken, say so explicitly.
+4. **State-of-the-world warnings** — anything the next tab needs to know that isn't obvious from `git status` or `recent-work.md`. Examples: uncommitted dirty state with rationale, withdrawn external claims, production-vs-alternative config decisions, recurring API contention, gating actions like "JAG meeting blocks outreach."
+5. **What's real (measured numbers)** — current state table for the session's domain. Cross-reference `Desktop/VoxCore_Benchmark_Results.md` if applicable.
+6. **Files to read at session start** — exact `Read <path>` commands for the next tab. Include canonical Desktop trackers + active prep files in `Do NOT Delete These/` + this handoff itself + any source files the next priority touches + methodology rule files.
+7. **Top 5-10 priorities for next session** — pulled from `todo.md` Next Session block (which was rewritten in Step 3).
+8. **Standing directives (unchanged)** — copy the standing-directive block from the prior handoff if one exists, or restate from CLAUDE.md and project rules. Add any new directives this session set.
+9. **Workflow reminders for the next tab** — Triad rule reminders, methodology rule reminders, cost discipline notes, recurring-pain prevention pointers.
+10. **Provenance footer** — generation timestamp, session totals (items checked, tools shipped, docs written).
+
+Skip Step 6.5 only if:
+- The session was a pure documentation read with no measurable output (rare)
+- User explicitly passed `quick` in `$ARGUMENTS` (already skipping Steps 4-7)
+
+If skipped: still write a 1-2-line marker entry in `AI_Studio/Handoffs/voxcore/_session_index.md` (create if doesn't exist) noting the session number + skip reason, so the next tab knows nothing is missing.
+
+After writing the handoff, mention its path in the Step 7 summary.
+
 ## Step 7 — Session-complete summary (~10s)
 
 Output to user:
@@ -188,6 +215,9 @@ Output to user:
 [or "none — all pain points already addressed this session"]
 [or "queue overflowed cap; deferred N items to todo.md"]
 
+### Handoff
+- AI_Studio/Handoffs/voxcore/<filename>.md (or "skipped — quick mode" / "skipped — pure read session")
+
 ### Next Session (written to todo.md)
 - [ ] item 1
 - [ ] item 2
@@ -208,6 +238,7 @@ If `quick` was passed, output only Committed/Pushed/Bridge.
 - The `## Next Session` block in `todo.md` must always be fresh — replace it every wrap-up, never append
 - Never skip Step 5 (automation retro) — it's the compounding engine. Step 4 (resume evidence) is conditional; Step 5 is not.
 - If quick-win gate has nothing to build, say so explicitly (don't silently skip — the user wants to see the gate fired)
+- Never skip Step 6.5 (session handoff) unless `quick` was passed or the session was a pure read — the next tab depends on it. Write to `AI_Studio/Handoffs/voxcore/<date>_session_<N>_<tag>.md` (NOT Desktop root — Desktop has the `VoxCore Handoffs.lnk` shortcut to that folder).
 
 ## Migration notes (for future Claude reading this skill)
 
