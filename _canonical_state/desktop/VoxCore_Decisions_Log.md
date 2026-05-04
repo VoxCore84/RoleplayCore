@@ -533,4 +533,109 @@
 
 ---
 
+## 2026-05-03 (Phase 3.5 closeout — logged post-restart from disk state)
+
+> **Provenance note:** Phase 3.5 implementation was completed by a previous Claude Code session on 2026-05-03 ~01:26–04:12 AM. That session was interrupted by a machine restart before writing closeout documentation. This session (post-restart) verified the results on disk, confirmed they are structurally sound (see 3 verification checks below), and is writing the closeout entries. The results were READ FROM DISK, not produced in this session.
+
+### Auditor-context-limitation — documented architectural gap, Phase 4 fix path
+
+> **RETRACTION (2026-05-03, post-QA Tier 5 + Q13 diagnosis):** The Theranos sourcing claim and the proposed fix target in this entry were both incorrect. See superseding entry below ("Auditor false-positive CONTRADICTS — corrected root cause and fix target") and diagnostic evidence at `demo/results/04_multimodal_slipfall/q13_contradicts_diagnosis.json`. Original entry text retained (with strikethrough on retracted claims) for audit-trail integrity.
+
+- **Decision:** Document the finding that the inline auditor (`tools/inline_auditor.py`) receives only the top-k retrieved chunks but the synthesis model may cite content outside that retrieval window. ~~The auditor should verify against the cited chunks directly, not just the retrieval window.~~ Marked as Phase 4 architectural change — not addressed in Phase 3.5.
+- **Source finding:** ~~Two Theranos CONTRADICTS verdicts in Phase 3 scoring traced to this gap.~~ ~~The auditor flagged citations as CONTRADICTS because the supporting text was in a chunk the auditor never saw (outside the retrieval window), not because the citation was actually wrong.~~ ~~False-positive CONTRADICTS is a lower-severity issue than false-negative, but it inflates the hold rate unnecessarily.~~ **[RETRACTED 2026-05-03]** Theranos `scores.json` (current and Sonnet baseline) shows `total_contradicts: 0` with no per-query CONTRADICTS hits — the "Two Theranos CONTRADICTS verdicts" cited as the source observation do not exist in the artifact and were carried forward from the original Phase 3.5 prompt without independent JSON verification.
+- **Alternatives:** (a) Expand auditor context to all chunks in the FTS DB matching the cited path (expensive — may be thousands of chunks), ~~(b) fetch the specific cited chunk by path+offset and pass it to the auditor alongside the retrieval window (targeted — O(1) per citation),~~ **[RETRACTED — wrong fix target]** (c) document and defer (chosen for Phase 3.5).
+- **Rationale:** ~~Option (b) is the correct fix but changes how the auditor consumes evidence, which has implications for the production architecture (`tools/inline_auditor.py` → `tools/citation_scorer.py` → `/ex-ask` pipeline). This is a Phase 4 scope item.~~ **[RETRACTED 2026-05-03]** Q13 diagnosis demonstrated the actual root cause is missing claim-context to the auditor, not chunk-window limitation. See superseding entry.
+- **Blocks/Unblocks:** Does NOT block Phase 3.5 closeout. Blocks optimal auditor precision in Phase 4.
+- **Evidence:** Phase 3 Theranos scoring, `demo/results/02_sec_theranos/scores.json`. Auditor architecture: `demo/tools/inline_auditor.py`, `demo/runner/run_case.py:173-174`. **Retraction evidence: `demo/results/04_multimodal_slipfall/q13_contradicts_diagnosis.json` (2026-05-03), `demo/tools/diagnostics/diagnose_q13_contradicts.py`.**
+
+### PDF extraction post-processing — documented production gap
+- **Decision:** The `demo/tools/court_opinion_clean.py` pattern (9-pass regex cleaner for court opinion PDF artifacts — page headers, line numbers, section markers, footnote markers, hyphenated breaks, separator lines) is a demo-specific tool. Production VoxCore (`tools/extract_cache.py`) likely has the same artifacts on case archive PDFs (SCOTUS slip opinions, federal court orders, AFBCMR decisions). Back-porting the cleaner to production is a separate decision, not a Phase 3.5 commitment.
+- **Measured impact (demo):** Chevron verbatim precision on cleaned text: 86.4% (89/103 citations verified). Without cleaning, the Phase 2 Sonnet baseline on Theranos PDF was 78.2% — cleaning + Opus model + per-corpus collections together lifted Chevron above the 85% target. The cleaner alone contributed an estimated 10-15pp of the improvement (based on the failure-mode clustering: Q5's 0% verbatim is synthesis discipline, not extraction).
+- **Production consideration:** If production ever runs citation-precision scoring on case archive PDFs, the same line-number / page-header / footnote artifacts will suppress verbatim match rates. The cleaner pattern is generic enough to adapt (regex targets are common across SCOTUS, federal circuit, and military court opinions).
+- **Blocks/Unblocks:** Does NOT block anything currently. Informational for future production citation work.
+- **Evidence:** `demo/tools/court_opinion_clean.py` (105 lines), `demo/corpora/scotus_chevron/raw/*.clean.txt`, `demo/results/03_scotus_chevron/scores.json`.
+
+### Multi-corpus volume bias — fixed in demo via per-corpus ChromaDB collections
+- **Decision:** Refactored `demo/tools/vector_build.py` and `demo/tools/hybrid_search.py` to maintain one ChromaDB collection per corpus (`demo_enron`, `demo_scotus_chevron`, `demo_sec_theranos`). Cases query only their own corpus's collection via the `corpus` parameter in `case.toml`.
+- **Problem solved:** With all three corpora in one merged collection, Enron's 53,971 chunks overwhelmed SCOTUS's 272 chunks in nearest-neighbor space. Dry-run testing showed SCOTUS queries returning 2-3 relevant hits when the same queries against a SCOTUS-only collection returned 10. This problem scales linearly with corpus count — Phase 4 multimodal would have made it worse.
+- **Alternatives:** (a) Single collection with metadata filtering (ChromaDB `where` clause), (b) per-corpus collections (chosen), (c) weighted scoring to compensate for corpus size.
+- **Rationale:** Per-corpus collections are the simplest correct fix. ChromaDB supports named collections natively. Metadata filtering is slower and still suffers from HNSW graph topology bias toward the larger corpus. Weighted scoring is fragile. The refactor was ~30 lines of code.
+- **Blocks/Unblocks:** Closes the volume-bias finding from Phase 3 dry-run testing. Prevents Phase 4 from inheriting a problem that scales badly with corpus count.
+- **Production back-port candidate:** Theranos verbatim jumped 78.2% → 97.2% from per-corpus collections ALONE (no PDF cleaning needed on that corpus). This implies the volume bias was a larger drag on Phase 3 numbers than originally diagnosed. Production VoxCore currently uses a single ChromaDB collection (`tools/rag_build.py` → `.cache/rag/chroma/`). If production ever hosts multiple client matters or corpus domains in one collection, the same bias will appear. Per-matter or per-folder collections should be evaluated as a production improvement — separate decision, not a Phase 3.5 commitment.
+- **Evidence:** `demo/tools/vector_build.py` (COLLECTION_PREFIX pattern, lines 22-76), `demo/tools/hybrid_search.py` (corpus param, lines 145-191), ChromaDB state: 3 collections verified via `chromadb.PersistentClient.list_collections()`.
+
+---
+
+## 2026-05-03 (Phase 4 closeout — multimodal mix case)
+
+> **Provenance note:** Phase 4 was implemented, executed, and reported in a single session on 2026-05-03 ~08:20–10:00 local. Unlike Phase 3.5, no restart-recovery applies — all results below were produced live in the reporting session. Closeout report at `demo/PHASE_4_CLOSEOUT.md`.
+
+### ASR/OCR pipeline + license attribution captured at corpus creation
+- **Decision:** Build the multimodal corpus with license attribution captured in `case.toml` at artifact creation, not retroactively. Stack: OpenAI TTS-1 (commercial-use license) for TTS audio synthesis, faster-whisper large-v3 (CPU/int8 on this machine; medium for side audit) for ASR, Tesseract 5.4.0 primary + Claude Sonnet 4.6 vision fallback for OCR, Claude Opus 4.7 for image content captioning. COCO val2017 (CC BY 4.0) for content images with full attribution preserved in MANIFEST.json.
+- **Alternatives:** (a) defer license documentation, (b) use Coqui XTTS-v2 (free but commercial-use restricted), (c) LibriSpeech-only for audio (free but no narrative coherence), (d) capture at creation (chosen).
+- **Rationale:** The user's standing rule is "License on the artifact matters, not the use." Coqui XTTS-v2's commercial-use restriction would have contaminated the chain-of-title even if the demo never goes commercial. OpenAI TTS-1 at $0.018 total for ~3 min audio is the right trade. License captured in 11 `[[licenses]]` blocks in `clients/04_multimodal_slipfall/case.toml` at artifact creation per the Phase 4 contractual guardrail.
+- **Reselection log:** `injury_view.jpg` was reselected mid-session — initial COCO selection (image_id 354307) returned an assault scene. Reselected to image_id 71938 (man sleeping with phone) with safety filter excluding graphic-content keywords. Reselection_reason captured in MANIFEST.json.
+- **Evidence:** `demo/clients/04_multimodal_slipfall/case.toml`, `demo/corpora/slipfall_santos_v_greenleaf/MANIFEST.json`, `demo/corpora/slipfall_santos_v_greenleaf/ground_truth/{tts_generation_metadata.json,ocr_image_generation_metadata.json}`.
+
+### Image content reasoning earned its cost — provenance + modality-mismatch detection
+- **Decision:** Document Phase 4's finding that Claude Opus vision content extraction produced reasoning beyond simple object detection. Total cost: ~$0.10 for 3 images at the captioning stage; Q4/Q13 image-content queries cost ~$0.05 incremental at synthesis time. Total image-reasoning spend: ~$0.15 across the case.
+- **Demonstrated value:**
+  - **Q4** (produce_display description): Model identified the COCO image is a residential interior, NOT the grocery produce display the filename implies. Spotted "Gracie Mac Photography" watermark and flagged it as a chain-of-custody concern for evidence.
+  - **Q7** (injury photograph consistency): Model honestly noted the image shows a person sleeping with a phone, NOT a bandaged ankle/knee — flagged the modality-content mismatch instead of fabricating consistency.
+  - **Q13** (warning cone presence): Vision affirmatively confirmed "No warning signs or hazard indicators visible" in the spill scene caption, providing absence-of-thing evidence corroborating the witness statement.
+- **Implication:** Vision-as-modality is not just object detection. The model reasons about evidentiary value, provenance, and modality-content mismatch. This is a stronger acquirer-demo claim than "system can identify objects in images."
+- **Production back-port candidate:** Vision OCR (separate from content captioning) measured 9× more accurate than Tesseract on the same 4 images (23% CER → 2.57% CER, full breakdown in closeout). Cost ~$0.005/image. For production case archives with table-heavy documents (PT bills, court filings, photographed receipts) or handwriting-style content (witness statements, doctor's notes), vision-first OCR should be the default, with Tesseract retained as a free pre-filter for trivially-clean serif text. Separate production decision, not a Phase 4 commitment.
+- **Evidence:** `demo/PHASE_4_CLOSEOUT.md`, `demo/results/04_multimodal_slipfall/{accuracy_baseline.json,accuracy_vision_ocr.json,query_04.json,query_07.json,query_13.json}`.
+
+### "I don't know" test — PASSED with explicit refusal, 0 fabrication
+- **Decision:** Document Phase 4's IDK test result as the strongest single demo moment of the four-case Round 3. Q12 ("What brand of shoes was Maria Santos wearing at the time of her fall?") produced 0 citations, 0 fabrication, no retry needed, 5.0s elapsed (fastest query of the case run).
+- **Result text:** *"None of the provided source chunks mention the brand of shoes Maria Santos was wearing at the time of her fall. [synthesis] The available records describe the incident location, her injuries, and the condition of the floor, but contain no reference to her footwear. [synthesis]"*
+- **Acquirer demo claim unblocked:** "When the corpus does not contain the answer, the system says so — explicitly, in a sentence, with zero fabricated citations and no theatrical hedging." This is a different kind of credibility than confident answering; the four-case Round 3 now demonstrates both.
+- **Auditor:** flagged needs_rewrite=false, needs_hold=false. The synthesis-time refusal was clean enough that the auditor didn't need to escalate.
+- **Evidence:** `demo/results/04_multimodal_slipfall/query_12.json`, `demo/PHASE_4_CLOSEOUT.md` § "The Five Phase 4 Questions" / Question 5.
+
+### Citation-path verify-retry — Phase 5 priority
+- **Decision:** Log a Phase 5 architectural priority discovered during Phase 4 execution: the verify-retry loop in `demo/runner/run_case.py` validates quote-not-found-verbatim but does NOT validate cited path resolution. Q11 ("party map") produced 53 citations, all with correct quoted text but with basename-only paths (`complaint.txt` instead of `slipfall_santos_v_greenleaf/raw/complaint.txt`). The verifier couldn't resolve any of them; the verify-retry didn't catch it because the failure mode is path correctness, not quote correctness.
+- **Impact on Phase 4 numbers:** Q11 dragged aggregate chunk-resolution from 96.4% (excl Q11) to 61.0% (all 13 queries) and aggregate verbatim from 94.0% to 57.4%. Two stop-condition thresholds (95% chunk-res, 80% verbatim) were not met in aggregate but were met excluding this single synthesis-discipline failure.
+- **Same pattern as Phase 3.5 Chevron Q5:** at high citation density (Q11: 53 cit; Chevron Q5: 4 cit but heavily integrative), synthesis discipline degrades. Phase 3.5 was paraphrase-while-quoting; Phase 4 is path-abbreviation. Both are quote/path-disagreement issues invisible to the current verify-retry contract.
+- **Fix path:** Extend `runner/run_case.py:run_query()` verify-retry to (a) parse cited paths from the answer, (b) check each cited path against `chunks.rel_path` in the FTS index, (c) include unresolved paths in the retry prompt with the chunk-header format reminder. Estimated effort: ~30 lines of code + retry-prompt update.
+- ~~**Auditor-direct-cited-chunk fix is also Phase 5 priority** (originally Phase 4 in the Phase 3.5 closeout). Phase 4 confirmed: Q13's 2 CONTRADICTS are auditor false-positives because the auditor doesn't see the specific cited chunks. As multimodal corpora grow, this gap produces more false-positive holds.~~ **[RETRACTED 2026-05-03]** Q13 diagnostic replay (`demo/results/04_multimodal_slipfall/q13_contradicts_diagnosis.json`) showed all 5 cited paths were already in the auditor's 8 input chunks — the auditor saw the cited content and still flagged CONTRADICTS at 0.95 confidence. The actual root cause is missing claim-context (the auditor receives a placeholder string `"sentence containing the quote"` instead of the model's real surrounding sentence at `inline_auditor.py:68`). See superseding entry "Auditor false-positive CONTRADICTS — corrected root cause and fix target" (2026-05-03).
+- **Evidence:** `demo/results/04_multimodal_slipfall/query_11.json`, `demo/PHASE_4_CLOSEOUT.md` § "Phase 4 Surprises" item 1.
+
+---
+
+## 2026-05-03 (post-QA correction — Phase 5 priority refined after Q13 diagnosis)
+
+### Auditor false-positive CONTRADICTS — corrected root cause and fix target
+
+- **Supersedes:** the 2026-05-03 Phase 3.5 entry "Auditor-context-limitation — documented architectural gap" (Theranos sourcing claim is confabulated; Theranos `scores.json` shows 0 CONTRADICTS) AND the auditor-direct-cited-chunk paragraph in the 2026-05-03 Phase 4 entry "Citation-path verify-retry" (Q13's cited paths were demonstrated to be in the auditor's input window). Both prior entries are preserved with strikethrough + retraction notes for audit-trail integrity; this entry is the canonical statement of the corrected priority.
+
+- **Decision:** The Phase 5 architectural fix target for false-positive CONTRADICTS is **auditor-direct-claim-context**, not auditor-direct-cited-chunk. The bug is that `tools/inline_auditor.py:68` constructs each audit triple with the literal placeholder string `"CLAIM context: sentence containing the quote"` instead of the model's actual surrounding sentence from the answer. Without real claim context, the auditor judges the quote against the implicit purpose of the user's query — flagging CONTRADICTS when the model cites content for honesty disclosure (e.g., "this caption describes a kitchen, not the spill site as claimed by filename") because the quote doesn't directly answer the query, even though the quote is a faithful citation of the source.
+
+- **Source finding:** Q13 diagnostic replay on 2026-05-03. Q13's 2 CONTRADICTS verdicts at 0.95 confidence both cite paths that were in the auditor's 8 input chunks (`scene_floor.jpg.caption.txt`, `produce_display.jpg.caption.txt`). The auditor saw the cited content and still flagged CONTRADICTS — auditor-context-limitation cannot be the cause. The two flagged quotes are exactly the ones the model used to disclose the residential-interior-vs-grocery-store modality mismatch. The placeholder claim context is the only architectural surface that would produce this verdict pattern.
+
+- **Alternatives:**
+  (a) **Auditor-direct-claim-context (chosen):** Use `inline_grounding.extract_inline_quotes()` span positions to walk back to the surrounding sentence in the answer, pass that sentence as the CLAIM context. ~5-10 lines of code in `inline_auditor.py:66-68`.
+  (b) Auditor-direct-cited-chunk (originally chosen, now rejected): Fetch cited chunk by `(rel_path, chunk_idx)` and pass alongside retrieval window. Q13 evidence shows this would not have changed the verdict — the cited chunk was already in the window.
+  (c) Document and defer (status quo): leave the placeholder, accept false-positive CONTRADICTS rate.
+
+- **Rationale:** Q13 evidence falsifies (b). (a) addresses the actual architectural gap with minimal code change and preserves auditor latency budget (no additional retrieval call). The fix is bounded — it does not change the auditor's model, prompt structure, or output format — only the construction of the CLAIM context field in the user message.
+
+- **Blocks/Unblocks:** Closes the corrected Phase 5 priority statement. Unblocks Phase 5 implementation work to start against the right target. Blocks any reliance on the original "auditor-direct-cited-chunk" framing in acquirer-facing materials (CAPABILITY_SCOPE.md updated separately to reflect the corrected priority).
+
+- **Evidence:**
+  - Diagnostic script: `demo/tools/diagnostics/diagnose_q13_contradicts.py` (preserved for QA audit trail).
+  - Diagnostic output: `demo/results/04_multimodal_slipfall/q13_contradicts_diagnosis.json`.
+  - Auditor source: `demo/tools/inline_auditor.py:66-68` (the placeholder claim context construction).
+  - Q13 result: `demo/results/04_multimodal_slipfall/query_13.json` (audit_summary: 11 audited / 2 contradicts / needs_rewrite=true / max retries hit).
+  - Theranos JSON proving 0 CONTRADICTS: `demo/results/02_sec_theranos/scores.json` and `demo/results/02_sec_theranos_sonnet/scores.json`.
+
+- **Audit-trail note:** This correction was produced by QA Tier 5 (Decisions Log audit) catching the Theranos sourcing inconsistency and Tier 5 follow-up (Q13 diagnostic replay) confirming the wrong-fix-target conclusion. The original wrong-target priority was logged in good faith from the Phase 3.5 prompt's framing; the artifact discipline that catches this (Decisions Log + closeout numbers + JSON evidence files all cross-checked) is itself a measurement of the system's diligence-readiness. The pattern — original entry strikethrough + dated retraction + superseding entry — preserves the trail that "we logged X, evidence showed X was wrong, we corrected to Y, here is the evidence." That trail is part of what makes the Decisions Log a diligence artifact rather than a marketing document.
+
+---
+
+> **2026-05-03 RECONSTRUCTION NOTE:** During QA Tier 5 edit-propagation testing on the SL_Vault symlink to this file, a script bug computed the truncation target from the symlink's path-string length (72 bytes) instead of the symlink target's actual size. The truncate command followed the symlink and reduced this canonical file from 97,050 bytes to 72 bytes, destroying all Phase 3.5 closeout entries, Phase 4 closeout entries, and the post-QA Q13 supersession entry. The file was restored from git HEAD (`e25136bbe7`) and all session edits were re-applied from conversation history. The reconstructed content matches the pre-truncation state on every entry's substance; minor whitespace variations may exist. This note is the audit trail for the reconstruction event itself — not part of the calibration story but part of the meta-discipline (the system's failure modes are themselves logged honestly).
+
+---
+
 *End of decisions log. Entries are append-only. Do not edit or remove prior entries — they are part of the audit trail.*
