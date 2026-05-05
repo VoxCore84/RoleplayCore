@@ -13,6 +13,8 @@
 | Scoring citation quality on any output | Run `python tools/citation_scorer.py --batch <input.jsonl> --output <out.json> --judge ollama` — full path-precision + recall + LLM-as-judge span correctness in one shot |
 | Verifying inline quotes exist verbatim in source | `python tools/inline_grounding.py verify --quote "..." --path "path/to/file.md"` — fast substring + Unicode-normalized fallback |
 | User asks to audit code quality, find bugs, review custom systems | `/code-audit [dir]` — fan out parallel agents |
+| About to spawn 2+ parallel sub-agents (Agent tool) for a non-trivial task | **Run `/extra-usage` FIRST** — sub-agents inherit 1M context from parent. Without /extra-usage enabled, ALL parallel sub-agents fail with "Extra usage is required for 1M context" before consuming any tokens. Pain logged 7+ times across sessions 263–278h. |
+| Choosing model for sub-agent tasks | **Heuristic**: structured catalog/extraction/classification → Sonnet 4.6 is sufficient and ~5× cheaper. Narrative synthesis / cross-document reasoning / legal-accuracy verification → Opus 4.7. Don't default-spawn Opus when Sonnet suffices — caught session 278h ($150-300 → $25-50 actual when corrected mid-task). |
 | SQL file created/edited | `/smartai-check` (if SmartAI) or `/apply-sql` |
 | Writing new SQL update | `/new-sql-update` — run for filename |
 | Multiple tasks / scope expanding | Suggest tab split (see multi-tab rules) |
