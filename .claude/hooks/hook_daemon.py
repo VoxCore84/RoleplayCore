@@ -995,7 +995,7 @@ SLOW_TOOL_DEFAULTS_MS = {
     "mcp__voxcore-db__query": 10000,
     "mcp__voxcore-db__safe_apply": 30000,
     "mcp__voxcore-server__build": 600000,
-    "Agent": 120000,
+    "Agent": 600000,
     "Bash": 60000,
 }
 SLOW_TOOL_DEFAULT_MS = 30000

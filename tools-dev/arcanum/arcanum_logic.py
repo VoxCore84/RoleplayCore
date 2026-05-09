@@ -398,7 +398,7 @@ def arcanum_rebuild() -> str:
 
 MBOX_DB_PATH = Path(os.environ.get(
     "MBOX_DB_PATH",
-    Path.home() / "Desktop" / "Excluded" / "mbox" / "mbox_index.db"
+    Path.home() / "Desktop" / "SL_Vault" / "_Vault_SL_FULL_GMAIL_MBOX_8_MAY-2026" / "mbox_index.db"
 ))
 
 
