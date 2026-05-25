@@ -143,6 +143,12 @@ sql/migration_snapshots/
 AI_Studio/Reports/
 AI_Studio/4_NotebookLM/
 
+# -- Quarantined PII / personal-image transcriptions (defense-in-depth) --------
+# Never commit. Raw OCR/vision digests of personal photos can contain SSNs,
+# phones, emails, secrets. Kept ignored even if a Reports/ path is later tracked.
+_PRIVATE_quarantine/
+**/_PRIVATE_quarantine/
+
 # -- Published tool snapshots (each has its own GitHub repo) -------------------
 tools/publishable/
 

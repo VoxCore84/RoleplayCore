@@ -40,6 +40,17 @@ If a documented step exists and you're about to skip it, ASK. Never silently ski
 ## Capture Corrections (lessons loop)
 After ANY user correction, rejection, or surprising failure, append an entry to `tasks/lessons.md` (**Context** / **Lesson** / **Rule**) before continuing other work. This is not optional bookkeeping — it is how the same mistake is prevented next session. A correction that isn't written down recurs. Keep entries tight (the file is read every session). When a lesson recurs 3+ times, promote it into a `.claude/rules/*.md` file and leave a pointer.
 
+## Verify-before-recommend (harvested-claim gate)
+A claim from an external source — screenshot, blog, influencer post, another AI's output, a tool's README — is a **LEAD, not a fact**. Before it becomes an actionable recommendation ("build / use / enable / install X"), verify it against an authority:
+- **Claude Code / API features** → live docs (spawn `claude-code-guide`) or context7, AND the actual `settings.json` / code.
+- **Third-party tools** → the real repo / package registry (does it exist? maintained?).
+- **Metrics / savings / benchmarks** → read the actual code path and measure (token counts, call shape) before quoting a number.
+- **Anything from image OCR** → the source image or authoritative docs (bulk OCR garbles exact values — see `tasks/lessons.md`).
+
+Tag every harvested claim **VERIFIED / UNVERIFIED / FALSE**. Unverified claims may be listed as EXPERIMENTAL but MUST NOT enter a Tier-1 "do this" recommendation. Applies to FINDINGS-style reports and any harvest/research output.
+
+Why (2026-05-25 catches): `autoUpdaterStatus` was not a real key; `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` was misnamed (missing `_CODE_`); `CLAUDE_CODE_MAX_TURNS` unconfirmed; a "~$21/run caching saving" evaporated when the real prompt was 169 tok (< 1024 cache floor); 30% of dense harvested screenshots had major transcription errors. The gate caught all of these before they shipped as production changes.
+
 ## Mandatory Completion Checklist
 Before ANY completion summary:
 1. Re-read source instructions

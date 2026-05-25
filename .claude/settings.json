@@ -1,6 +1,5 @@
 {
   "respectGitignore": true,
-  "includeGitInstructions": true,
   "permissions": {
     "allow": [
       "Bash(*)",
