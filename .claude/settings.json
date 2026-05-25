@@ -1,4 +1,6 @@
 {
+  "respectGitignore": true,
+  "includeGitInstructions": true,
   "permissions": {
     "allow": [
       "Bash(*)",
@@ -25,6 +27,19 @@
       "mcp__voxcore-db__*",
       "mcp__voxcore-server__*",
       "mcp__local-llm__*"
+    ],
+    "deny": [
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/id_rsa)",
+      "Read(**/id_ed25519)",
+      "Read(**/*.pem)",
+      "Read(**/*recovery-codes*)",
+      "Read(**/*backup-codes*)",
+      "Read(**/credentials.json)",
+      "Read(**/Pword.txt)"
     ]
   },
   "hooks": {

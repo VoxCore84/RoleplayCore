@@ -37,6 +37,9 @@ If about to state a fact about schema/columns/counts without a tool call THIS se
 ## Ask Before Skipping
 If a documented step exists and you're about to skip it, ASK. Never silently skip.
 
+## Capture Corrections (lessons loop)
+After ANY user correction, rejection, or surprising failure, append an entry to `tasks/lessons.md` (**Context** / **Lesson** / **Rule**) before continuing other work. This is not optional bookkeeping — it is how the same mistake is prevented next session. A correction that isn't written down recurs. Keep entries tight (the file is read every session). When a lesson recurs 3+ times, promote it into a `.claude/rules/*.md` file and leave a pointer.
+
 ## Mandatory Completion Checklist
 Before ANY completion summary:
 1. Re-read source instructions

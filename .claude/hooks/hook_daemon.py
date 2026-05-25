@@ -1153,6 +1153,20 @@ async def _subagent_complete_work(data: dict) -> None:
             f.write(json.dumps(entry) + "\n")
     except Exception:
         log.exception("subagent_complete stats write failed")
+    # CC-05: persist a durable breadcrumb of the subagent result so it survives
+    # compaction (compaction-survival.md: "persist agent findings before continuing").
+    # Defensive: never let this break the daemon — own try/except, .get() fallbacks.
+    try:
+        result = (data.get("result") or data.get("output")
+                  or data.get("transcript_path") or "(no result field in payload)")
+        live = PROJECT_DIR / "AI_Studio" / "Reports" / "session_state_live.md"
+        live.parent.mkdir(parents=True, exist_ok=True)
+        snippet = str(result).replace("\n", " ")[:500]
+        with open(live, "a", encoding="utf-8") as f:
+            f.write(f"\n- [{entry['timestamp']}] SubagentStop "
+                    f"(session {str(entry['session'])[:8]}): {snippet}\n")
+    except Exception:
+        log.exception("subagent_complete live-state write failed")
     burnttoast = (
         "try { New-BurntToastNotification "
         "-Text 'Subagent Complete', 'Background agent finished' "
@@ -1798,6 +1812,26 @@ async def handle_grep_case_enricher(data: dict) -> dict:
     }
 
 
+# ── handle_sql_write_monitor (MONITOR MODE — log-only, never blocks) ──────
+async def handle_sql_write_monitor(data: dict) -> dict:
+    """LOG-ONLY: when a .sql file is written/edited, record a /smartai-check
+    reminder to session_state_live.md. Monitor mode — never blocks, always
+    returns {}. NOT wired into settings.json yet; promote to the PostToolUse
+    Write|Edit chain only after one clean pass (see HOOKS_NOTES.md)."""
+    try:
+        ti = _get_tool_input(data)
+        path = ti.get("file_path") or ti.get("path") or ""
+        if path.endswith(".sql"):
+            live = PROJECT_DIR / "AI_Studio" / "Reports" / "session_state_live.md"
+            live.parent.mkdir(parents=True, exist_ok=True)
+            with open(live, "a", encoding="utf-8") as f:
+                f.write(f"\n- [{datetime.now(timezone.utc).isoformat()}] SQL written: "
+                        f"{path} -- reminder: run /smartai-check before applying.\n")
+    except Exception:
+        log.exception("sql_write_monitor failed")
+    return {}
+
+
 ROUTE_TABLE = {
     "/hook/block-recurring-cron": handle_block_recurring_cron,
     "/hook/sql-safety": handle_sql_safety,
@@ -1824,6 +1858,7 @@ ROUTE_TABLE = {
     "/hook/db-failure-chain": handle_db_failure_chain,
     "/hook/server-failure-chain": handle_server_failure_chain,
     "/hook/grep-case-enricher": handle_grep_case_enricher,
+    "/hook/sql-write-monitor": handle_sql_write_monitor,
 }
 
 

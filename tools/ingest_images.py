@@ -27,17 +27,24 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-# Lazy imports for PIL (only needed if resizing)
+# Lazy imports for PIL (only needed if resizing or converting HEIC)
 PIL_AVAILABLE = False
 try:
     from PIL import Image
     PIL_AVAILABLE = True
+    try:
+        import pillow_heif
+        pillow_heif.register_heif_opener()
+    except ImportError:
+        pass
 except ImportError:
     pass
 
 import anthropic
 
-EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".tiff", ".tif"}
+EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".tiff", ".tif", ".heic", ".heif"}
+# Formats the Claude API will not accept directly — always transcode to JPEG/PNG.
+NEEDS_TRANSCODE = {".heic", ".heif", ".tif", ".tiff", ".bmp"}
 MAX_BASE64_BYTES = 5 * 1024 * 1024  # 5 MB API limit
 
 DEFAULT_SYSTEM_PROMPT = """You are analyzing a screenshot/photo saved from a phone. Describe what this image contains in detail:
@@ -84,28 +91,50 @@ def get_media_type(ext: str) -> str:
 
 
 def encode_image(filepath: Path) -> tuple[str, str]:
-    """Read and base64-encode an image. Resize if >5MB. Returns (base64_data, media_type)."""
+    """Read and base64-encode an image for the Claude API.
+
+    HEIC/HEIF/TIFF/BMP are transcoded to JPEG (the API rejects them).
+    Anything over the 5MB limit is downscaled. Returns (base64_data, media_type).
+    """
+    suffix = filepath.suffix.lower()
+    needs_transcode = suffix in NEEDS_TRANSCODE
+
     with open(filepath, "rb") as f:
         raw = f.read()
 
-    media_type = get_media_type(filepath.suffix)
-    data = base64.standard_b64encode(raw).decode("utf-8")
+    # Fast path: API-supported type, already under the size limit.
+    if not needs_transcode and len(raw) <= MAX_BASE64_BYTES:
+        return base64.standard_b64encode(raw).decode("utf-8"), get_media_type(suffix)
 
-    # If under 5MB, return as-is
-    if len(raw) <= MAX_BASE64_BYTES:
-        return data, media_type
-
-    # Resize if PIL available
     if not PIL_AVAILABLE:
-        raise ValueError(f"{filepath.name} is {len(raw)/1024/1024:.1f}MB (>5MB limit). Install Pillow to auto-resize: pip install Pillow")
+        raise ValueError(
+            f"{filepath.name}: needs PIL to transcode/resize. "
+            f"pip install Pillow pillow-heif"
+        )
 
     img = Image.open(filepath)
-    img.thumbnail((2000, 2000), Image.LANCZOS)
-    buf = io.BytesIO()
-    fmt = "PNG" if filepath.suffix.lower() == ".png" else "JPEG"
-    img.save(buf, format=fmt, quality=85)
-    data = base64.standard_b64encode(buf.getvalue()).decode("utf-8")
-    return data, media_type
+    # Keep PNG only for oversize PNG screenshots; everything else (incl. HEIC) → JPEG.
+    prefer_png = (suffix == ".png" and not needs_transcode)
+
+    attempts = []
+    if prefer_png:
+        attempts.append(("PNG", "image/png", {}, (2000, 2000)))
+    attempts.append(("JPEG", "image/jpeg", {"quality": 85}, (2000, 2000)))
+    attempts.append(("JPEG", "image/jpeg", {"quality": 70}, (1400, 1400)))
+
+    last = None
+    for fmt, media_type, save_kwargs, max_size in attempts:
+        im = img.copy()
+        if fmt == "JPEG" and im.mode in ("RGBA", "P", "LA"):
+            im = im.convert("RGB")
+        im.thumbnail(max_size, Image.LANCZOS)
+        buf = io.BytesIO()
+        im.save(buf, format=fmt, **save_kwargs)
+        out = buf.getvalue()
+        last = (base64.standard_b64encode(out).decode("utf-8"), media_type)
+        if len(out) <= MAX_BASE64_BYTES:
+            return last
+    return last  # best effort if still slightly over
 
 
 def process_image(client: anthropic.Anthropic, filepath: Path, model: str,
@@ -155,6 +184,8 @@ def main():
                         help="User prompt sent with each image")
     parser.add_argument("--system", "-s", default=DEFAULT_SYSTEM_PROMPT,
                         help="System prompt (default: general image description)")
+    parser.add_argument("--system-file", default=None,
+                        help="Read system prompt from a file (overrides --system)")
     parser.add_argument("--prefix", default=None,
                         help="Only process files starting with this prefix (e.g., IMG_)")
     args = parser.parse_args()
@@ -165,6 +196,10 @@ def main():
         sys.exit(1)
 
     output_file = Path(args.output) if args.output else image_dir / "image_digest.md"
+
+    system_prompt = args.system
+    if args.system_file:
+        system_prompt = Path(args.system_file).read_text(encoding="utf-8")
 
     api_key = load_api_key()
     client = anthropic.Anthropic(api_key=api_key)
@@ -193,7 +228,7 @@ def main():
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.workers) as executor:
         future_to_path = {
             executor.submit(process_image, client, img, args.model,
-                            args.system, args.prompt): img
+                            system_prompt, args.prompt): img
             for img in images
         }
 

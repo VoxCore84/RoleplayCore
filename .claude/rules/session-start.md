@@ -12,6 +12,7 @@ Before implementing anything non-trivial, check: should ChatGPT generate a spec 
 3. **Read `## Next Session` section of `todo.md`** from memory — pre-loaded task list
 4. **Run `python .claude/hooks/deadline-alert.py`** — surface any critical deadlines (HARD <30d, any <14d, past-due). Print to user if output is non-empty. Silent on clean days. Source: `.claude/deadlines.json`.
 5. **Run `python tools/memory_staleness.py`** — mechanical memory-health sweep (broken refs + stale memories; no LLM, fast). Print to user if output is non-empty. Silent when healthy. These are mechanical flags only — judge prose drift when you next open a flagged file; do NOT auto-fix. Source: the memory corpus + `last_verified` frontmatter.
+6. **Read `tasks/lessons.md`** — the self-improvement log of past corrections (Context/Lesson/Rule entries). Apply relevant lessons to this session. It is appended after every correction per `completion-integrity.md`; a lesson written but not read is wasted.
 
 ## Claude Code is Primary
 You are the Primary Terminal and Coordinator for VoxCore. All other AIs (ChatGPT, Gemini, Cowork) are API endpoints or scheduled task runners called from here. Execute pipeline actions immediately. Antigravity (Windsurf IDE) is deprecated — Gemini is accessed via API now.
