@@ -170,7 +170,7 @@ Required sections:
 2. **What happened this session** — brief round-by-round narrative (3-8 sentences per round if multi-round; one paragraph if single-focus).
 3. **Headline numbers** — the diligence-grade pitch claim of the session, with confidence tier and evidence file paths. If no measurements were taken, say so explicitly.
 4. **State-of-the-world warnings** — anything the next tab needs to know that isn't obvious from `git status` or `recent-work.md`. Examples: uncommitted dirty state with rationale, withdrawn external claims, production-vs-alternative config decisions, recurring API contention, gating actions like "JAG meeting blocks outreach."
-5. **What's real (measured numbers)** — current state table for the session's domain. Cross-reference `Desktop/VoxCore_Benchmark_Results.md` if applicable.
+5. **What's real (measured numbers)** — current state table for the session's domain. Cross-reference `SL_Vault/06_Working_Documents/VoxCore_Benchmark_Results.md` if applicable. (Path updated 2026-05-04 Phase 7.2c — was previously `Desktop/VoxCore_Benchmark_Results.md`; SL_Vault is now the canonical home.)
 6. **Files to read at session start** — exact `Read <path>` commands for the next tab. Include canonical Desktop trackers + active prep files in `Do NOT Delete These/` + this handoff itself + any source files the next priority touches + methodology rule files.
 7. **Top 5-10 priorities for next session** — pulled from `todo.md` Next Session block (which was rewritten in Step 3).
 8. **Standing directives (unchanged)** — copy the standing-directive block from the prior handoff if one exists, or restate from CLAUDE.md and project rules. Add any new directives this session set.
@@ -184,6 +184,22 @@ Skip Step 6.5 only if:
 If skipped: still write a 1-2-line marker entry in `AI_Studio/Handoffs/voxcore/_session_index.md` (create if doesn't exist) noting the session number + skip reason, so the next tab knows nothing is missing.
 
 After writing the handoff, mention its path in the Step 7 summary.
+
+## Step 6.6 — Snapshot memory repo (~3s)
+
+The memory dir (`~/.claude/projects/C--Users-atayl-VoxCore/memory/`) is a
+**LOCAL-ONLY** git repo for recovery (a bad edit / truncation is one `git checkout` away).
+Steps 3–6 wrote to it (recent-work, todo, resume-evidence, automation-ledger). Commit
+them now in one labeled commit:
+
+```bash
+python /c/Users/atayl/VoxCore/tools/scheduled/memory_commit.py -m "session N wrap-up"
+```
+
+Replace `N` with the session number from Step 3. No-op if the repo is clean. **NEVER pushes** —
+memory holds HIPAA/legal/financial content, backstopped by a `pre-push` hook. A daily Task
+Scheduler job ("VoxCore Memory Commit") runs the same script as a safety net for mid-session
+edits that never reach a wrap-up (this also covers `quick` mode, which skips this step).
 
 ## Step 7 — Session-complete summary (~10s)
 
@@ -200,6 +216,9 @@ Output to user:
 
 ### Bridge
 - Synced (or "failed: reason")
+
+### Memory Snapshot
+- [hash] message (or "clean — nothing to commit")
 
 ### Resume Evidence
 [copy the entry just written, or "skipped — no measurable output"]
