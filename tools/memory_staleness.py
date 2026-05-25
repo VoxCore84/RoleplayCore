@@ -48,21 +48,26 @@ SKIP_MARKERS = ("<", ">", "*", "$", "..", "://", "YYYY", " ", "\t", "{", "}")
 _LINK_RE = re.compile(r"\]\(([^)]+)\)")          # markdown link target
 _BACKTICK_RE = re.compile(r"`([^`]+)`")           # `code`/`path`
 _WIKILINK_RE = re.compile(r"\[\[([^\]]+)\]\]")    # [[name]]
-# Match last_verified whether top-level or nested under a `metadata:` block --
-# the Claude Code memory canonicalizer rewrites new files into the nested form.
+# Match provenance dates whether top-level or nested under a `metadata:` block
+# (the canonicalizer rewrites new files into the nested form). Prefer a REAL
+# last_verified (set only by an actual check); fall back to the mtime-seeded
+# last_touched, then the filesystem mtime.
 _VERIFIED_RE = re.compile(r"^\s*last_verified:\s*(\d{4}-\d{2}-\d{2})", re.MULTILINE)
+_TOUCHED_RE = re.compile(r"^\s*last_touched:\s*(\d{4}-\d{2}-\d{2})", re.MULTILINE)
 
 
 def age_days(path: Path, text: str, today: dt.date) -> tuple[int, str]:
-    """Return (age_in_days, basis) where basis is 'last_verified' or 'mtime'."""
-    head = text[:600]
-    m = _VERIFIED_RE.search(head)
-    if m:
-        try:
-            base = dt.date.fromisoformat(m.group(1))
-            return (today - base).days, "last_verified"
-        except ValueError:
-            pass
+    """Return (age_in_days, basis). Prefers a real `last_verified`, else the
+    mtime-seeded `last_touched`, else the filesystem mtime. basis is one of
+    'verified' / 'touched' / 'mtime' -- only 'verified' reflects a real check."""
+    head = text[:800]
+    for rx, basis in ((_VERIFIED_RE, "verified"), (_TOUCHED_RE, "touched")):
+        m = rx.search(head)
+        if m:
+            try:
+                return (today - dt.date.fromisoformat(m.group(1))).days, basis
+            except ValueError:
+                pass
     base = dt.date.fromtimestamp(path.stat().st_mtime)
     return (today - base).days, "mtime"
 
@@ -175,8 +180,8 @@ def render(results: list[dict], stale_days: int, show_all: bool) -> str:
             lines.append(f"  ... +{len(broken) - 12} more file(s)")
 
     if stale:
-        oldest = ", ".join(f"{r['file']} ({r['age_days']}d)" for r in stale[:5])
-        lines.append(f"\nSTALE (>={stale_days}d unverified): {len(stale)} file(s)")
+        oldest = ", ".join(f"{r['file']} ({r['age_days']}d {r['age_basis']})" for r in stale[:5])
+        lines.append(f"\nSTALE (>={stale_days}d since last touch/verify): {len(stale)} file(s)")
         lines.append(f"  oldest: {oldest}")
 
     if unresolved:
