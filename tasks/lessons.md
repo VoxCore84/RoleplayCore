@@ -38,4 +38,16 @@ This complements the read-only `memory/improvements.md` history and the `memory/
 **Lesson:** Tailing a backgrounded process's redirected stdout is an unreliable progress signal.
 **Rule:** Judge background-job liveness by process state (PID, elapsed, CPU via `Get-CimInstance`/`Get-Process`), not by tailing a buffered output file. For real-time progress, the tool must flush per-item or write a progress file.
 
+## 2026-05-25 — 7-Zip CLI `-p` (space-separated, interactive) backup failed verification
+
+**Context:** Memory Persistence v1 encrypted backup. A manual 7-Zip CLI run using the space-separated interactive form (`7z a -mhe=on -p <archive> <dir>`) failed verification and left no usable archive (`D:\MemoryBackups` ended up empty). User pivoted to the 7-Zip GUI (AES-256 + encrypt-filenames). `memory_backup.py --backup` uses the *same* space-separated `-p` form and is NOT verified end-to-end in a real TTY. `--self-test` passes only because it uses the attached form `-p{pw}`, not the interactive one.
+**Lesson:** 7-Zip CLI `-p` with no attached value is an unreliable way to create a verified encrypted archive; the GUI (or attached `-p"pass"`) is dependable. A passing self-test using a different code path does NOT validate the `--backup` path.
+**Rule:** Don't claim `--backup` works for real archives (unverified + suspect form). For real backups use the 7-Zip GUI now; pursue a public-key (age/gpg) flow for v2. Never record an unverified/failed archive as a good backup.
+
+## 2026-05-25 — Placeholder filenames in copy-paste commands get run literally
+
+**Context:** I handed the user `Get-FileHash "D:\MemoryBackups\memory_YYYYMMDD_HHMMSS.7z"` with a literal placeholder; it was run verbatim and failed (no such file).
+**Lesson:** Any placeholder token in a copy-paste command will be executed as-is by the user.
+**Rule:** In runbook commands, auto-detect the real target (`Get-ChildItem D:\MemoryBackups\memory_*.7z | Sort LastWriteTime | Select -Last 1`) or compute the value. If a placeholder is unavoidable, mark it `<REPLACE_ME>` and say "substitute before running."
+
 <!-- Append new entries above this line is NOT required; append chronologically below the last entry. -->
