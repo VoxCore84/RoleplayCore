@@ -50,4 +50,16 @@ This complements the read-only `memory/improvements.md` history and the `memory/
 **Lesson:** Any placeholder token in a copy-paste command will be executed as-is by the user.
 **Rule:** In runbook commands, auto-detect the real target (`Get-ChildItem D:\MemoryBackups\memory_*.7z | Sort LastWriteTime | Select -Last 1`) or compute the value. If a placeholder is unavoidable, mark it `<REPLACE_ME>` and say "substitute before running."
 
+## 2026-05-25 — Caching savings claimed without checking prompt size or call shape
+
+**Context:** Recommended prompt-caching `citation_scorer.py`'s judge for "~$21/run." PHASE-2 code-read showed `judge_span_claude` uses raw `urllib` with a single user message (no `system=` block), and `JUDGE_PROMPT` is 169 tokens — below the ~1024-token cache floor. Caching there saves $0. The estimate had been fed a fictional 2000-token rubric.
+**Lesson:** Prompt caching only pays when a LARGE (≥~1024 tok Sonnet/Opus, ≥2048 Haiku), STABLE system prefix repeats across many calls. A cost claim is worthless without (a) the real prompt token count and (b) the actual call shape (SDK `system=` vs single user message vs raw HTTP body).
+**Rule:** Before claiming any caching saving: read the actual call site, confirm a separable stable system block exists, and measure its tokens against the cache floor. Never feed assumed token counts into a cost estimator.
+
+## 2026-05-25 — Measured: bulk image-triage transcription is unreliable on dense screenshots
+
+**Context:** Validated the Pictures/1 harvest with a 20-image Sonnet-vision fidelity check (`tools/ocr_fidelity_check.py`). Relevance classification was 100% accurate (0/20 misclassified), but verbatim transcription had **6/20 MAJOR errors** on dense technical screenshots — garbled numbers (700W→700μ, INT4→INT9), wrong stat (85 vs 95%), wrong filenames (refactorer.md, reranker.py), dropped sections.
+**Lesson:** Cheap vision triage (Haiku) is reliable for *is-this-relevant* classification but NOT for exact values/filenames/configs/stats on dense screenshots. Two-layer trust: structure/relevance = trust; verbatim specifics = verify.
+**Rule:** Treat bulk image-OCR output as leads, not facts. Any exact command/config/number/filename from a screenshot digest must be verified against the source image or authoritative docs before it lands in code or a recommendation. Re-extract high-stakes specifics with a stronger vision model.
+
 <!-- Append new entries above this line is NOT required; append chronologically below the last entry. -->
