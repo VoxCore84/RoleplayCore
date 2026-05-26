@@ -3,7 +3,7 @@
 **Scope:** Engineering/strategy decisions for the VoxCore system.
 **Granular architecture choices** → `docs/architecture/decisions/` (ADR 0001–0007; use ADR format for choices
 with code-level consequences — the ADR README describes the template).
-**Commercial decisions** → `_canonical_state/desktop/VoxCore_Decisions_Log.md`.
+**Commercial/strategic decisions** → `SL_Vault/02_Decisions_Log.md` (canonical, acquirer-diligence artifact). The `_canonical_state/desktop/VoxCore_Decisions_Log.md` mirror is **DEPRECATED** (frozen 2026-05-03 snapshot; `sync_canonical_state.py` retired — do not edit it).
 **This log** records operational, sequencing, and policy decisions that span subsystems or set
 constraints for future work but do not rise to the level of a full ADR.
 
