@@ -22,6 +22,12 @@ The intended user is the operator who owns the corpus. There is no multi-tenant 
 
 If you are evaluating this for an acquihire or technical diligence: read `docs/architecture/decisions/` (7 ADRs), `docs/COST_AND_LATENCY_BENCHMARKS.md`, and the Desktop verification artifacts (`VoxCore_Verification_Master_Checklist.md`, `VoxCore_Decisions_Log.md`, `VoxCore_Benchmark_Results.md`).
 
+## Repo map — where to look first
+
+- **`docs/VOXCORE_HANDOFF_INDEX.md`** — start here. Pointers to the system registry, architecture map, build roadmap, decision log, dormant-systems register, GraphRAG readiness, MCP/daemon registry, and cost-optimization status.
+- **`docs/VOXCORE_SYSTEM_REGISTRY.md`** — what already exists and its status (LIVE/PARTIAL/DORMANT/SCAFFOLD). Check before proposing any "new" system.
+- **`docs/VOXCORE_BUILD_ROADMAP.md`** — the sequenced next-build order; **`AI_Studio/Handoffs/voxcore/NEXT_SESSION.md`** + **`memory/todo.md`** — the concrete next action.
+
 ## Measured numbers (current, as of 2026-05-02 evening)
 
 | Metric | Value | Test set | Judge | Evidence |
