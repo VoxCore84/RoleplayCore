@@ -1,0 +1,390 @@
+# Backend Selection Configuration (SCHEMA STUB — Phase 3.75-B planning)
+#
+# This file defines per-operation backend choices for every LLM-using surface
+# in the VoxCore stack. It is INERT in v1 — no production code reads this yet.
+# Phase 3.8 will wire it into a backend selector.
+#
+# Format: YAML. The rest of config/ uses JSON, but those configs are short
+# flat machine-targeted blobs. This file is a multi-section, comment-rich,
+# human-edited mapping; YAML is the better fit. JSON Schema for validation
+# lives at config/backend_selection.schema.json (TODO Phase 3.8).
+#
+# Authoritative source for the recommendations below:
+#   AI_Studio/Reports/BACKEND_ARCHITECTURE_2026-05-04.md § 2 (Decision Matrix)
+#
+# Schema version uses semver. PATCH = comment edits, MINOR = new operations
+# added, MAJOR = field rename or removal.
+#
+# When Phase 3.8 wires this in:
+#   - Each `operations.<name>` entry MUST be honored as the default backend
+#     for that operation.
+#   - The `availability.local_required` operations MUST refuse to run if
+#     Ollama is not reachable (no silent cloud fallback).
+#   - The `prompts.*` settings control whether the user is asked at runtime.
+#   - The `cache_key` shape determines per-operation override caching.
+
+config_version: "1.0.0"
+created: "2026-05-04"
+status: "PLANNING — inert stub. Not wired into production code in v1."
+
+# -----------------------------------------------------------------------------
+# Backend definitions
+# -----------------------------------------------------------------------------
+# Each backend is a named pre-set the operations table can reference.
+# Cost figures are approximate as of May 2026; refresh periodically.
+
+backends:
+
+  ollama_qwen_27b:
+    kind: local
+    endpoint: "http://localhost:11434"
+    model: "qwen3.5:27b-q4_K_M"
+    cost_per_call_usd: 0.0
+    typical_latency_sec: 12        # 2K-char NER chunk on RTX 5090
+    privacy: local_only
+    notes: |
+      Default local NER + classification model. Reliable on /api/generate
+      and /api/chat. Used by kg/build.py, persons_ner_seed.py,
+      frontmatter_tagger.py.
+
+  ollama_gemma4_26b:
+    kind: local
+    endpoint: "http://localhost:11434"
+    model: "gemma4:26b"
+    cost_per_call_usd: 0.0
+    typical_latency_sec: 8
+    privacy: local_only
+    notes: |
+      Used by citation_scorer.py as the default judge backend
+      (--judge ollama). Faster than qwen3.5:27b on /api/chat, slightly
+      worse at strict-format outputs (offset by structured prompts).
+
+  ollama_nomic_embed:
+    kind: local
+    endpoint: "http://localhost:11434"
+    model: "nomic-embed-text"
+    cost_per_call_usd: 0.0
+    typical_latency_sec: 0.3       # per embedding call
+    embedding_dim: 768
+    privacy: local_only
+    notes: |
+      Embedding model used by every vector path: rag_build, hybrid_search,
+      quality_probe, demo workspace. NEVER use a cloud embedding service
+      for personal-corpus content unless explicitly approved per-operation.
+
+  ollama_bge_reranker:
+    kind: local
+    endpoint: "http://localhost:11434"
+    model: "qllama/bge-reranker-v2-m3"
+    cost_per_call_usd: 0.0
+    typical_latency_sec: 0.5       # per (query, passage) pair
+    privacy: local_only
+    notes: |
+      Cross-encoder reranker. Used by excluded_hybrid_search.py when
+      --crossencoder is passed. Currently NOT in the canonical hybrid
+      path (per Phase 3.75-A baseline configuration).
+
+  sonnet_4_6:
+    kind: cloud_anthropic
+    model: "claude-sonnet-4-6"
+    cost_input_per_mtok_usd: 3.0
+    cost_output_per_mtok_usd: 15.0
+    typical_latency_sec_serial: 3
+    typical_latency_sec_parallel_20: 0.15  # amortized at 20 workers
+    privacy: cloud
+    notes: |
+      Default cloud workhorse. Strong at NER, judging, synthesis, audit.
+      Parallel-friendly (kg/build.py runs 4:1 Sonnet:Ollama; contradiction
+      job runs 5 parallel; user has measured ~0.9 chunks/sec at 20 workers).
+
+  opus_4_7:
+    kind: cloud_anthropic
+    model: "claude-opus-4-7"
+    cost_input_per_mtok_usd: 15.0
+    cost_output_per_mtok_usd: 75.0
+    typical_latency_sec_serial: 4
+    typical_latency_sec_parallel_20: 0.20
+    privacy: cloud
+    notes: |
+      Reserved for high-stakes judging and tasks where the +18.3pp
+      legal-PDF citation precision lift over Sonnet 4.6 (Phase 2.6 A/B
+      test) justifies the 5x cost. Use sparingly.
+
+  haiku_4_5:
+    kind: cloud_anthropic
+    model: "claude-haiku-4-5-20251001"
+    cost_input_per_mtok_usd: 1.0
+    cost_output_per_mtok_usd: 5.0
+    typical_latency_sec_serial: 1.5
+    typical_latency_sec_parallel_20: 0.10
+    privacy: cloud
+    notes: |
+      Cheapest cloud option. Worth piloting for high-volume classification
+      (frontmatter, document-type tagging) where quality bar is moderate.
+
+# -----------------------------------------------------------------------------
+# Per-operation backend assignments
+# -----------------------------------------------------------------------------
+# Each operation has:
+#   primary    — default backend
+#   fallback   — used if primary is unreachable
+#   prompt     — when to ask the user (always | once_per_run | never)
+#   override_env — env var that forces an alternative backend
+#   privacy    — which corpus this operation may touch
+#   rationale  — one-line summary; deeper rationale lives in the architecture doc
+
+operations:
+
+  embed_personal_corpus:
+    primary: ollama_nomic_embed
+    fallback: null              # NEVER cloud-embed personal corpus
+    prompt: never
+    override_env: VOXCORE_EMBED_PERSONAL
+    privacy: personal
+    rationale: |
+      Volume too high (~25K chunks) and quality differential too low to
+      justify cloud cost. Privacy: embeddings of personal corpus must
+      never leave the box. No fallback by design.
+
+  embed_clean_corpus:
+    primary: ollama_nomic_embed
+    fallback: null              # No cloud embedding service used today
+    prompt: never
+    override_env: VOXCORE_EMBED_CLEAN
+    privacy: clean
+    rationale: |
+      Same model as personal-corpus embeds. Cloud fallback would require
+      adding an embedding-API client; deferred until measured need.
+
+  ner_personal_corpus:
+    primary: ollama_qwen_27b
+    fallback: sonnet_4_6
+    prompt: once_per_run        # batch operation; cost can be material
+    override_env: VOXCORE_NER_PERSONAL
+    privacy: personal
+    rationale: |
+      Default local for privacy + repeat-cost economics. Cloud opt-in for
+      full re-runs of the 25K-mention KG when speed matters
+      (~10x throughput at 20 workers). Current kg/build.py round-robin
+      4:1 Sonnet:Ollama is the per-operation optimum and supersedes this
+      setting until kg/build.py is migrated.
+
+  ner_clean_corpus:
+    primary: sonnet_4_6
+    fallback: ollama_qwen_27b
+    prompt: never
+    override_env: VOXCORE_NER_CLEAN
+    privacy: clean
+    rationale: |
+      Cloud parallel by default for clean-corpus demo. No privacy
+      concern; parallelism produces meaningful speedup; cost bounded
+      because demo corpora are small (<5K chunks).
+
+  synthesis_personal_corpus:
+    primary: sonnet_4_6
+    fallback: ollama_qwen_27b
+    prompt: never               # latency-sensitive; user is waiting
+    override_env: VOXCORE_SYNTHESIS
+    privacy: personal
+    rationale: |
+      Default cloud Sonnet for latency + quality. /ex ask is interactive;
+      30s per Sonnet call beats 60s per Ollama. Local fallback exists
+      for sensitive queries where the user explicitly opts in via
+      --use-local. Personal-corpus content goes to Anthropic; this is
+      consistent with current /ex ask behavior and Anthropic data policy
+      (no training on API content).
+
+  synthesis_clean_corpus:
+    primary: sonnet_4_6
+    fallback: ollama_qwen_27b
+    prompt: never
+    override_env: VOXCORE_SYNTHESIS_CLEAN
+    privacy: clean
+    rationale: |
+      Same default as personal; consistency is the win. Local fallback
+      for offline demo runs.
+
+  judge_citation:
+    primary: ollama_gemma4_26b
+    fallback: sonnet_4_6
+    prompt: once_per_run
+    override_env: VOXCORE_JUDGE
+    privacy: mixed
+    rationale: |
+      Default local for cost. Cloud opt-in (--judge claude-sonnet) when
+      the user wants the higher-precision verdict. Opus reserved for
+      legal-PDF judging where the +18.3pp differential matters; gated
+      via prompt at run-start. Judging is per-claim sequential —
+      parallelism within a single Run is bounded.
+
+  judge_legal_pdf:
+    primary: opus_4_7
+    fallback: sonnet_4_6
+    prompt: once_per_run
+    override_env: VOXCORE_JUDGE_LEGAL
+    privacy: mixed
+    rationale: |
+      Override for legal-PDF heavy gold-set runs. Phase 2.6 A/B test
+      measured +18.3pp citation precision lift Sonnet -> Opus on legal
+      content; 5x cost is justified per-claim. Cap aggregate spend
+      per run via prompt confirmation.
+
+  audit_inline:
+    primary: sonnet_4_6
+    fallback: ollama_qwen_27b
+    prompt: once_per_run
+    override_env: VOXCORE_AUDITOR
+    privacy: mixed
+    rationale: |
+      Default Sonnet 4.6 per inline_auditor.py spec ("Sonnet has
+      materially better instruction-following on this task"). Cost
+      bounded by claim count per Run.
+
+  contradiction_scan:
+    primary: sonnet_4_6
+    fallback: ollama_qwen_27b
+    prompt: never               # background job, runs every 6 hours
+    override_env: VOXCORE_CONTRADICTION
+    privacy: personal
+    rationale: |
+      Background daemon job; current SEMANTIC_WORKERS=5 parallel Sonnet
+      calls. Cost: ~$0.10 per scan cycle (low candidate volume after
+      v1 lexical pre-filter). Local fallback for offline runs.
+
+  rerank_hybrid:
+    primary: ollama_bge_reranker
+    fallback: null
+    prompt: never
+    override_env: VOXCORE_RERANK
+    privacy: mixed
+    rationale: |
+      Cross-encoder rerank is local-only by design. Currently OFF in the
+      canonical hybrid path (per Phase 3.75-A baseline). When enabled,
+      stays on bge-reranker-v2-m3 — quality differential vs cloud
+      rerank not measured to justify the cost.
+
+  hyde_query_rewrite:
+    primary: sonnet_4_6
+    fallback: ollama_qwen_27b
+    prompt: once_per_run
+    override_env: VOXCORE_HYDE
+    privacy: mixed
+    rationale: |
+      Phase 4 work. HyDE generates a hypothetical answer document then
+      embeds it. Default cloud Sonnet for hypothesis quality (cheap
+      one-call-per-query). Local fallback for cost-sensitive batch.
+
+  frontmatter_infer:
+    primary: ollama_qwen_27b
+    fallback: haiku_4_5
+    prompt: never
+    override_env: VOXCORE_FRONTMATTER
+    privacy: personal
+    rationale: |
+      Lightweight task. Local default for cost; cloud Haiku as fallback
+      (cheaper than Sonnet, quality bar moderate).
+
+  image_caption:
+    primary: sonnet_4_6
+    fallback: null
+    prompt: once_per_run
+    override_env: VOXCORE_IMAGE_CAPTION
+    privacy: personal
+    rationale: |
+      Vision content. Tesseract OCR runs first (free); Claude vision
+      is the fallback when OCR confidence is low. Sonnet vision is
+      9x better quality than Tesseract at $0.005/image (Phase 4 demo
+      measurement).
+
+  triad_spec_generation:
+    primary: gpt_5_4               # not defined above — Triad-only
+    fallback: null
+    prompt: never
+    override_env: TRIAD_ARCHITECT
+    privacy: project_metadata      # project specs, not personal corpus
+    rationale: |
+      Off-pipeline. Triad orchestration uses ChatGPT for spec generation;
+      not a runtime LLM operation. Listed here for inventory completeness.
+
+  triad_audit:
+    primary: gemini_3_1_pro        # not defined above — Triad-only
+    fallback: null
+    prompt: never
+    override_env: TRIAD_AUDITOR
+    privacy: project_metadata
+    rationale: |
+      Off-pipeline. Triad orchestration uses Gemini for code audit.
+
+# -----------------------------------------------------------------------------
+# Availability detection
+# -----------------------------------------------------------------------------
+# How the runtime decides whether a backend is reachable. Out-of-the-box
+# reproducibility: if ollama is not running on a fresh machine, operations
+# default to their fallback (cloud) rather than failing mysteriously.
+
+availability:
+
+  local_probe:
+    method: tcp_connect
+    host: "127.0.0.1"
+    port: 11434
+    timeout_seconds: 2
+
+  cloud_probe:
+    method: env_var_present
+    env_var: ANTHROPIC_API_KEY
+    secondary_check: env_file
+    secondary_path: "tools/ai_studio/.env"
+
+  on_local_unavailable:
+    behavior: fall_back_to_cloud_with_warning
+    log_level: WARN
+    notify: stdout_banner
+    notify_text: |
+      Ollama not reachable at localhost:11434. Operations marked
+      `primary: ollama_*` will use their cloud fallback. Cost may be
+      non-zero. Run `ollama serve` to restore the local default.
+
+  on_cloud_unavailable_for_local_required:
+    behavior: refuse_to_run
+    error_message: |
+      Operation requires local backend (privacy: personal) but Ollama
+      is not reachable. Start Ollama with `ollama serve` and retry.
+
+  local_required_operations:                   # never silently cloud-fallback
+    - embed_personal_corpus
+
+# -----------------------------------------------------------------------------
+# Prompting policy
+# -----------------------------------------------------------------------------
+# When the runtime asks the user before proceeding.
+
+prompts:
+
+  thresholds:
+    skip_below_usd: 0.10            # don't ask for sub-dime operations
+    confirm_above_usd: 1.00         # always confirm above $1
+    auto_block_above_usd: 50.00     # require explicit env var to exceed
+
+  cache:
+    enabled: true
+    location: ".cache/backend_overrides.json"
+    key_format: "{operation}:{snapshot_id}:{set_version}"
+    ttl_seconds: 86400              # 24-hour cache; re-prompt next day
+    invalidate_on_config_change: true
+
+  prompt_template: |
+    Operation:  {operation}
+    Backend:    {backend}  ({privacy})
+    Estimate:   ~{estimate_calls} calls, ~{estimate_cost_usd} USD,
+                ~{estimate_seconds}s wall time
+    Recommended default: {primary} ({reason})
+
+    Proceed with default? [Y/n/cloud/local]
+
+  cli_flags:
+    - --backend                     # one-shot override
+    - --use-local                   # force local for this run
+    - --use-cloud                   # force cloud for this run
+    - --no-prompt                   # skip prompt, use default
+    - --confirm-cost                # always confirm regardless of threshold
