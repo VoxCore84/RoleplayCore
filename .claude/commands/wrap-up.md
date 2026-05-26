@@ -183,6 +183,12 @@ Skip Step 6.5 only if:
 
 If skipped: still write a 1-2-line marker entry in `AI_Studio/Handoffs/voxcore/_session_index.md` (create if doesn't exist) noting the session number + skip reason, so the next tab knows nothing is missing.
 
+### Integrate at the canonical handoff index (REQUIRED — added 2026-05-26)
+`docs/VOXCORE_HANDOFF_INDEX.md` is the canonical, committed handoff entry point (tracked in the repo; future sessions are told to start there). After writing the per-session handoff above, ALSO update `docs/VOXCORE_HANDOFF_INDEX.md`:
+- Refresh its **"Latest session"** pointer to the new `AI_Studio/Handoffs/voxcore/<file>.md` plus a one-line summary of this session and the HEAD commit.
+- Ensure `AI_Studio/Handoffs/voxcore/CURRENT_STATE.md` and `NEXT_SESSION.md` reflect this session's end state — these are the index's live-state / next-action targets.
+- Keep the index SHORT and navigational; the detailed per-session narrative stays in `AI_Studio/Handoffs/voxcore/`. Stage `docs/VOXCORE_HANDOFF_INDEX.md` (tracked) with the wrap-up commit so the canonical pointer travels with history.
+
 After writing the handoff, mention its path in the Step 7 summary.
 
 ## Step 6.6 — Snapshot memory repo (~3s)

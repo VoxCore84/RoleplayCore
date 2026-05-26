@@ -2,6 +2,8 @@
 
 **Last updated:** 2026-05-26. One navigational page. If you're a fresh session asking "what exists / what do I build next?", read in this order.
 
+**Latest session:** 286 (2026-05-26) — AI-harvest → stabilize → inventory → **source-of-truth consolidation** (this doc set) → closeout. HEAD `364d0aa8ef` (+ wrap-up commit). Detail: `AI_Studio/Handoffs/voxcore/2026-05-26_session_286_consolidation-closeout.md`. Live state: `AI_Studio/Handoffs/voxcore/CURRENT_STATE.md` · Next: `AI_Studio/Handoffs/voxcore/NEXT_SESSION.md` (= **CONSOLIDATION / UNBLOCK**). (Per `/wrap-up` Step 6.5, every wrap-up refreshes this line.)
+
 ## Read first
 1. **`docs/VOXCORE_SYSTEM_REGISTRY.md`** — what exists and its status (LIVE/PARTIAL/DORMANT/SCAFFOLD). The single "what do we already have?" source.
 2. **`docs/VOXCORE_BUILD_ROADMAP.md`** — the sequenced "what do we build next?" (Items 0–8, gated).
