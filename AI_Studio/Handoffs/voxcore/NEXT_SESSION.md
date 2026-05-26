@@ -13,5 +13,10 @@ The blocker for everything (cost banking, dormant activation) is entanglement + 
 - **Typed KG edges** (Item 3): the upstream unlock for GraphRAG + contradiction. Real build, paid extraction, A/B vs 92% baseline. See `docs/VOXCORE_GRAPH_RAG_READINESS.md`.
 - GraphRAG (4) and contradiction (5) only AFTER typed edges.
 
+## Also queued — Memory lane (from session 286b, 2026-05-26)
+- **Integrate Memory Control Plane v0.1** once `feature/ai-harvest-quick-wins` merges/frees: worktree from `origin/master` → cherry-pick `73c6d4c771` → **sanitize the `tools/memory_schema.py` restricted-prefix leak** → leak-scan clean → register the design note in `docs/` → push/PR. Detail: `AI_Studio/Handoffs/voxcore/2026-05-26_session_286b_mcp-v01-integration.md`. (Gated on the SAME branch reconciliation as CONSOLIDATION/UNBLOCK above — they unblock together.)
+- **Off-machine copy** of the encrypted memory backup (carries from s.285).
+- **v2 unattended backup** via public-key (age/gpg).
+
 ## Hard "do not"
 No GraphRAG/typed-edges/AutoReason/MCP-server/daemon builds without the roadmap preconditions. No daemon restart. No editing entangled files' behavior. No committing personal/digest artifacts.
