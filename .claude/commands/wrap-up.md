@@ -272,3 +272,6 @@ If `quick` was passed, output only Committed/Pushed/Bridge.
 - `improvements.md` is now read-only history. Append retros to `automation-ledger.md`.
 - `/sync-brain` was deliberately not built — Cowork reads memory files via the bridge.
 - `/publish-gists` is a separate skill. The user runs it explicitly when they want to update gists.
+
+## Pairing
+Next session should begin with **`/start-up`** — the read-only orientation ritual that pairs with this command. It reads `docs/VOXCORE_HANDOFF_INDEX.md`, reviews the last 3–5 handoffs, checks git/branch ownership + memory-repo safety, and surfaces blockers before any work begins.
