@@ -6,8 +6,6 @@
       "Read(*)",
       "Edit(C:/Users/atayl/VoxCore/**)",
       "Edit(C:/Users/atayl/Desktop/**)",
-      "Write(C:/Users/atayl/VoxCore/**)",
-      "Write(C:/Users/atayl/Desktop/**)",
       "Glob(*)",
       "Grep(*)",
       "Agent(*)",
@@ -153,11 +151,6 @@
             "type": "http",
             "url": "http://127.0.0.1:19484/hook/edit-verifier",
             "timeout": 5
-          },
-          {
-            "type": "http",
-            "url": "http://127.0.0.1:19484/hook/cpp-build-reminder",
-            "timeout": 2
           }
         ]
       },

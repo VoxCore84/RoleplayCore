@@ -2,6 +2,7 @@
 name: contradiction-finder
 description: Adversarial agent that finds contradictions, shifted rationales, and inconsistencies in command's stated positions vs the evidence. Use when preparing filings or analyzing new documents.
 model: sonnet
+effort: high
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
 maxTurns: 40

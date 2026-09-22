@@ -2,6 +2,7 @@
 name: filing-drafter
 description: Draft legal filing narratives with citations from the case archive. Use when preparing DD 7050, DD 149 (AFBCMR), NPDB disputes, HIPAA complaints, OSC supplements, or congressional letters.
 model: opus
+effort: max
 tools: Read, Grep, Glob, Bash, Write
 maxTurns: 50
 memory: project

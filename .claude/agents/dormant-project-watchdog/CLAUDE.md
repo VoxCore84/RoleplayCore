@@ -2,6 +2,7 @@
 name: dormant-project-watchdog
 description: Scan memory/ for projects flagged DORMANT, stalled, "waiting on", or idle with no activity >30 days. Surfaces candidates for either activation or retirement, so specs don't linger indefinitely.
 model: haiku
+effort: low
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
 maxTurns: 15

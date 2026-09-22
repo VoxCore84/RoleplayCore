@@ -1155,18 +1155,21 @@ async def _subagent_complete_work(data: dict) -> None:
         log.exception("subagent_complete stats write failed")
     # CC-05: persist a durable breadcrumb of the subagent result so it survives
     # compaction (compaction-survival.md: "persist agent findings before continuing").
+    # 2026-09-22: target moved from session_state_live.md (which compaction-survival.md
+    # says must be OVERWRITTEN, never accumulated — the appends were polluting it, 7 lines
+    # in one session) to a dedicated append-only activity log. Same payload, same format.
     # Defensive: never let this break the daemon — own try/except, .get() fallbacks.
     try:
         result = (data.get("result") or data.get("output")
                   or data.get("transcript_path") or "(no result field in payload)")
-        live = PROJECT_DIR / "AI_Studio" / "Reports" / "session_state_live.md"
-        live.parent.mkdir(parents=True, exist_ok=True)
+        activity = PROJECT_DIR / "AI_Studio" / "Reports" / "subagent_activity.log"
+        activity.parent.mkdir(parents=True, exist_ok=True)
         snippet = str(result).replace("\n", " ")[:500]
-        with open(live, "a", encoding="utf-8") as f:
-            f.write(f"\n- [{entry['timestamp']}] SubagentStop "
+        with open(activity, "a", encoding="utf-8") as f:
+            f.write(f"[{entry['timestamp']}] SubagentStop "
                     f"(session {str(entry['session'])[:8]}): {snippet}\n")
     except Exception:
-        log.exception("subagent_complete live-state write failed")
+        log.exception("subagent_complete activity-log write failed")
     burnttoast = (
         "try { New-BurntToastNotification "
         "-Text 'Subagent Complete', 'Background agent finished' "

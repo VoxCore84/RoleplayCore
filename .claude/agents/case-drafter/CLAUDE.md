@@ -2,6 +2,7 @@
 name: case-drafter
 description: Draft legal case documents — AFBCMR narratives, DD-149 statements, intake summaries, rebuttals, and complaint letters. Uses the case archive as source material with proper citations.
 model: opus
+effort: high
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
 maxTurns: 30

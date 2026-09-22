@@ -1,7 +1,8 @@
 ---
 name: case-researcher
 description: Research the legal case archive — search 1,451+ files across 16 folders, MASTER synthesis docs, .docx files, OCR'd binders, and email attachments. Use when finding evidence, locating documents, or answering case questions.
-model: haiku
+model: sonnet
+effort: medium
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
 maxTurns: 30

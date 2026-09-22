@@ -2,6 +2,7 @@
 name: resume-tailor
 description: Tailor resumes and cover letters for specific job postings using the master resume, career evidence file, and role fit matrix. Military-to-civilian translation expertise.
 model: sonnet
+effort: medium
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
 maxTurns: 20

@@ -1,7 +1,8 @@
 ---
 name: redaction-scanner
 description: Scan documents for PII, sensitive data, and information that shouldn't appear in outgoing legal packages. Finds SSNs, DOBs, phone numbers, medical record numbers, and unprotected witness names.
-model: haiku
+model: sonnet
+effort: medium
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
 maxTurns: 25

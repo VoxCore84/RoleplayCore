@@ -1,4 +1,25 @@
+---
+paths:
+  - "src/**/*Packet*"
+  - "src/**/*Opcode*"
+  - "src/**/*Socket*"
+  - "src/**/*Crypto*"
+  - "src/**/*HMAC*"
+  - "src/**/*Sniff*"
+  - "src/**/Protocol/**"
+  - "tools/**/*sniff*"
+  - "tools/**/*packet*"
+  - "tools/**/*opcode*"
+  - "tools/**/*Sniff*"
+  - "tools/**/*Packet*"
+  - "ExtTools/**"
+  - "PacketLog/**"
+  - "wago/**"
+---
+
 # Protocol & Binary Work — MANDATORY Pre-Implementation Gate
+
+> Path-scoped since 2026-09-22: loads when Claude reads packet/opcode/crypto/sniffer/DB2 files (globs above), not on every turn. VoxCore is the non-WoW workspace; CalmCore keeps its own unconditional copy if needed.
 
 Applies to: packet parsing, opcode handlers, crypto/key derivation, DB2 field mapping, sniffer work (VoxSniffer, CalmSniffer), any file with "Packet", "Opcode", "Socket", "Crypto", "HMAC", "Sniffer" in the name, any Protocol/ directory work.
 

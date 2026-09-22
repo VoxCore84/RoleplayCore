@@ -2,6 +2,7 @@
 name: career-duplicate-cleaner
 description: Generate a dry-run move plan for obsolete resume/career duplicate files identified in memory/career-package.md. Dry-run by default — user must approve before execution.
 model: haiku
+effort: low
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
 maxTurns: 10

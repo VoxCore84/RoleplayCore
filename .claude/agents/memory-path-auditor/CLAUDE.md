@@ -2,6 +2,7 @@
 name: memory-path-auditor
 description: Scan memory/*.md files for filesystem paths and verify they exist. Catches drift when folders are moved, renamed, or deleted — e.g. the Desktop\Excluded vs Desktop\Brand contamination caught on 2026-04-08.
 model: haiku
+effort: low
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
 maxTurns: 15

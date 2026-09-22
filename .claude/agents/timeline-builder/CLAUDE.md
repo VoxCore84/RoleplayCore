@@ -2,6 +2,7 @@
 name: timeline-builder
 description: Construct sourced chronological timelines from scattered evidence across the case archive. Extracts dated events from documents, emails, MFRs, and records into a unified timeline.
 model: sonnet
+effort: high
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
 maxTurns: 35

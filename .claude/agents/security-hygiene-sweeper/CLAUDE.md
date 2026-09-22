@@ -1,7 +1,8 @@
 ---
 name: security-hygiene-sweeper
 description: Scan for PII liability surfaces — SSN-visible files in unsorted locations, resume variants claiming a terminated clearance, HWE/retaliation language in the wrong variant. Read-only, reports only.
-model: haiku
+model: sonnet
+effort: medium
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
 maxTurns: 15

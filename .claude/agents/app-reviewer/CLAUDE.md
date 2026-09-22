@@ -2,6 +2,7 @@
 name: app-reviewer
 description: Adversarial review agent for addons, tools, and apps. Adopts a specific persona (noob, bully, or security auditor) to find issues the builder is blind to.
 model: sonnet
+effort: medium
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
 maxTurns: 25

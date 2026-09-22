@@ -2,6 +2,7 @@
 name: deadline-tracker
 description: Calculate countdown days for all case deadlines, flag urgent items, and generate a compact status line for context injection.
 model: haiku
+effort: low
 tools: Read, Bash
 disallowedTools: Write, Edit, NotebookEdit, Grep, Glob
 maxTurns: 5

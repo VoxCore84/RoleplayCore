@@ -2,6 +2,7 @@
 name: doc-auditor
 description: Read-only validator that verifies documentation integrity — every path mentioned in docs exists, every claimed feature is implemented, versions match, translated docs are current.
 model: haiku
+effort: low
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
 maxTurns: 20

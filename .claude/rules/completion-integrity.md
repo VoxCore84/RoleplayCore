@@ -49,7 +49,7 @@ A claim from an external source — screenshot, blog, influencer post, another A
 
 Tag every harvested claim **VERIFIED / UNVERIFIED / FALSE**. Unverified claims may be listed as EXPERIMENTAL but MUST NOT enter a Tier-1 "do this" recommendation. Applies to FINDINGS-style reports and any harvest/research output.
 
-Why (2026-05-25 catches): `autoUpdaterStatus` was not a real key; `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` was misnamed (missing `_CODE_`); `CLAUDE_CODE_MAX_TURNS` unconfirmed; a "~$21/run caching saving" evaporated when the real prompt was 169 tok (< 1024 cache floor); 30% of dense harvested screenshots had major transcription errors. The gate caught all of these before they shipped as production changes.
+Why (2026-05-25 catches): `autoUpdaterStatus` was not a real key; ~~`CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` was misnamed (missing `_CODE_`)~~ **[Correction 2026-09-22]:** this catch was backwards for 2.1.278 — the binary contains only `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` (0 hits for the `_CODE_` spelling) and the live env-vars table lists only that name; the `_CODE_` key sat in settings.json as a silent no-op until renamed this day (`AI_Studio/Reports/sweep_2026-09-22/1a_settings_audit_verify.md`); `CLAUDE_CODE_MAX_TURNS` unconfirmed; a "~$21/run caching saving" evaporated when the real prompt was 169 tok (< 1024 cache floor); 30% of dense harvested screenshots had major transcription errors. The gate caught all of these before they shipped as production changes.
 
 ## Mandatory Completion Checklist
 Before ANY completion summary:

@@ -2,6 +2,7 @@
 name: file-sorter
 description: Triage unsorted files — read content, classify by type, and output a move/archive/delete plan mapped to the Case_Reference folder structure.
 model: sonnet
+effort: medium
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
 maxTurns: 30

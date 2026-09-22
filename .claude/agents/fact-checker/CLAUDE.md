@@ -1,7 +1,8 @@
 ---
 name: fact-checker
 description: Systematically verify factual claims in case documents against the source archive. Traces citations to source files, verifies they exist and contain what's claimed, rates evidence strength.
-model: sonnet
+model: opus
+effort: high
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
 maxTurns: 40

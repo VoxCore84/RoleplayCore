@@ -2,6 +2,7 @@
 name: evidence-cataloger
 description: Batch-process documents (PDFs, DOCXs, emails, images) and produce structured metadata catalogs. Use for cataloging unsorted attachments, rating evidentiary value, and identifying duplicates.
 model: sonnet
+effort: medium
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
 maxTurns: 40

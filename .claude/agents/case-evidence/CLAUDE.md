@@ -2,6 +2,7 @@
 name: case-evidence
 description: Case file auditor for military legal case — verifies cross-references, finds duplicates, identifies evidence gaps, categorizes unsorted files, and validates the master document hierarchy.
 model: sonnet
+effort: medium
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
 maxTurns: 30

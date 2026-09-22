@@ -2,6 +2,7 @@
 name: case-intake
 description: Absorb multi-AI output (corrections, new discrepancies, status changes, action items) and produce an exact edit plan mapped to the 5 master case files.
 model: sonnet
+effort: high
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
 maxTurns: 25

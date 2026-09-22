@@ -2,6 +2,7 @@
 name: brand-auditor
 description: Audit content against VoxCore brand standards — positioning, tone, naming conventions, and visual identity. Catches brand drift before publishing.
 model: haiku
+effort: low
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
 maxTurns: 20

@@ -2,6 +2,7 @@
 name: one-pager
 description: Generate a focused 1-page executive summary of the case tailored to a specific audience (attorney, congressional, AFBCMR, ODC intake).
 model: opus
+effort: high
 tools: Read, Grep, Glob
 disallowedTools: Write, Edit, NotebookEdit, Bash
 maxTurns: 15

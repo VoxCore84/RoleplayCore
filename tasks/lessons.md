@@ -62,4 +62,34 @@ This complements the read-only `memory/improvements.md` history and the `memory/
 **Lesson:** Cheap vision triage (Haiku) is reliable for *is-this-relevant* classification but NOT for exact values/filenames/configs/stats on dense screenshots. Two-layer trust: structure/relevance = trust; verbatim specifics = verify.
 **Rule:** Treat bulk image-OCR output as leads, not facts. Any exact command/config/number/filename from a screenshot digest must be verified against the source image or authoritative docs before it lands in code or a recommendation. Re-extract high-stakes specifics with a stronger vision model.
 
+## 2026-09-22 — Recommended a built-in slash command that this machine's config disables
+
+**Context:** The 2.1.278 update-sweep session told the user "after restart: run /skill-doctor". User ran it and got `Unknown command: /skill-doctor` (session e523922e transcript). The command is real (docs: skills page § "Find unused skills", v2.1.252+) but the binary's embedded note says it is unavailable when the client "does not receive feature settings (Bedrock/Vertex/Foundry, telemetry or non-essential traffic disabled, or a first launch that has not fetched them yet)". `~/.claude/settings.json` line 34 sets `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1`, which turns off feature-flag fetching on every launch.
+**Lesson:** "Exists in the changelog/docs" is not the same as "available in this session." Feature-flag-gated commands (`/skill-doctor` and anything else the docs mark as needing feature-flag fetching) are silently absent under `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1`, Bedrock/Vertex/Foundry, or `DISABLE_TELEMETRY`.
+**Rule:** Before recommending a Claude Code feature, grep `~/.claude/settings.json` env for `DISABLE_NONESSENTIAL_TRAFFIC` / `DISABLE_TELEMETRY` / provider vars and check the docs for a "feature-flag fetching" caveat. If gated, say so and give the one-session workaround (temporarily unset the var, restart, run, restore) instead of a bare "run X".
+
+## 2026-09-22 — Docs fetches truncate; the binary is the authority for env-var names
+
+**Context:** A May catch recorded `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` as "misnamed (missing `_CODE_`)". The env-vars docs page truncates on every fetch, so nobody re-read the row. A docs agent claimed the opposite today. `grep -a -o NAME claude.exe | wc -l` settled it in one call: 0 hits for the `_CODE_` spelling, 6 for the plain one. The setting had been a silent no-op for four months.
+**Lesson:** For "is this key real / what is it called", a truncated docs fetch is weaker evidence than the installed binary. Zero string hits = the code cannot read it. Positive hits = real, even if undocumented (five "NOT-IN-DOCS → remove" recommendations today were wrong for that reason).
+**Rule:** Before removing or renaming any Claude Code env var or settings key, grep the installed `claude.exe` for the exact string and record the count in the ledger. Treat "undocumented" as "unverified", not "dead".
+
+## 2026-09-22 — `json.dump` round-trips wreck git-tracked settings diffs; Python text mode flips line endings
+
+**Context:** Removing two dead permission rules via `json.load`/`json.dump` produced a 21-line diff (inline hook objects expanded). A later `write_text` turned every LF into CRLF (99-line diff for a 7-line insert). Both were reverted from backup and redone as byte-level line edits.
+**Lesson:** Formatting churn hides the real change and makes review impossible; Windows Python text mode rewrites newlines unless `newline=""` or bytes are used.
+**Rule:** For git-tracked JSON/MD: back up, edit as bytes or exact lines, re-parse to validate, then `diff` against the backup and require the diff to be exactly the intended lines before moving on.
+
+## 2026-09-22 — Git Bash rewrites slash-prefixed args to `claude -p`
+
+**Context:** `claude -p "/context"` from the Bash tool became `C:/Users/atayl/AppData/Local/Programs/Git/context` (MSYS path conversion) and burned a full headless session-start answering a nonsense path.
+**Lesson:** Any argument beginning with `/` is a path candidate to MSYS.
+**Rule:** Run headless slash commands from the PowerShell tool, or set `MSYS_NO_PATHCONV=1`. The working recipe for a per-turn context baseline is in `claude-code-config-state.md`.
+
+## 2026-09-22 — `skillOverrides` visibility states do not cut context; measure the TOTAL, not a category
+
+**Context:** A triage agent estimated −1.7k tokens/turn from moving 53 skills to `name-only` / `user-invocable-only`. Four headless `/context` captures (26 name-only, 26 on, 53 on, every override on including the 24 `off`) all totalled exactly 60.8k. The "Skills" bucket fell and "System tools" rose by the same amount each time; even the 24 `off` skills changed nothing in the total. The estimate was wrong in kind, not degree.
+**Lesson:** The harness still carries hidden skills somewhere in the tool definitions in 2.1.278, and `/context` re-buckets rather than removes them. Category deltas can be pure accounting. The only thing that removed tokens this session was content that stopped being loaded at all (rules files condensed or path-scoped, MEMORY.md shortened, agent files deleted).
+**Rule:** Any "saves N tokens" claim must be backed by the `/context` **total** from two captures of the shipped state, not a category line or a chars/4 estimate. Report negative results with the same prominence as wins (measurement-discipline no-cherry-pick).
+
 <!-- Append new entries above this line is NOT required; append chronologically below the last entry. -->

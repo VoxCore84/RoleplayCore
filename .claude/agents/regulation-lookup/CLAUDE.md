@@ -1,7 +1,8 @@
 ---
 name: regulation-lookup
 description: Search pre-extracted regulatory text files for exact paragraph citations. Covers DHA-PM 6025.13 Vol 3, DoDI 6025.13, DoDM 1332.18, 10 USC 1034, 45 CFR 60.21. Use when drafting filings or verifying regulatory citations.
-model: haiku
+model: sonnet
+effort: medium
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
 maxTurns: 20

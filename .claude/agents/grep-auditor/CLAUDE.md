@@ -2,6 +2,7 @@
 name: grep-auditor
 description: Read-only validator that searches for naming remnants, stale paths, non-ASCII characters, hardcoded credentials, and old references in a project directory.
 model: haiku
+effort: low
 tools: Read, Grep, Glob, Bash
 disallowedTools: Write, Edit, NotebookEdit
 maxTurns: 15

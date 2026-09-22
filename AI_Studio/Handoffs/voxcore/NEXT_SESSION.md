@@ -1,6 +1,11 @@
 # VoxCore — Next Session
 
-**Updated:** 2026-05-26. The sequenced plan lives in `docs/VOXCORE_BUILD_ROADMAP.md`; the paste-ready prompt in `AI_Studio/Reports/system_inventory_2026-05-26/NEXT_IMPLEMENTATION_PROMPT.md`.
+**Updated:** 2026-09-22 (session 288 prepended the config-sweep follow-ups; the 2026-05-26 plan below still stands). The sequenced plan lives in `docs/VOXCORE_BUILD_ROADMAP.md`; the paste-ready prompt in `AI_Studio/Reports/system_inventory_2026-05-26/NEXT_IMPLEMENTATION_PROMPT.md`.
+
+## First (from session 288, 2026-09-22 — config sweep follow-ups)
+1. **Adam decisions** queued in `AI_Studio/Reports/OPTIMIZATION_SWEEP_2026-09-22.md` § "Decisions waiting on you": GO on migrating 28 `tools/` scripts off Claude 4.x model IDs (Triad scripts default to `claude-opus-4-7`; fold in the Gemini `gemini-3.1-pro-preview` quick-win); keep/remove `skipWorkflowUsageWarning`; `enableAllProjectMcpServers` → false + allowlists; CLAUDE.md dedupe (~900 tok); one home for the `doc/session_state.md` protocol; update the 4 PAST-DUE entries in `.claude/deadlines.json` and confirm the Section 1983 SOL filing (was due 2026-09-23).
+2. **First interactive session on the new config:** `python tools/cc_context_capture.py --label interactive` and spawn one subagent per effort tier to confirm `effort:` frontmatter is honoured; `python tools/cc_env_check.py` should report no 0-hit names.
+3. **`/sync-infra`** — CalmCore parity deltas from the sweep: settings.json `Write()` rules, 7 agent frontmatters, hooks block (`cpp-build-reminder`), rules files; `check_write_size.py` byte-diff.
 
 ## Next session = CONSOLIDATION / UNBLOCK (Roadmap Item 0 → 1 prep). NOT greenfield.
 The blocker for everything (cost banking, dormant activation) is entanglement + untracked infra. Do:
