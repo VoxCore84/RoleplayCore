@@ -20,8 +20,10 @@ Escalated 2026-09-22 after three logged hits (cp1252 s.280, PowerShell binary pi
 
 9. **Buffered stdout in background jobs**: tailing a redirected file shows nothing until exit. Judge liveness by PID/CPU, or flush per item.
 10. **`bash -lc` vs the Bash tool**: the tool runs a non-login shell snapshot taken at session start (90 ms). Profile cost measured with `bash -lc` (425 ms here) does not apply to tool calls.
+11. **Headless slash commands run the PROJECT skill** if one shares the name: `claude -p "/doctor"` ran the project doctor skill for 18 min and overwrote `session_state_live.md`; `"/status"` ran the dashboard. Only `/context` and `/usage` are safe headless probes; the built-in `/doctor`, `/status`, `/mcp`, `/hooks`, `/model` are user-typed.
+12. **Detached spawns hold the calling tool**: `pythonw x.py` from the Bash tool and `Start-Process ... -Wait` from PowerShell both block until the daemon child exits. Use `pwsh -File tools/daemon_restart.ps1`.
 
 ## Recovery paths
 
-- Daemon: `curl -s http://127.0.0.1:19484/health`; restart `curl -X POST http://127.0.0.1:19484/shutdown` then `pythonw .claude/hooks/daemon_shim.py`.
+- Daemon: `curl -s http://127.0.0.1:19484/health`; restart with `pwsh -File tools/daemon_restart.ps1` (shutdown, detached spawn, health poll).
 - Background subagent silent: parse `~/.claude/projects/<proj>/<session>/subagents/agent-*.jsonl` (`tool_use` named `SendMessage`, key `input.message`).

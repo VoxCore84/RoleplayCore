@@ -55,6 +55,7 @@
 | Launching agents needing case/file context | Pre-read `memory/` topic files, pass in prompt |
 | Fresh TDB import or migration completed | `mysql -u root -padmin < sql/RoleplayCore/custom_tables.sql` |
 | Memory files stale, MEMORY.md over 200 lines | `/memory-audit` |
+| Hook daemon needs a restart (after editing `hook_daemon.py`) | `pwsh -File tools/daemon_restart.ps1` — never `pythonw` from Bash or `Start-Process -Wait` (both hang the tool) |
 | Edited settings.json hooks, added/changed hooks or daemon code, or any `.claude/` infra | `/sync-infra` drift audit + CalmCore parity. Quick count: `python ~/.claude/hooks/check_hook_sync.py` |
 | End of session, gists may be stale | `/publish-gists` |
 | Handing off to another tab, ending complex session | `/handoff [label]` |

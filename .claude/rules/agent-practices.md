@@ -11,7 +11,7 @@ Rules for launching and managing agents (subagents, background agents, file-sort
 
 ## During Execution
 
-5. **Write incrementally, not at the end** — Agents should write findings to `AI_Studio/Reports/` as they go, not accumulate everything and write once at completion. If an agent crashes or context overflows, partial results are preserved.
+5. **Write incrementally, not at the end** — Agents should write findings to `AI_Studio/Reports/` as they go, not accumulate everything and write once at completion. If an agent crashes or context overflows, partial results are preserved. Verification/report agents get a deterministic output path in the prompt: mailbox (SendMessage) reports reach the lead only at its turn end, and mid-turn recovery means parsing `~/.claude/projects/<proj>/<session>/subagents/agent-*.jsonl`.
 6. **Verify content, not just filenames** — When an agent reports "found 15 relevant files," it must also report what was IN those files. File existence is not evidence of content.
 
 ## After Completion

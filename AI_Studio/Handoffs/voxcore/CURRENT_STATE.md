@@ -1,8 +1,15 @@
 # VoxCore — Current State
 
-**Updated:** 2026-09-22 (config sweep) · prior snapshot 2026-05-26 · **Branch:** `feature/ai-harvest-quick-wins` · **HEAD (pre-this-commit):** `5addae2ae1`
+**Updated:** 2026-09-22 evening (cc audit v3, session 288b) · earlier the same day (config sweep, 288) · prior snapshot 2026-05-26 · **Branch:** `feature/ai-harvest-quick-wins` · **HEAD (pre-this-commit):** `5addae2ae1`
 
 Navigational snapshot. Authoritative detail: `docs/VOXCORE_SYSTEM_REGISTRY.md`.
+
+## 2026-09-22 evening — after cc audit v3 (session 288b; commits `acd8ed1f06`, `047fad20cc`)
+- **Live per-turn context:** 61.1k → **57.8k** (three headless captures); deferring the last three `.mcp.json` servers would give 52.0k (measured, unshipped, Adam's call).
+- **Safety:** daemon v1.3.1 `git-destructive-guard` (force-push, hard reset, `git clean`, whole-tree checkout, recursive delete outside scratch, game-DB import without snapshot; heredoc-aware). Hook suite 2/22/13 passing (was 0 of 17 scenarios). Release-gate archive-verb case bug fixed.
+- **Settings:** inert `effortLevel`/`alwaysThinkingEnabled` removed; `modelSettings` fable xhigh + opus-5-5 high; `fastModePerSessionOptIn`; `enableAllProjectMcpServers=false` with allowlists (VoxCore 5, CalmCore 8); `PYTHONUTF8=1`; code-review plugin disabled; `status` → `sys-status`.
+- **Standing priority:** power first, efficiency second (`memory/feedback_power_over_efficiency.md`). Built-in Explore stays on inherited Opus 5.5.
+- **Handoff:** `AI_Studio/Handoffs/voxcore/2026-09-22_session_288b_cc-audit-v3.md`; report `AI_Studio/Reports/cc_audit_v3_20260922-1804/REPORT.md`; CalmCore half `AI_Studio/Handoffs/calmcore/2026-09-22_cc_audit_v3_calmcore.md` + follow-up prompt.
 
 ## 2026-09-22 — Claude Code config state after the optimization sweep (session 288)
 - **Live per-turn context:** 75.2k → **60.8k** (headless `/context`, same method both sides). Rules 33.4k → 21.9k (six condensed, long form in `docs/rules-reference/`; protocol-gate path-scoped); MEMORY.md 6.6k → 4.3k.
