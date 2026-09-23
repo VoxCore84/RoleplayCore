@@ -40,19 +40,11 @@ Before completing any session with non-trivial work, ask: *"Did I use the Triad,
 ## THE TRIAD EVOLUTION DIRECTIVE (Core Philosophy)
 At every step, ask: *"What would I do differently if I knew I had nearly unlimited potential to run AIs?"* You have agent swarms, subagents, custom skills, ChatGPT API, Gemini API, Cowork scheduled tasks, and massive parallel compute. Claude Code is the primary terminal — all other AIs are API endpoints. Never accept a standard approach if you can think of a smarter, faster, cheaper, or better way to leverage the swarm.
 
-## THE "DIG DEEPER" MANDATE (3x Iteration Rule)
-**ALWAYS try to "dig deeper" at least 3 times before reporting back.** Iterate, research, and push analysis 3 levels deep. If reports are massive, write to `AI_Studio/Reports/`.
-
 ## What This Is
 TrinityCore-based WoW private server targeting **12.x / Midnight** client, specialized for **roleplay**. Custom systems, 5 databases (auth, characters, world, hotfixes, roleplay).
 
-## CRITICAL RULES (Claude gets these wrong without them)
-- **Building from Claude Code is allowed** — use `ninja -j32` via Bash (VS IDE also works)
-- **DESCRIBE tables before writing SQL** — verify column names and count
-- **No `item_template`** — use `hotfixes.item` / `hotfixes.item_sparse`
-- **No `broadcast_text` in world** — use `hotfixes.broadcast_text`
-- **`creature_template`**: column is `faction` (not FactionID), `npcflag` (bigint)
-- Spells in `creature_template_spell` (cols: `CreatureID`, `Index`, `Spell`)
+## WoW DB rules
+Live in `CalmCore/CLAUDE.md` § CRITICAL RULES (item_template, broadcast_text, creature_template columns) and `.claude/rules/project-reference.md` (path-scoped); VoxCore has been the non-WoW workspace since 2026-04-09.
 
 ## Session Start — MANDATORY
 See `.claude/rules/session-start.md`. In brief: Read `AI_Studio/0_Central_Brain.md` + `doc/session_state.md` + `todo.md` BEFORE responding. EXTRACT actionable items and show to user. Never silently drop items.
@@ -60,18 +52,23 @@ See `.claude/rules/session-start.md`. In brief: Read `AI_Studio/0_Central_Brain.
 ## Proactive Skill Reminders — MANDATORY
 See `.claude/rules/skill-reminders.md`. The user should NEVER have to remember a slash command. Key: `/wrap-up` at end of session, `/check-logs` on crash/restart, `/lookup-*` for names without IDs.
 
-## Work Style
-**MANDATORY**: Always default to parallel execution. Hardware is not a constraint (16C/32T, 128GB DDR5, NVMe).
-1. **2+ independent parts → parallel agents** — just do it
-2. **2+ searches → fan out Explore agents** — never sequential
-3. **Multiple errors → one agent per error category**
-4. **Builds, long queries, server restarts → always background**
-
 ## Debugging — MANDATORY PIPELINE
 See `.claude/rules/debugging.md`. 4-gate pipeline. No hypothesis without data. Never combine fixes.
 
 ## Completion Integrity — MANDATORY
 See `.claude/rules/completion-integrity.md`. Never claim completion without tool output proving it.
+
+## Documentation Discipline — MANDATORY (per-checkpoint cadence)
+See `.claude/rules/documentation-discipline.md`. Per-checkpoint cadence (achievement record + closeout + update log per phase, before moving on); supersession discipline (Theranos pattern — never retroactively edit audit trail); anti-fabrication verify-before-summarize (call the function that produced the numbers, do not free-recall).
+
+## Operational Discipline — MANDATORY (pre-action gates)
+See `.claude/rules/operational-discipline.md`. Pre-mortem checklist before every destructive batch; named filesystem traps (stat on symlinks, truncate, ln -s on Windows); act-vs-pause-vs-ask escalation; budget-tension protocol; no production code changes without Adam GO.
+
+## Session Handoff — MANDATORY (cross-session continuity)
+See `.claude/rules/session-handoff.md`. Every multi-phase session arc closes with `SESSION_<date>_FINAL.md`; document state line + update log per phase; next-session priority order with cost + wall-time estimates; architectural debt enqueueing; handoff payload definition.
+
+## Measurement Discipline — MANDATORY (diligence-grade reporting)
+See `.claude/rules/measurement-discipline.md`. Calibration choice IS policy (do not soften post-hoc); cost dimension explicit and consistent across Pareto comparisons; tie-break rules declared in advance; A/B reports both regressions and lifts; no-cherry-pick discipline (Phase 5 MRR-vs-pass-rate is the canonical example); withdrawn-claim discipline (Phase 3.75-A 82% → 92.0% formal retirement); conservative-vs-permissive labeling on every calibrated number; sample-size disclosure in the same sentence as the headline.
 
 ## Multi-Tab Delegation — BLOCKING OBLIGATION
 See `.claude/rules/multi-tab.md`. If task touches 2+ independent subsystems, MUST suggest tab split.
@@ -87,3 +84,7 @@ Before shipping any addon, tool, or app: run `/pre-ship <path>`. It runs automat
 - **C++ coding conventions** → `coding-conventions.md`
 - **Protocol/binary work gate (dump before implement)** → `protocol-gate.md`
 - **Compaction survival (auto-write state to disk)** → `compaction-survival.md`
+- **Documentation discipline (per-checkpoint cadence + supersession)** → `documentation-discipline.md`
+- **Operational discipline (pre-action gates + filesystem traps)** → `operational-discipline.md`
+- **Session handoff (cross-session continuity)** → `session-handoff.md`
+- **Measurement discipline (diligence-grade reporting)** → `measurement-discipline.md`
