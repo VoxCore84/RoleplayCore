@@ -121,4 +121,28 @@ This complements the read-only `memory/improvements.md` history and the `memory/
 **Lesson:** Inline Bash-tool commands are not a faithful shell. Anything with backslashes, backticks, or `\"` gets altered; `$'\r'` happens to survive.
 **Rule:** Put any command that needs backslashes, backticks, nested quotes, or a Python/heredoc body into a script file with the Write tool and run the file (`bash tools/x.sh`, `python tools/x.py`). Use `os.sep`/`cygpath` instead of typed backslashes. Verify with a raw-output probe before blaming the script under test (the run-hook.cmd test "failed" 4/4 because of this, not because of the wrapper).
 
+## 2026-09-23 — `--add-dir` on the launch line did not register; verify with a write probe
+
+**Context:** Superpowers activation tab launched as `claude --add-dir C:\Users\atayl\superpowers-work --add-dir C:\Users\atayl\.claude\skills`. Reads under `superpowers-work` succeeded silently, but the first Write there triggered a directory-approval prompt and the harness then reported the directory as newly added. The second path did not exist yet, and `/add-dir` refused it until the folder was created.
+**Lesson:** A successful Read outside the project is not evidence that a directory is an additional working directory; only a Write/Edit without a prompt (or `/permissions`) is. A non-existent `--add-dir` path is rejected, and this build appears to have dropped both flags.
+**Rule:** After launching with `--add-dir`, probe with a throwaway Write into the added directory before relying on it; create the target folder first; if the probe prompts, run `/add-dir <path>` inside the session.
+
+## 2026-09-23 — `claude plugin eval` deletes run traces unless `--keep-temp`; the trace omits the system prompt
+
+**Context:** Two eval cases scored 2/3 on LLM graders. The failed runs' `tracePath` pointed into `%TEMP%\claude-eval-*` dirs that were already gone, so the first-pass failures could only be judged from the grader's stored evidence excerpt. The rerun with `--keep-temp` produced full traces and showed one failure was a real gate-skip and the other judge noise. Separately, grepping a kept trace for CLAUDE.md text returned 0 hits even though a direct probe from the same cwd ancestry proved the global CLAUDE.md is loaded: the stream-json trace records messages and hook events, not the system prompt.
+**Lesson:** Without traces, an eval failure is unattributable (behavior vs judge). And "not in the trace" does not mean "not in the context" for system-prompt content such as CLAUDE.md files.
+**Rule:** Always pass `--keep-temp` on eval runs whose failures you may need to explain, and copy `out/trace.jsonl` files into the evidence folder immediately. To learn what instructions an eval session carried, run a headless probe from a sibling cwd and ask, or read the run's `system init` record; never infer it from a trace grep.
+
+## 2026-09-23 — Eval sessions inherit ancestor CLAUDE.md files, so a global-CLAUDE.md change moves eval results
+
+**Context:** `routing-react-todo` was 3/3 the day the fork was built (no overrides block) and 4/6 the day the nine-line block landed in `C:\Users\atayl\CLAUDE.md`. The harness cwd is `%TEMP%\claude-eval-*\home\cwd`, which is under `C:\Users\atayl`, so the global file loads in every eval arm (probe `superpowers_activation/probes/block_in_temp_cwd.json`).
+**Lesson:** `claude plugin eval` is not isolated from the user's ancestor CLAUDE.md files; the "without plugin" arm still carries them too. A change to the global file is a confound for any before/after eval comparison.
+**Rule:** Record the SHA-256 of the global CLAUDE.md in every eval report header, and re-run the baseline when it changes. When an override line is meant to be tested, the eval harness is a valid instrument (it sees the file); when the plugin's own prose is meant to be tested in isolation, run from a cwd outside the home tree.
+
+## 2026-09-23 — Renaming a skills-dir plugin folder does not unload it; arrays do not survive `pwsh -File`
+
+**Context:** Rollback rehearsal for the superpowers fork. The runbook's deactivation step was `Rename-Item ~/.claude/skills/superpowers superpowers.off`. After the rename, `claude plugin list` still showed `superpowers@skills-dir … Path ~\.claude\skills\superpowers.off, Status loaded`, and a fresh headless probe still had the bootstrap and the five agents. Moving the folder out of `~/.claude/skills` deactivated it (plugin list empty, probe NO / 0 / NONE). In the same run, `& pwsh -File probe.ps1 -ExtraArgs @('--max-turns','2')` flattened the array into separate tokens and bound `2` to `-PromptFile`.
+**Lesson:** The skills-dir loader treats every subfolder with `.claude-plugin/plugin.json` as a plugin regardless of its name; "rename to .off" is a false rollback. And PowerShell arrays only pass intact to a `.ps1` called in-process (`& script.ps1 -Param @(...)`), not across a `pwsh -File` process boundary.
+**Rule:** To deactivate a skills-dir plugin, move its folder out of `~/.claude/skills` (or `claude plugin disable <id>`), then prove it with `claude plugin list` AND a headless probe; never trust a rename. Call helper `.ps1` files in-process when passing arrays.
+
 <!-- Append new entries above this line is NOT required; append chronologically below the last entry. -->

@@ -2,11 +2,12 @@
 
 **Updated:** 2026-09-22 (session 288 prepended the config-sweep follow-ups; the 2026-05-26 plan below still stands). The sequenced plan lives in `docs/VOXCORE_BUILD_ROADMAP.md`; the paste-ready prompt in `AI_Studio/Reports/system_inventory_2026-05-26/NEXT_IMPLEMENTATION_PROMPT.md`.
 
-## First (from session 289, 2026-09-23 — superpowers activation follow-through)
-1. If the Superpowers-Activate tab wrapped (likely 289b), read its handoff and `~/superpowers-work/REPORT.md`; otherwise check `doc/session_state.md` for its row before touching `~/.claude/skills/superpowers/` or `C:\Users\atayl\CLAUDE.md`.
-2. Run the 7-item interactive checklist (activation prompt §6) in a fresh tab in `~/superpowers-work/scratch`.
-3. Apply the two override edits for a VoxCore-primary workflow (todo item 2), then measure per-turn context (`tools/cc_context_capture.py --label superpowers-on`) against 57.8k.
-4. adam.3 trims (eval-gated) and the with/without comparison on three real VoxCore tool tasks — `memory/todo.md` § Next Session items 3–4.
+## First (from session 289b, 2026-09-23 — superpowers is ACTIVE and verified; see `AI_Studio/Handoffs/voxcore/2026-09-23_session_289b_superpowers-activation.md` + `~/superpowers-work/REPORT.md`)
+1. **Adam:** run the 7-item interactive checklist (REPORT §7) in a fresh tab in `~/superpowers-work/scratch`; record results in REPORT §4 column (c).
+2. Two override edits for a VoxCore-primary workflow (`memory/todo.md` item 2), mirror in `CLAUDE_MD_OVERRIDES.md`, then `python tools/cc_context_capture.py --label overrides-v2` against **60.5k** (the new baseline with superpowers on).
+3. adam.3 eval-gated trims: n=3 before/after both arms with `superpowers-work/tools/activation/eval_run.ps1` (keeps traces, logs the CLAUDE.md SHA); bump to adam.3 with a FORK-NOTES entry; robocopy over the deployed copy.
+4. With/without comparison on three real VoxCore tool tasks (`claude --plugin-dir`); nobody has run it.
+5. Rollback recipe if anything misbehaves: move `~/.claude/skills/superpowers` out of the skills folder (renaming does not unload it) and restore `C:\Users\atayl\CLAUDE.md` from `CLAUDE.md.active_20260923_171424_superpowers` or the pre-block backup.
 
 ## Then (from session 288b, 2026-09-22 evening — audit v3 follow-ups)
 1. `/start-up`, then the USER-RUN checks listed in `AI_Studio/Reports/cc_audit_v3_20260922-1804/REPORT.md` § Verification; confirm `python -c "import sys;print(sys.stdout.encoding)"` prints utf-8.

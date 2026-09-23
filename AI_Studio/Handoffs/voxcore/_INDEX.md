@@ -19,6 +19,11 @@ Examples:
 
 | Date | Session | Type | File |
 |---|---|---|---|
+| 2026-09-23 | 289b | real-time | `2026-09-23_session_289b_superpowers-activation.md` |
+| 2026-09-23 | 289 | real-time | `2026-09-23_session_289_superpowers-fork.md` |
+| 2026-09-22 | 288b | real-time | `2026-09-22_session_288b_cc-audit-v3.md` |
+| 2026-09-22 | 288 | real-time | `2026-09-22_session_288_cc-optimization-sweep.md` |
+| 2026-05-28 | rai-bhrt v0.4.0 | real-time (parallel project) | `2026-05-28_session_rai-bhrt_v0.4.0.md` |
 | 2026-05-02 | 277b | real-time | `2026-05-02_session_277b_evening.md` |
 | 2026-05-02 | 277 | reconstructed | `2026-05-02_session_277_RECONSTRUCTED_15-item-knockdown-inline-grounded.md` |
 | 2026-04-28 | 274 | reconstructed | `2026-04-28_session_274_RECONSTRUCTED_wrap-up-refactor-resume-evidence.md` |

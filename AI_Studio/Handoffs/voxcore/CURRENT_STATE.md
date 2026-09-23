@@ -4,10 +4,11 @@
 
 Navigational snapshot. Authoritative detail: `docs/VOXCORE_SYSTEM_REGISTRY.md`.
 
-## 2026-09-23 — superpowers plugin fork (session 289)
-- **Superpowers 6.4.1-adam.2** built at `~/superpowers-work/fork/` and approved; the activation tab is deploying it to `~/.claude/skills/superpowers/` (loads as `superpowers@skills-dir`) and has appended nine precedence lines to `C:\Users\atayl\CLAUDE.md`. Five plugin agents (Sonnet 5 workers, Fable final reviewer, deny-listed tools); Windows `sdd-workspace` fix; hardened hook wrapper; 8-case eval suite; deterministic suite 8/0/2. Always-on context ~1,110 tok (upstream 840); per-turn delta after activation not yet measured.
-- **Evidence:** `AI_Studio/Reports/superpowers_supercharge/` (REVIEW_PACKET.md is the entry point). **Windows harness limits:** `claude plugin eval --scaffold` and `context.add_dirs` fail on native Windows 2.1.281.
-- **Queued:** two override edits (VoxCore-primary), adam.3 eval-gated context trims, with/without comparison on real tasks. Handoff: `AI_Studio/Handoffs/voxcore/2026-09-23_session_289_superpowers-fork.md`.
+## 2026-09-23 — superpowers plugin fork ACTIVE (sessions 289 → 289b)
+- **Superpowers 6.4.1-adam.2 is live** as `superpowers@skills-dir` from `~/.claude/skills/superpowers/` (277 files, byte-identical to `~/superpowers-work/fork/`), in every session under `C:\Users\atayl`. Nine precedence lines sit at the end of `C:\Users\atayl\CLAUDE.md`; line 9 was amended in 289b's fix loop (backups `CLAUDE.md.bak_20260923_163824_superpowers`, `_170627_line9`; canonical text `AI_Studio/Reports/superpowers_supercharge/CLAUDE_MD_OVERRIDES.md`).
+- **Verified (289b):** 12-row triple-check, 12 checks + 12 skeptics, all tested-pass/upheld; evals 7/7 Windows-runnable cases at 3/3 with the plugin after the line-9 fix (before: 5/7; the one real failure traced to a gate-skip in a kept trace); per-turn context **58.0k → 60.5k (+2.5k)**; rollback proven both directions — **deactivate by moving the folder out of `~/.claude/skills` (renaming does not unload it)**. Report `~/superpowers-work/REPORT.md`; evidence `AI_Studio/Reports/superpowers_activation/`.
+- **Windows harness limits:** `claude plugin eval --scaffold` and `context.add_dirs` fail on native 2.1.281; `--keep-temp` dirs cannot be sealed; eval arms load the global CLAUDE.md (record its SHA in eval headers).
+- **Queued:** Adam's 7-item interactive checklist (REPORT §7); two override edits (VoxCore-primary); adam.3 eval-gated trims via `superpowers-work/tools/activation/eval_run.ps1`; with/without comparison on real tasks. Handoffs: `2026-09-23_session_289_superpowers-fork.md`, `2026-09-23_session_289b_superpowers-activation.md`.
 
 ## 2026-09-22 evening — after cc audit v3 (session 288b; commits `acd8ed1f06`, `047fad20cc`)
 - **Live per-turn context:** 61.1k → **57.8k** (three headless captures); deferring the last three `.mcp.json` servers would give 52.0k (measured, unshipped, Adam's call).
