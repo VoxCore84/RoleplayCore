@@ -1,6 +1,6 @@
 # Session 289b — 2026-09-23 — Superpowers 6.4.1-adam.2 activated, triple-checked, one fix, rollback proven
 
-**Session:** 289b (Superpowers-Activate tab, Claude Code session `66dc07cf`, Fable 5.1 xhigh, ultracode) · **Duration:** ~16:30–17:45 · **Commit:** see `git log -1` after this wrap-up (`docs: session 289b wrap-up …`) · **API spend (list price, Max plan usage):** evals $32.31 + headless probes $14.93 + Workflow 2.36 M subagent tokens (24 agents) + context capture ~$1.
+**Session:** 289b (Superpowers-Activate tab, Claude Code session `66dc07cf`, Fable 5.1 xhigh, ultracode) · **Duration:** ~16:30–17:45 · **Commit:** `d287c6fa26` on `feature/ai-harvest-quick-wins` (pushed), plus a one-line follow-up for this hash · **API spend (list price, Max plan usage):** evals $32.31 + headless probes $14.93 + Workflow 2.36 M subagent tokens (24 agents) + context capture ~$1.
 
 ## What happened this session
 
