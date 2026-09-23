@@ -4,6 +4,11 @@
 
 Navigational snapshot. Authoritative detail: `docs/VOXCORE_SYSTEM_REGISTRY.md`.
 
+## 2026-09-23 — superpowers plugin fork (session 289)
+- **Superpowers 6.4.1-adam.2** built at `~/superpowers-work/fork/` and approved; the activation tab is deploying it to `~/.claude/skills/superpowers/` (loads as `superpowers@skills-dir`) and has appended nine precedence lines to `C:\Users\atayl\CLAUDE.md`. Five plugin agents (Sonnet 5 workers, Fable final reviewer, deny-listed tools); Windows `sdd-workspace` fix; hardened hook wrapper; 8-case eval suite; deterministic suite 8/0/2. Always-on context ~1,110 tok (upstream 840); per-turn delta after activation not yet measured.
+- **Evidence:** `AI_Studio/Reports/superpowers_supercharge/` (REVIEW_PACKET.md is the entry point). **Windows harness limits:** `claude plugin eval --scaffold` and `context.add_dirs` fail on native Windows 2.1.281.
+- **Queued:** two override edits (VoxCore-primary), adam.3 eval-gated context trims, with/without comparison on real tasks. Handoff: `AI_Studio/Handoffs/voxcore/2026-09-23_session_289_superpowers-fork.md`.
+
 ## 2026-09-22 evening — after cc audit v3 (session 288b; commits `acd8ed1f06`, `047fad20cc`)
 - **Live per-turn context:** 61.1k → **57.8k** (three headless captures); deferring the last three `.mcp.json` servers would give 52.0k (measured, unshipped, Adam's call).
 - **Safety:** daemon v1.3.1 `git-destructive-guard` (force-push, hard reset, `git clean`, whole-tree checkout, recursive delete outside scratch, game-DB import without snapshot; heredoc-aware). Hook suite 2/22/13 passing (was 0 of 17 scenarios). Release-gate archive-verb case bug fixed.

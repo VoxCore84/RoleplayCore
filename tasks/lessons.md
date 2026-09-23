@@ -115,4 +115,10 @@ This complements the read-only `memory/improvements.md` history and the `memory/
 **Lesson:** The Bash tool waits on inherited stdio handles; a "detached" `pythonw` launched this way still pins the call until the timeout.
 **Rule:** Restart the daemon from the PowerShell tool (`Start-Process pythonw -ArgumentList '.claude/hooks/daemon_shim.py' -WindowStyle Hidden`) or with `cmd //c start "" pythonw ...` from Bash, then poll `/health` in a separate call. Never chain the spawn with the verification in one Bash command.
 
+## 2026-09-23 — The Bash tool mangles backslashes in inline commands and heredocs
+
+**Context:** Superpowers fork session. A Python heredoc with `replace('\\', '/')` reached Python as `replace('\', '/')` (syntax error); a heredoc containing backticks died with "unexpected EOF while looking for matching `'" (the wrapper expanded them); `cmd.exe /c "\"C:\path\x.cmd\""` reached cmd as the literal string `\"C:\path\x.cmd\"`. Three separate failures, one cause: the inline `command` string is re-escaped before the shell sees it.
+**Lesson:** Inline Bash-tool commands are not a faithful shell. Anything with backslashes, backticks, or `\"` gets altered; `$'\r'` happens to survive.
+**Rule:** Put any command that needs backslashes, backticks, nested quotes, or a Python/heredoc body into a script file with the Write tool and run the file (`bash tools/x.sh`, `python tools/x.py`). Use `os.sep`/`cygpath` instead of typed backslashes. Verify with a raw-output probe before blaming the script under test (the run-hook.cmd test "failed" 4/4 because of this, not because of the wrapper).
+
 <!-- Append new entries above this line is NOT required; append chronologically below the last entry. -->
