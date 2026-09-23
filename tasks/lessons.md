@@ -92,4 +92,27 @@ This complements the read-only `memory/improvements.md` history and the `memory/
 **Lesson:** The harness still carries hidden skills somewhere in the tool definitions in 2.1.278, and `/context` re-buckets rather than removes them. Category deltas can be pure accounting. The only thing that removed tokens this session was content that stopped being loaded at all (rules files condensed or path-scoped, MEMORY.md shortened, agent files deleted).
 **Rule:** Any "saves N tokens" claim must be backed by the `/context` **total** from two captures of the shipped state, not a category line or a chars/4 estimate. Report negative results with the same prominence as wins (measurement-discipline no-cherry-pick).
 
+## 2026-09-22 — Background subagent mailbox reports are delivered only at the lead's turn boundary; recovered mid-turn from its transcript
+
+**Context:** A `claude-code-guide` agent spawned with `Agent` (name `cc-docs-verify`) finished two reports and sent both with `SendMessage(to="team-lead")`. `ListAgents` showed it idle for 10+ minutes while the lead was still inside one long multi-tool turn, and nothing arrived; a resend request changed nothing either. All three messages then landed together the moment the lead's turn ended. **[Correction, same day]:** first written as "never reached the lead"; the true mechanism is delayed delivery at the turn boundary, not loss.
+**Lesson:** Messages from a background agent do not interrupt an in-progress turn; they queue until the lead stops. Inside a long turn the agent looks stuck. The agent's full transcript, including the `message` payload of every `SendMessage` tool_use, is on disk at `~/.claude/projects/<project>/<session-id>/subagents/agent-<name>-<hash>.jsonl`.
+**Rule:** If an agent shows idle and its result is needed before the turn can end, parse that JSONL (assistant `tool_use` blocks named `SendMessage`, key `input.message`; or long `text` blocks) with `PYTHONUTF8=1 python` instead of waiting or re-spawning; do not send resend requests (they only queue more copies). Prefer having verification agents write their report to a deterministic file path named in the prompt (`AI_Studio/Reports/...`) so the mailbox is never load-bearing.
+
+## 2026-09-22 — Windows-shell gotchas promoted to a checklist (3+ hits)
+
+**Context:** cp1252 (s.280), PowerShell binary pipe (s.285), MSYS `/context` path conversion + CRLF flip (s.288), and two more cp1252 crashes in this session (`check_hook_sync.py`, a transcript parser).
+**Rule:** Read `tasks/windows-shell-checklist.md` before any shell-heavy work on this machine; it holds the ten traps and the recovery paths. New Windows-shell lessons go there, with a one-line pointer here.
+
+## 2026-09-22 — A substring guard on Bash blocks documentation that quotes the guarded commands
+
+**Context:** The new `git-destructive-guard` daemon handler blocked (a) a `for` loop whose quoted test strings contained the force-push command and (b) a `cat >> ledger <<'EOF'` append whose heredoc body quoted it in a table row. Both were data, not commands.
+**Lesson:** A PreToolUse guard sees the whole Bash command text and cannot tell quoted data from intent unless it parses structure. Fail-closed is right for a safety guard, but heredoc bodies fed to files are pure data and the release-gate handler already strips them.
+**Rule:** Guards that pattern-match Bash text must drop heredoc bodies unless an interpreter consumes them (`_guard_visible_command`). When a Bash command must contain a guarded phrase as data (tests, ledgers, docs), write it with the Write/Edit tool or put it in a file and run the file; do not weaken the guard for the sake of one command.
+
+## 2026-09-22 — `pythonw` from the Bash tool holds the shell for the full timeout
+
+**Context:** `curl -X POST /shutdown; pythonw .claude/hooks/daemon_shim.py; curl /health` hung the Bash tool for its 60 s limit and was moved to the background; the daemon did come up, but the rest of the command never ran and its output was lost.
+**Lesson:** The Bash tool waits on inherited stdio handles; a "detached" `pythonw` launched this way still pins the call until the timeout.
+**Rule:** Restart the daemon from the PowerShell tool (`Start-Process pythonw -ArgumentList '.claude/hooks/daemon_shim.py' -WindowStyle Hidden`) or with `cmd //c start "" pythonw ...` from Bash, then poll `/health` in a separate call. Never chain the spawn with the verification in one Bash command.
+
 <!-- Append new entries above this line is NOT required; append chronologically below the last entry. -->

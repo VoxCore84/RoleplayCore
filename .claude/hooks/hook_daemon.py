@@ -53,7 +53,7 @@ LOG_FILE = USER_CLAUDE / "hook_daemon.log"
 STATS_FILE = USER_CLAUDE / "session-stats.jsonl"
 PRECOMPACT_STATE = USER_CLAUDE / "precompact-state.json"
 
-DAEMON_VERSION = "1.3.0"
+DAEMON_VERSION = "1.3.1"
 START_TIME = time.time()
 IN_FLIGHT: "set[asyncio.Task]" = set()
 SHUTDOWN_EVENT: "asyncio.Event | None" = None  # set in main()
@@ -319,6 +319,92 @@ async def handle_sql_safety(data: dict) -> dict:
     return {}
 
 
+# ── handle_git_destructive_guard ─────────────────────────────────────────
+# Added 2026-09-22 (cc_audit_v3). Deterministic guard for history-rewriting git,
+# recursive deletes outside scratch paths, and DB imports without a snapshot.
+GIT_GUARD_RULES = [
+    (re.compile(r"\bgit\s+push\b.*(\s--force\b|\s-f\b|\s\+\S)"),
+     "force push rewrites remote history; ask before proceeding"),
+    (re.compile(r"\bgit\s+reset\s+--hard\b"),
+     "git reset --hard discards work; use git stash or ask"),
+    (re.compile(r"\bgit\s+clean\s+-[a-zA-Z]*[fdx]"),
+     "git clean deletes untracked files; ask first"),
+    (re.compile(r"\bgit\s+(checkout|restore)\s+(--\s+)?\.\s*($|[;&|])"),
+     "whole-tree checkout/restore discards every change; ask first"),
+]
+RM_SAFE_PREFIXES = (
+    "_scratch/", ".claude/worktrees/", "AI_Studio/Reports/tmp/",
+    "/tmp/", "$TMP", "$TEMP", "%TEMP%",
+)
+MYSQL_IMPORT = re.compile(
+    r"\bmysql\b[^|;&]*\b(world|auth|characters|hotfixes)\b[^|;&]*<", re.I
+)
+_RM_RECURSIVE = re.compile(r"\brm\s+-[a-zA-Z]*r[a-zA-Z]*\s+(.+?)(?:$|[;&|])")
+_HEREDOC = re.compile(r"<<-?\s*['\"]?([A-Za-z_][A-Za-z0-9_]*)['\"]?")
+_INTERPRETERS = re.compile(r"\b(bash|sh|zsh|python[0-9.]*|pwsh|powershell|node|perl|ruby)\b")
+
+
+def _guard_visible_command(cmd: str) -> str:
+    """Return the part of the command the guard should inspect.
+
+    A heredoc body fed to a file (``cat >> notes.md <<'EOF' ... EOF``) is data, not a
+    command, so it is dropped. If the pre-heredoc text invokes an interpreter
+    (``bash <<EOF``, ``python - <<EOF``) the body IS code and is kept.
+    """
+    m = _HEREDOC.search(cmd)
+    if not m:
+        return cmd
+    head = cmd[: m.start()]
+    if _INTERPRETERS.search(head):
+        return cmd
+    tag = m.group(1)
+    body_start = cmd.find("\n", m.end())
+    if body_start == -1:
+        return cmd
+    end = cmd.find("\n" + tag, body_start)
+    tail = cmd[end + len(tag) + 1:] if end != -1 else ""
+    return head + " " + tail
+
+
+def _rm_target_is_safe(target: str) -> bool:
+    t = target.strip("'\"").replace("\\", "/")
+    if t.startswith("-"):
+        return True  # an option, not a path
+    t = t.lstrip("./")
+    return any(t.startswith(p.lstrip("./")) for p in RM_SAFE_PREFIXES)
+
+
+async def handle_git_destructive_guard(data: dict) -> dict:
+    if data.get("tool_name") != "Bash":
+        return {}
+    raw = _get_tool_input(data).get("command", "")
+    if not raw:
+        return {}
+    cmd = _guard_visible_command(raw)
+    for pattern, reason in GIT_GUARD_RULES:
+        if pattern.search(cmd):
+            return {
+                "decision": "block",
+                "reason": f"DESTRUCTIVE GUARD: {reason}\nCommand: {cmd[:200]}",
+            }
+    for m in _RM_RECURSIVE.finditer(cmd):
+        targets = [t for t in m.group(1).split() if not t.startswith("-")]
+        if targets and not all(_rm_target_is_safe(t) for t in targets):
+            return {
+                "decision": "block",
+                "reason": (
+                    "DESTRUCTIVE GUARD: recursive delete outside scratch/worktree paths\n"
+                    f"Targets: {targets}\nList the paths and ask."
+                ),
+            }
+    if MYSQL_IMPORT.search(cmd) and "db_snapshot.py" not in cmd:
+        return {
+            "decision": "block",
+            "reason": "DESTRUCTIVE GUARD: DB import without `db_snapshot.py snapshot` in the same command",
+        }
+    return {}
+
+
 # ── handle_release_gate_enforce ──────────────────────────────────────────
 GATED_PATTERNS = [
     "git push",
@@ -328,7 +414,7 @@ GATED_PATTERNS = [
     "zip ",
     "7z ",
     "tar ",
-    "Compress-Archive",
+    "compress-archive",  # matched against the lowercased command (was mixed-case: never matched; cc_audit_v3 2026-09-22)
 ]
 ALWAYS_ALLOWED_GIT = [
     "git push origin master",
@@ -360,7 +446,7 @@ def _gate_is_release_action(command: str) -> bool:
         if pattern in cmd_line:
             if pattern == "git push":
                 return "--tags" in cmd_line or "refs/tags" in cmd_line
-            if pattern in ("zip ", "7z ", "tar ", "Compress-Archive"):
+            if pattern in ("zip ", "7z ", "tar ", "compress-archive"):
                 return _gate_targets_publishable(command)
             return True
     return False
@@ -1838,6 +1924,7 @@ async def handle_sql_write_monitor(data: dict) -> dict:
 ROUTE_TABLE = {
     "/hook/block-recurring-cron": handle_block_recurring_cron,
     "/hook/sql-safety": handle_sql_safety,
+    "/hook/git-destructive-guard": handle_git_destructive_guard,
     "/hook/release-gate-enforce": handle_release_gate_enforce,
     "/hook/sensitive-file-guard": handle_sensitive_file_guard,
     "/hook/cpp-build-reminder": handle_cpp_build_reminder,

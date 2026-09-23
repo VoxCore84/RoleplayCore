@@ -83,6 +83,11 @@
           },
           {
             "type": "http",
+            "url": "http://127.0.0.1:19484/hook/git-destructive-guard",
+            "timeout": 2
+          },
+          {
+            "type": "http",
             "url": "http://127.0.0.1:19484/hook/release-gate-enforce",
             "timeout": 2
           }
@@ -179,7 +184,8 @@
           {
             "type": "http",
             "url": "http://127.0.0.1:19484/hook/sync-on-git",
-            "timeout": 2
+            "timeout": 2,
+            "if": "Bash(git commit*)|Bash(git push*)|Bash(git merge*)"
           }
         ]
       },
@@ -354,6 +360,12 @@
             "type": "http",
             "url": "http://127.0.0.1:19484/hook/session-stats",
             "timeout": 2
+          },
+          {
+            "type": "command",
+            "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/hook_daemon.py\" --ensure",
+            "timeout": 5,
+            "async": true
           }
         ]
       }

@@ -10,6 +10,10 @@ Run: python .claude/hooks/test-hooks.py
 Phase 0: Daemon health check (when --http or --all) — confirms hook_daemon.py is reachable.
 Phase 1: Legacy script health checks — each hook gets its event-appropriate payload, must not crash.
 Phase 2: Scenario tests — targeted regression tests for known false-positive patterns.
+                          Runs over HTTP against hook_daemon.py (ported 2026-09-22, session 288 —
+                          the underlying scripts were folded into the daemon); requires the daemon
+                          to be running under --scenarios too, not just --http/--all, and fails fast
+                          with a clear message if GET /health doesn't answer.
 Phase 3: HTTP integration tests (when --http or --all) — POST to each /hook/* endpoint, verify response shape.
 
 This catches syntax errors, import failures, logic bugs that caused real session disruptions
@@ -293,6 +297,29 @@ SCENARIOS = [
         },
         "tool_response": {"success": True},
     }, True, "publishable/ edit sets gate STALE (still exits 0, writes file)"),
+
+    # ── git-destructive-guard (daemon-only route, added 2026-09-22 / cc_audit_v3;
+    #    no legacy script ever existed for this one) ──
+
+    ("git-destructive-guard", {
+        "tool_name": "Bash", "tool_input": {"command": "git push --force origin HEAD"},
+    }, False, "git push --force SHOULD trigger destructive guard"),
+
+    ("git-destructive-guard", {
+        "tool_name": "Bash", "tool_input": {"command": "git reset --hard HEAD~1"},
+    }, False, "git reset --hard SHOULD trigger destructive guard"),
+
+    ("git-destructive-guard", {
+        "tool_name": "Bash", "tool_input": {"command": "rm -rf src"},
+    }, False, "rm -rf outside scratch/worktree paths SHOULD trigger destructive guard"),
+
+    ("git-destructive-guard", {
+        "tool_name": "Bash", "tool_input": {"command": "rm -rf _scratch/x"},
+    }, True, "rm -rf inside _scratch/ should NOT trigger destructive guard"),
+
+    ("git-destructive-guard", {
+        "tool_name": "Bash", "tool_input": {"command": "git push origin master"},
+    }, True, "git push origin master (no force) should NOT trigger destructive guard"),
 ]
 
 
@@ -370,38 +397,68 @@ def run_health_checks(verbose: bool = False) -> tuple:
     return passed, failed, unmapped
 
 
+def _route_for(hook_key: str) -> str:
+    """Map a legacy script name ('sql-safety.py') or a bare daemon-only route
+    key ('git-destructive-guard') to its /hook/* path."""
+    if hook_key.endswith(".py"):
+        hook_key = hook_key[:-3]
+    return f"/hook/{hook_key}"
+
+
 def run_scenario_tests(verbose: bool = False) -> tuple:
-    """Phase 2: Scenario regression tests for known false-positive patterns."""
+    """Phase 2: Scenario regression tests for known false-positive patterns.
+
+    Ported 2026-09-22 (session 288): these scenarios used to subprocess the
+    standalone hook scripts (release-gate-enforce.py, sql-safety.py,
+    edit-verifier.py, sensitive-file-guard.py, release-gate-revalidate.py),
+    which were deleted when their logic moved into hook_daemon.py. They now
+    POST the SAME payload dicts to the matching /hook/<name> daemon route and
+    check the SAME expected outcome (response has "decision": "block", or it
+    doesn't). Fails fast with a clear message if the daemon isn't reachable,
+    instead of firing every scenario at a dead socket.
+    """
     print()
     print("=" * 64)
     print("  Phase 2: Scenario Regression Tests")
     print("=" * 64)
     print()
 
+    alive, info = daemon_health()
+    if not alive:
+        print("  [FAIL] Hook daemon not reachable — cannot run Phase 2 scenario tests.")
+        print(f"         -> {info}")
+        print("         Start it with: python .claude/hooks/hook_daemon.py")
+        print()
+        print(f"  Scenarios: 0 passed, {len(SCENARIOS)} failed / {len(SCENARIOS)} tests (daemon unreachable)")
+        return 0, len(SCENARIOS)
+
     passed = 0
     failed = 0
 
-    for hook_name, payload, expect_allow, description in SCENARIOS:
-        script_path = HOOKS_DIR / hook_name
-        if not script_path.exists():
-            failed += 1
-            print(f"  [MISS] {description}")
-            print(f"         -> {hook_name} not found")
+    for hook_key, payload, expect_allow, description in SCENARIOS:
+        if expect_allow is None:
+            # Relied on script-only behavior the daemon route can't express.
+            print(f"  [SKIP] {description}")
+            print(f"         -> {hook_key}: no HTTP-equivalent behavior, skipped")
             continue
 
-        exit_code, stdout, stderr = run_hook(script_path, payload, verbose)
+        route = _route_for(hook_key)
+        try:
+            status, body, raw = http_post(route, payload)
+        except Exception as e:
+            failed += 1
+            print(f"  [FAIL] {description}")
+            print(f"         -> POST {route} error: {e}")
+            continue
 
-        # Check if stdout contains a "block" decision (JSON output hooks)
-        blocked_by_json = False
-        if stdout.strip():
-            try:
-                result = json.loads(stdout)
-                if result.get("decision") == "block":
-                    blocked_by_json = True
-            except json.JSONDecodeError:
-                pass
+        if status != 200:
+            failed += 1
+            print(f"  [FAIL] {description}")
+            print(f"         -> HTTP {status}: {raw[:200]}")
+            continue
 
-        actually_allowed = (exit_code == 0) and not blocked_by_json
+        body = body if body is not None else {}
+        actually_allowed = body.get("decision") != "block"
 
         if actually_allowed == expect_allow:
             passed += 1
@@ -411,11 +468,8 @@ def run_scenario_tests(verbose: bool = False) -> tuple:
             action = "allowed" if actually_allowed else "blocked"
             expected = "allow" if expect_allow else "block"
             print(f"  [FAIL] {description}")
-            print(f"         -> Expected {expected}, got {action} (exit={exit_code})")
-            if stderr.strip():
-                print(f"         -> stderr: {stderr.strip()[:200]}")
-            if stdout.strip():
-                print(f"         -> stdout: {stdout.strip()[:200]}")
+            print(f"         -> Expected {expected}, got {action}")
+            print(f"         -> body: {raw[:200]}")
 
     print()
     print(f"  Scenarios: {passed} passed, {failed} failed / {len(SCENARIOS)} tests")
