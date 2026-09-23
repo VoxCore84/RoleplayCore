@@ -145,4 +145,10 @@ This complements the read-only `memory/improvements.md` history and the `memory/
 **Lesson:** The skills-dir loader treats every subfolder with `.claude-plugin/plugin.json` as a plugin regardless of its name; "rename to .off" is a false rollback. And PowerShell arrays only pass intact to a `.ps1` called in-process (`& script.ps1 -Param @(...)`), not across a `pwsh -File` process boundary.
 **Rule:** To deactivate a skills-dir plugin, move its folder out of `~/.claude/skills` (or `claude plugin disable <id>`), then prove it with `claude plugin list` AND a headless probe; never trust a rename. Call helper `.ps1` files in-process when passing arrays.
 
+## 2026-09-23 — A test that passes from the Claude Code shell can fail from plain Git Bash: PATH order decides what `command -v git` returns
+
+**Context:** `tests/hooks/test-run-hook-cmd.sh` passed 8/8 three times today from the Bash tool, then failed (7/8) the moment `update_deployed.ps1` ran it through `bash.exe -lc`. Case 2 builds its PATH from `$(command -v git)`: the tool shell resolves `/cmd/git` (`Git\cmd`), a plain Git Bash resolves `/mingw64/bin/git`, and the wrapper's `<gitdir>\..\bin\bash.exe` derivation only works from `cmd`. The wrapper gap is real (silent skip on a `mingw64\bin` PATH) and the test was environment-dependent, so the suite could not have caught it from the shell that ran it.
+**Lesson:** "8/8 from my shell" is evidence about my shell. Tests that read tool locations from the environment must pin them, or run under more than one shell layout before a result counts.
+**Rule:** Before calling a shell-dependent suite green, run it once from a plain `bash.exe -lc` (login shell) as well as from the tool shell, and pin any `command -v` derived paths in test setup. Record which shell produced each count.
+
 <!-- Append new entries above this line is NOT required; append chronologically below the last entry. -->
