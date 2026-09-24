@@ -1,47 +1,7 @@
 {
-  "_comment": "Single source of truth for deadlines tracked across slash commands, agents, and the deadline-alert hook. Update when items resolve. Format: YYYY-MM-DD. Today is 2026-04-08.",
-  "_last_updated": "2026-05-02",
+  "_comment": "Single source of truth for deadlines tracked across slash commands, agents, and the deadline-alert hook. Update when items resolve. Format: YYYY-MM-DD. 2026-09-23: five past-due entries purged on Adam's instruction (AFBCMR target, retention request, ADSCD, Angel tinnitus/radic appeal window, Section 1983 SOL Rio Vista).",
+  "_last_updated": "2026-09-23",
   "deadlines": [
-    {
-      "name": "AFBCMR filing target (DD-149)",
-      "date": "2026-05-15",
-      "category": "CASE",
-      "severity": "TARGET",
-      "owner": "Adam",
-      "notes": "Self-imposed, must file before ADSCD"
-    },
-    {
-      "name": "Retention request",
-      "date": "2026-05-15",
-      "category": "CASE",
-      "severity": "TARGET",
-      "owner": "Adam",
-      "notes": "DoDI 1332.18 s7.7"
-    },
-    {
-      "name": "ADSCD (separation)",
-      "date": "2026-08-10",
-      "category": "CASE",
-      "severity": "HARD",
-      "owner": "Adam",
-      "notes": "HARD separation deadline — everything else orbits this"
-    },
-    {
-      "name": "Angel tinnitus/radic appeal window",
-      "date": "2026-08-14",
-      "category": "VA",
-      "severity": "HARD",
-      "owner": "Angel",
-      "notes": "1 year from 8/13/2025 denial. Needs nexus opinion for tinnitus."
-    },
-    {
-      "name": "Section 1983 SOL (Rio Vista)",
-      "date": "2026-09-23",
-      "category": "CASE",
-      "severity": "HARD",
-      "owner": "Adam",
-      "notes": "2 years from Oct 23, 2024"
-    },
     {
       "name": "SEAD 9 trigger (1yr clearance suspension)",
       "date": "2026-11-26",

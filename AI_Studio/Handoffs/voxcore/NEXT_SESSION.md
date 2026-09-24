@@ -2,12 +2,21 @@
 
 **Updated:** 2026-09-22 (session 288 prepended the config-sweep follow-ups; the 2026-05-26 plan below still stands). The sequenced plan lives in `docs/VOXCORE_BUILD_ROADMAP.md`; the paste-ready prompt in `AI_Studio/Reports/system_inventory_2026-05-26/NEXT_IMPLEMENTATION_PROMPT.md`.
 
-## First (from session 289b, 2026-09-23 — superpowers is ACTIVE and verified; see `AI_Studio/Handoffs/voxcore/2026-09-23_session_289b_superpowers-activation.md` + `~/superpowers-work/REPORT.md`)
-1. **Adam:** run the 7-item interactive checklist (REPORT §7) in a fresh tab in `~/superpowers-work/scratch`; record results in REPORT §4 column (c).
+## First (from session 290, 2026-09-24 — superpowers 6.4.1-adam.4 DEPLOYED (adam.3 live-test fixes + adam.4 final-reviewer `inherit`); see `AI_Studio/Handoffs/voxcore/2026-09-24_session_290_superpowers-live-test-D-E.md`)
+**Paste-ready prompt for the adam.5 tab (Opus 5.5, ultracode):** `AI_Studio/Handoffs/voxcore/2026-09-24_adam5_implementation_prompt.md` — Phase 0 Opus baseline → Phase 1 tooling/guide repairs → Phase 2 fork changes (evals, agents, hook, review ranks 4/7/9/10, A02, rank 3 CONFIGURE-FIRST, trims) → Phase 3 verification + deploy → Phase 4 docs. Adam edits its "Standing authorizations" block before pasting.
+0. **Model note:** evals and headless probes use the session's default model as the subject; every number so far was measured under Fable 5.1. Under Opus 5.5, re-run the baseline once before comparing. Eval children load NO CLAUDE.md (verified); override lines are tested with `partE/run_probes.ps1` or an eval case with `execution: append_system_prompt`.
+1. **Adam:** read `~/superpowers-work/live_tests/2026-09-23/REVIEW_FINDINGS.md` § Synthesis (ranked ten), `fork/FORK-NOTES.md` § adam.3/adam.4, and handoff § 7c (ChatGPT proposal map); decide the adam.5 scope (trims + ranks 3–10 + the mapped P01/P02/P04 items; rank 3 is CONFIGURE-FIRST).
+2. adam.5 per `~/superpowers-work/README.md` loop: fork edits → `update_deployed.ps1 -DryRun` → `eval_run.ps1 -Plugin <fork>` both tags (no deploy needed for evals) → deploy → `partE/run_probes.ps1` for any behavior claim. Write the FORK-NOTES entry BEFORE deploying. Tooling first: P03 updater exit-code/snapshot repairs and the P05 launcher/guide corrections (not fork files, no version bump).
+3. Small fixes queued: `hooks/run-hook.cmd` mingw64 probe gap + test pin (README § Known issues 1); `tools/activation/eval_run.ps1` trace-copy loop (copies 0; use `partE/copy_traces.py` meanwhile); a `readonly-reviewer` agent type (Read/Grep/Glob) for read-only workflows.
+4. Optional interactive re-check of S11 and S13 in a fresh scratch tab (guide § 0 setup); headless evidence is n=3 each.
+5. Cleanup (Adam's call): ~130 `%TEMP%\claude-eval-*` dirs, 18 clones under `live_tests/2026-09-23/partE/repos/`, the 446 KB `w0qpx1320.output` task file.
+
+## Then (from session 289b, 2026-09-23 — superpowers is ACTIVE and verified; see `AI_Studio/Handoffs/voxcore/2026-09-23_session_289b_superpowers-activation.md` + `~/superpowers-work/REPORT.md`)
+1. ~~**Adam:** run the 7-item interactive checklist (REPORT §7) in a fresh tab in `~/superpowers-work/scratch`; record results in REPORT §4 column (c).~~ DONE 2026-09-23 evening via the live test Part A (A1–A6 PASS per `00_SETUP_PREFLIGHT.md`).
 2. Two override edits for a VoxCore-primary workflow (`memory/todo.md` item 2), mirror in `CLAUDE_MD_OVERRIDES.md`, then `python tools/cc_context_capture.py --label overrides-v2` against **60.5k** (the new baseline with superpowers on).
 3. adam.3 eval-gated trims: n=3 before/after both arms with `superpowers-work/tools/activation/eval_run.ps1` (keeps traces, logs the CLAUDE.md SHA); bump to adam.3 with a FORK-NOTES entry; robocopy over the deployed copy.
 4. With/without comparison on three real VoxCore tool tasks (`claude --plugin-dir`); nobody has run it.
-5. Rollback recipe if anything misbehaves: move `~/.claude/skills/superpowers` out of the skills folder (renaming does not unload it) and restore `C:\Users\atayl\CLAUDE.md` from `CLAUDE.md.active_20260923_171424_superpowers` or the pre-block backup.
+5. Rollback recipe if anything misbehaves: move `~/.claude/skills/superpowers` out of the skills folder (renaming does not unload it) and restore `C:\Users\atayl\CLAUDE.md` from the NEWEST `CLAUDE.md.active_*_line10` snapshot (2026-09-24, ten lines). The 2026-09-23 snapshot `CLAUDE.md.active_20260923_171424_superpowers` predates line 10 and would silently drop it; the pre-block backup drops the whole block.
 
 ## Then (from session 288b, 2026-09-22 evening — audit v3 follow-ups)
 1. `/start-up`, then the USER-RUN checks listed in `AI_Studio/Reports/cc_audit_v3_20260922-1804/REPORT.md` § Verification; confirm `python -c "import sys;print(sys.stdout.encoding)"` prints utf-8.

@@ -27,6 +27,7 @@ Escalated 2026-09-22 after three logged hits (cp1252 s.280, PowerShell binary pi
 15. **MSYS bash → native cmd.exe quoting**: bash hands a quoted argument to `cmd.exe` as literal `\"…\"`, so `cmd /c "\"C:\path\x.cmd\" arg"` fails with "is not recognized". Write a temp `.cmd` driver (`set "PATH=…"` lines + `call "…"`) and run `cmd /d /c <driver>` with `MSYS_NO_PATHCONV=1`. Pattern: `superpowers-work/fork/tests/hooks/test-run-hook-cmd.sh`.
 16. **`diff` exits 1 when files differ** (2 on error), so `diff … > x.patch && next` silently skips `next`. Use `;` after `diff`/`grep`-style commands and check the output file instead.
 17. **Multi-file text edits**: `python tools/apply_edits.py spec.json` — asserted exact-match edits from a JSON spec, bytes in/out, idempotent. No heredocs, no inline Python.
+18. **`grep -c $'\r'` from the Bash tool is not a line-ending check** (2026-09-24): on an LF-only file it returned 196/196 lines; on piped `a\r\nb` it returned 0. Wrong in both directions; cause not isolated (tool re-escaping vs MSYS grep CR handling). Count bytes instead: PowerShell `[regex]::Matches([IO.File]::ReadAllText($p), "`r`n").Count`, or a Python `open(p,'rb').read().count(b'\r\n')` script file.
 
 ## Recovery paths
 

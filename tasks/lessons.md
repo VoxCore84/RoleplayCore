@@ -133,7 +133,7 @@ This complements the read-only `memory/improvements.md` history and the `memory/
 **Lesson:** Without traces, an eval failure is unattributable (behavior vs judge). And "not in the trace" does not mean "not in the context" for system-prompt content such as CLAUDE.md files.
 **Rule:** Always pass `--keep-temp` on eval runs whose failures you may need to explain, and copy `out/trace.jsonl` files into the evidence folder immediately. To learn what instructions an eval session carried, run a headless probe from a sibling cwd and ask, or read the run's `system init` record; never infer it from a trace grep.
 
-## 2026-09-23 — Eval sessions inherit ancestor CLAUDE.md files, so a global-CLAUDE.md change moves eval results
+## 2026-09-23 — ~~Eval sessions inherit ancestor CLAUDE.md files, so a global-CLAUDE.md change moves eval results~~ [WITHDRAWN 2026-09-24: eval children load no CLAUDE.md; see the 2026-09-24 "WITHDRAWN" entry below. Kept as written for the audit trail.]
 
 **Context:** `routing-react-todo` was 3/3 the day the fork was built (no overrides block) and 4/6 the day the nine-line block landed in `C:\Users\atayl\CLAUDE.md`. The harness cwd is `%TEMP%\claude-eval-*\home\cwd`, which is under `C:\Users\atayl`, so the global file loads in every eval arm (probe `superpowers_activation/probes/block_in_temp_cwd.json`).
 **Lesson:** `claude plugin eval` is not isolated from the user's ancestor CLAUDE.md files; the "without plugin" arm still carries them too. A change to the global file is a confound for any before/after eval comparison.
@@ -150,5 +150,48 @@ This complements the read-only `memory/improvements.md` history and the `memory/
 **Context:** `tests/hooks/test-run-hook-cmd.sh` passed 8/8 three times today from the Bash tool, then failed (7/8) the moment `update_deployed.ps1` ran it through `bash.exe -lc`. Case 2 builds its PATH from `$(command -v git)`: the tool shell resolves `/cmd/git` (`Git\cmd`), a plain Git Bash resolves `/mingw64/bin/git`, and the wrapper's `<gitdir>\..\bin\bash.exe` derivation only works from `cmd`. The wrapper gap is real (silent skip on a `mingw64\bin` PATH) and the test was environment-dependent, so the suite could not have caught it from the shell that ran it.
 **Lesson:** "8/8 from my shell" is evidence about my shell. Tests that read tool locations from the environment must pin them, or run under more than one shell layout before a result counts.
 **Rule:** Before calling a shell-dependent suite green, run it once from a plain `bash.exe -lc` (login shell) as well as from the tool shell, and pin any `command -v` derived paths in test setup. Record which shell produced each count.
+
+## 2026-09-23 — A test guide's expected output must come from a captured output, not from a runbook sentence
+
+**Context:** The live-test guide told Adam that `/context` would show "You have superpowers" once. He ran it: it does not. Two headless `/context` captures with the plugin loaded (VoxCore and CalmCore) had been on disk for hours and contain 0 occurrences of the phrase; `/context` shows the bootstrap only as ~1.3k tokens in the Messages row and lists the agents/skills in tables. The sentence had been copied from the activation runbook, which itself was never checked against a capture. In the same pass the guide's `/agents` step was obsolete: the wizard was removed in 2.1.281.
+**Lesson:** An "expect" line inherited from a prior document is a claim, not evidence. When a capture of the exact command exists, the expectation must be derived from it.
+**Rule:** Before shipping any checklist that says "command X shows Y", grep an actual capture of X for Y (or run X once) and cite the capture in the guide. Re-verify slash-command steps against the installed version's `/help` after each Claude Code update.
+
+## 2026-09-23 — A "permission prompt" on every PowerShell call was a syntax pre-check failing on command length, not an allowlist miss
+
+**Context:** During the superpowers live test in a scratch project, 20 of 20 PowerShell tool calls prompted Adam. I first blamed the missing `PowerShell(*)` rule (VoxCore has it in local settings; scratch did not). The actual prompt text was "Command contains malformed syntax that cannot be parsed: pwsh exited with code 1: The command line is too long." That is Windows refusing a command line over ~8,191 characters inside Claude Code's PowerShell syntax pre-check. An unparseable command matches no permission rule and always falls back to asking. The tab was pushing whole file bodies through PowerShell here-strings.
+**Lesson:** Read the exact prompt text before diagnosing a permission problem. Allowlist rules apply only to commands the harness can parse; giant inline commands can never be pre-approved.
+**Rule:** When a Windows session prompts on every shell call, check the message for "too long" first. Fix by instructing the model to write file contents with Write/Edit and keep shell commands short (the live-test guide now seeds this instruction in Step 0), then add `PowerShell(*)` for the ordinary calls. Do not reach for bypassPermissions.
+
+## 2026-09-24 — A prompt-level tool ban on Workflow agents is advisory: 11 of 95 used Bash anyway
+
+**Context:** Superpowers live test Part D (Workflow `wf_fa59346b-579`, 22 reviewers + 72 skeptics + 1 synthesis). Every prompt opened with "Tools: Read, Grep, Glob ONLY. Never call Edit, Write, Bash…". The journal scan of each agent's self-reported `tools_used` shows 11 of 95 called Bash (grep/find; one also PowerShell), several with an inline justification ("read-only, within permitted scope"). SHA-256 of all 554 files in both plugin trees was identical before and after, so nothing was modified, but the restriction itself did not hold.
+**Lesson:** Agents substitute Bash for Grep/Glob when convenient and self-justify it. Only a tool-list restriction (an agentType whose frontmatter `tools:` excludes the banned tools, or a PreToolUse guard) prevents the call. A before/after hash is the only proof of read-only; the prompt is not.
+**Rule:** For a read-only or tool-restricted fan-out: (1) dispatch with an agentType whose tools list excludes the banned tools (add a minimal `.claude/agents/readonly-reviewer.md` with Read/Grep/Glob if none fits) or gate the run with a daemon PreToolUse rule; (2) hash the protected tree before and after and put the comparison in the report; (3) scan the journal for `tools_used` and report every violation by agent rather than trusting the prompt.
+
+## 2026-09-24 — `claude plugin eval` does not load user-scope plugins: point it at `fork/` before deploying
+
+**Context:** Part E needed after-evals for adam.3 while adam.2 was still deployed at `~/.claude/skills/superpowers`. Concern: the with-arm would load both copies and the without-arm would still have adam.2. A one-case run with `-Plugin fork` settled it from the trace init records: the without-arm session listed 0 `superpowers:*` skills, 0 `superpowers:*` agents and `plugins=[agents-md@builtin]`; the with-arm listed 15 skills and 5 agents once each from `superpowers@inline` at the fork path.
+**Lesson:** The eval harness builds its own plugin set from the path you pass and ignores `~/.claude/skills`; the ancestor CLAUDE.md still loads because the cwd is under `C:\Users\atayl`. So fork evals are clean pre-deploy, and the deploy can wait for a green suite.
+**Rule:** Run before/after evals against `fork/` (`eval_run.ps1 -Plugin <fork>`) before `update_deployed.ps1`, and cite the init-record check (`adam3-isolation-check` traces) rather than assuming. Also: `eval_run.ps1`'s trace-copy loop throws on this JSON shape and copies 0; use `live_tests/2026-09-23/partE/copy_traces.py` until the loop is fixed.
+
+## 2026-09-24 — Write the FORK-NOTES entry before the deploy, not after
+
+**Context:** The adam.3 deploy ran, then I appended a deploy addendum to `fork/FORK-NOTES.md`. FORK-NOTES.md is a shipped file, so the deployed copy no longer matched the fork, and `update_deployed.ps1` refuses a same-version re-run when shipped files differ.
+**Lesson:** Every fork file, documentation included, is under the byte-identical contract; post-deploy edits to any of them need another deploy or a one-file copy that is logged.
+**Rule:** Finish the FORK-NOTES entry (including "evidence: see next addendum" placeholders written as prose, not TODOs) before running the deploy; if a note must follow the deploy, copy that one file to the deployed path, verify `diff -rq`, and add a line to `UPDATE_LOG.md` saying so.
+
+## 2026-09-24 — WITHDRAWN: eval children do NOT load the global CLAUDE.md (supersedes the 2026-09-23 "Eval sessions inherit ancestor CLAUDE.md files" entry)
+
+**Prior claim (2026-09-23, verbatim):** "The harness cwd is `%TEMP%\claude-eval-*\home\cwd`, which is under `C:\Users\atayl`, so the global file loads in every eval arm (probe `superpowers_activation/probes/block_in_temp_cwd.json`)."
+**New claim:** `claude plugin eval` children load no personal or project CLAUDE.md, no user-scope plugins, no hooks or MCP servers. The block is absent in both arms.
+**Evidence:** a probe case run through the eval runner itself (`evals/adam3-inherit-check`, temp plugin copy `partE/tmp_plugin_probe`, prompt "quote numbered line 10 of the Superpowers section or reply NONE"): with-arm NONE, without-arm NONE, 1 turn each, traces copied. The docs (plugin-evals § How runs are isolated) say the same. The 09-23 evidence was a normal headless probe from a temp cwd, which walks ancestor directories; an eval child does not. ChatGPT's consolidated proposal (P02-E) flagged exactly this gap.
+**Consequences:** the 289b line-9 amendment's eval justification (react-todo 4/6 → 3/3) was variance, not the block; its interactive justification (live test S2/S5) stands. Evals measure plugin prose only. Override lines are tested with headless probes (`partE/run_probes.ps1`), which do load the file. The `eval_run.ps1` SHA log is provenance only. Corrections applied with dated notes in FORK-NOTES, README, eval_run.ps1, CURRENT_STATE, both handoffs, the registry row, CLAUDE_MD_OVERRIDES, REPORT § 0 and the memory file.
+**Rule:** a claim about what an isolated harness loads is settled only by a probe run inside that harness. Before crediting a config change with an eval delta, run a marker probe through the same runner. Treat n=6 judge-scored deltas as noise until a mechanism is shown.
+
+## 2026-09-24 — `grep -c $'\r'` reported a CRLF flip that did not happen
+
+**Context:** After editing `~/.claude/commands/swarm.md`, a Bash-tool `grep -c $'\r'` returned 196 (every line) on a file PowerShell showed as 0 CRLF / 196 LF; a pipe probe with a real CR returned 0. The clean 6-hunk diff was the tell.
+**Rule:** Check line endings by byte count, never Bash-tool grep. Detail: `tasks/windows-shell-checklist.md` item 18.
 
 <!-- Append new entries above this line is NOT required; append chronologically below the last entry. -->
