@@ -1,4 +1,6 @@
-# Session 290 (2026-09-24) — Superpowers live test Parts D and E → 6.4.1-adam.3 deployed
+# Session 290 (2026-09-24) — Superpowers live test Parts D and E → 6.4.1-adam.3 deployed, then adam.4
+
+**Session 290 · ~5 h wall clock (23:30–04:15) · commit `f29204820e` on `feature/ai-harvest-quick-wins` (wrap-up; a second small commit records this hash in the index) · spend $110 measured (probes $75, evals $35) + 7.98 M Workflow subagent tokens on plan usage.**
 
 **Tab:** VoxCore, session `4a515fe3-8f2f-4b92-9218-bfaf5817f5a6`, Claude Code 2.1.281, Fable 5.1. **Branch:** `feature/ai-harvest-quick-wins` (no VoxCore code changed; docs, rules, memory only). **Status:** COMPLETE. **Started** after a machine restart killed the blind test tab (`b74d5b31`) right after Part C; that tab's results were intact on disk.
 

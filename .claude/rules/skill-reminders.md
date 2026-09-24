@@ -12,6 +12,7 @@
 | Case answers / filing prose / briefings with citations | **Inline-grounded citation format** — every cited path paired with a verbatim quoted span: `` `path.md`: "the actual text" ``. Verify via `tools/inline_grounding.py`. |
 | Scoring citation quality | `python tools/citation_scorer.py --batch <in.jsonl> --output <out.json> --judge ollama` |
 | Verifying a quote is verbatim in source | `python tools/inline_grounding.py verify --quote "..." --path "<file>"` |
+| Read-only review or audit agents (Workflow `agentType`, Agent `subagent_type`) | `readonly-reviewer` (tools Read/Grep/Glob by definition). A prose "use only Read/Grep/Glob" ban is advisory: 11 of 95 agents ignored it in s.290. Hash the reviewed tree before and after. |
 | Choosing model for sub-agent tasks | Structured catalog/extraction/classification → Sonnet 5. Narrative synthesis / cross-document reasoning / legal-accuracy verification → Opus 5 or Fable 5.1. Don't default-spawn the big model when Sonnet suffices. |
 | Multiple tasks / scope expanding | Suggest tab split (see multi-tab) |
 | Session start | Auto-read `doc/session_state.md` + `todo.md` |
